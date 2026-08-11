@@ -1694,11 +1694,16 @@ def casar_unidades(D, leitos, tolerancia=0.10, verboso=True):
             if p > 0: candidatos.append((p, u, fant))
         candidatos.sort(reverse=True)
         melhor = None
-        for p, u, fant in candidatos[:6]:
+        for p, u, fant in candidatos[:8]:
             calc = por_un.get(u, {}).get('total', 0)
             erro = abs(calc / alvo - 1) if alvo else None
             if melhor is None: melhor = (p, u, fant, calc, erro)
-            if alvo and erro is not None and erro <= tolerancia and p >= 0.34:
+            # Dois sinais independentes: o nome parecer e o número de leitos
+            # bater. Quanto melhor um, menos exigente dá para ser com o outro.
+            # "Hospital São Francisco - Bauru" vira "HOSPITAL BAURU" no CNES:
+            # nome fraco, mas 45 leitos contra 45 não é coincidência.
+            limiar = 0.25 if (erro is not None and erro > 0.02) else 0.15
+            if alvo and erro is not None and erro <= tolerancia and p >= limiar:
                 mapa[u] = k_linha       # índice da linha: nomes se repetem, índices não
                 diag.append({'unidade': r['name'], 'cidade': r.get('city'), 'uf': uf,
                              'cnes': u, 'fantasia': fant, 'pontuacao': round(p, 3),
