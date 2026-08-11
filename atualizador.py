@@ -1980,7 +1980,15 @@ def _cli():
                     help='refaz o casamento unidade->CNES e regrava cnes_map.json')
     ap.add_argument('--cnj', nargs='?', const=True, metavar='AAAAMM',
                     help='sondagem do DataJud (não grava na série)')
+    ap.add_argument('--refazer', metavar='AAAAMM',
+                    help='reprocessa uma competência da ANS mesmo que a base já esteja nela '
+                         '(usado para reescrever por encadeamento o que entrou só por nível)')
     a = ap.parse_args()
+
+    if a.refazer:
+        if not re.fullmatch(r'\d{6}', a.refazer):
+            raise SystemExit('Use o formato AAAAMM, por exemplo: --refazer 202606')
+        acao_beneficiarios(a.refazer, None, False, a.cache); return
 
     if a.cnes or a.cnes_descobrir:
         acao_cnes(a.cnes if isinstance(a.cnes, str) else None,
