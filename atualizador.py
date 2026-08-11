@@ -1428,7 +1428,9 @@ o parser casa coluna por padrão no cabeçalho e registra o que casou, igual ao
 da ANS. Se o DATASUS renomear um campo, o script avisa em vez de somar errado.
 """
 
-CNES_PAGINA = 'https://cnes.datasus.gov.br/pages/downloads/arquivosBaseDados.jsp'
+# A página de downloads do CNES é AngularJS: o HTML vem vazio e a lista de
+# arquivos chega depois, deste serviço. Ler o HTML não devolve nada.
+CNES_LISTA = 'https://cnes.datasus.gov.br/services/arquivos-download/base-dados/'
 CNES_ARQUIVO = 'https://cnes.datasus.gov.br/EstatisticasServlet?path=BASE_DE_DADOS_CNES_{ym}.ZIP'
 MAPA_CNES = os.path.join(HERE, 'cnes_map.json')
 DIAG_CNES = os.path.join(HERE, 'diagnostico_cnes.json')
@@ -1440,9 +1442,15 @@ RUIDO = {'hospital','hosp','clinica','clínica','sa','s','a','ltda','de','da','d
 
 
 def cnes_competencia_mais_recente():
-    """Lê a página de downloads do CNES e devolve a competência mais nova."""
-    html = get(CNES_PAGINA).text
-    yms = sorted(set(re.findall(r'BASE_DE_DADOS_CNES_(\d{6})\.ZIP', html, re.I)))
+    """Competência mais nova publicada pelo CNES.
+
+    O serviço devolve [{sequencial, nomeArquivo}]. Leio o texto cru e caço o
+    padrão do nome: se um dia mudarem o formato do JSON, o regex ainda acha.
+    """
+    txt = get(CNES_LISTA).text
+    yms = sorted(set(re.findall(r'BASE_DE_DADOS_CNES_(\d{6})\.ZIP', txt, re.I)))
+    if not yms:
+        print('        o serviço do CNES respondeu, mas sem nenhum nome de arquivo reconhecível')
     return yms[-1] if yms else None
 
 
@@ -1912,38 +1920,76 @@ def _janela(ym):
     return ini, f'{prox[:4]}-{prox[4:6]}-01'
 
 
-def cnj_assuntos(ym, aliases=('tjsp', 'tjrj', 'tjmg'), topo=400):
-    """Descobre quais assuntos aparecem nos processos novos do mês.
+def cnj_sondar(alias, ym, topo=400):
+    """Sondagem em três degraus, do genérico ao específico.
 
-    Sem isso eu teria que adivinhar os códigos da TPU. Perguntando à base,
-    o próprio DataJud diz como os tribunais estão classificando.
+    Na primeira tentativa a consulta por mês devolveu zero em todos os
+    tribunais, e zero não diz se o campo de data tem outro nome, se o índice
+    ainda não recebeu a competência ou se realmente não há processo. Então
+    pergunto por partes: quantos documentos existem, como eles se distribuem
+    no tempo, e só então o detalhe do mês. Cada degrau elimina uma hipótese.
     """
-    ini, fim = _janela(ym)
+    fora = {}
+    # 1) o índice tem documentos?
+    d = _cnj_post(alias, {'size': 0, 'track_total_hits': True, 'query': {'match_all': {}}})
+    if '_erro' in d:
+        return {'erro': d['_erro']}
+    fora['documentos_no_indice'] = ((d.get('hits') or {}).get('total') or {}).get('value')
+
+    # 2) como se distribuem por mês de ajuizamento? (também testa o nome do campo)
+    d = _cnj_post(alias, {
+        'size': 0,
+        'aggs': {'meses': {'date_histogram': {'field': 'dataAjuizamento',
+                                              'calendar_interval': 'month',
+                                              'min_doc_count': 1,
+                                              'order': {'_key': 'desc'}}}}})
+    baldes = (((d.get('aggregations') or {}).get('meses') or {}).get('buckets') or [])
+    fora['meses'] = [{'mes': (b.get('key_as_string') or '')[:7], 'n': b['doc_count']}
+                     for b in baldes[:18]]
+    if not baldes:
+        fora['aviso'] = ('nenhum balde por dataAjuizamento — ou o campo tem outro nome '
+                         'neste tribunal, ou o índice não expõe a data de ajuizamento')
+
+    # 3) assuntos do mês pedido; se ele estiver vazio, usa o mês mais recente que existe
+    alvo = ym
+    disponiveis = [b['mes'] for b in fora['meses']]
+    pedido = f'{ym[:4]}-{ym[4:6]}'
+    if pedido not in disponiveis and disponiveis:
+        alvo = disponiveis[0].replace('-', '')
+        fora['substituiu_mes'] = {'pedido': pedido, 'usado': disponiveis[0]}
+    ini, fim = _janela(alvo)
+    d = _cnj_post(alias, {
+        'size': 0, 'track_total_hits': True,
+        'query': {'bool': {'filter': [{'range': {'dataAjuizamento': {'gte': ini, 'lt': fim}}}]}},
+        'aggs': {'assuntos': {'terms': {'field': 'assuntos.codigo', 'size': topo},
+                              'aggs': {'nome': {'terms': {'field': 'assuntos.nome.keyword',
+                                                          'size': 1}}}}}})
+    baldes = (((d.get('aggregations') or {}).get('assuntos') or {}).get('buckets') or [])
+    lista = [{'codigo': b['key'],
+              'nome': (((b.get('nome') or {}).get('buckets') or [{}])[0]).get('key', ''),
+              'n': b['doc_count']} for b in baldes]
+    fora['mes_analisado'] = rotulo(alvo)
+    fora['total_mes'] = ((d.get('hits') or {}).get('total') or {}).get('value')
+    fora['assuntos_top'] = lista[:60]
+    fora['saude'] = [x for x in lista if re.search(PADRAO_SAUDE, x['nome'] or '', re.I)]
+    return fora
+
+
+def cnj_assuntos(ym, aliases=('tjsp', 'tjrj', 'tjmg'), topo=400):
     achados = {}
     for alias in aliases:
-        corpo = {
-          'size': 0,
-          'query': {'bool': {'filter': [
-              {'range': {'dataAjuizamento': {'gte': ini, 'lt': fim}}}]}},
-          'aggs': {'assuntos': {'terms': {'field': 'assuntos.codigo', 'size': topo},
-                                'aggs': {'nome': {'terms': {'field': 'assuntos.nome.keyword',
-                                                            'size': 1}}}}}
-        }
-        d = _cnj_post(alias, corpo)
-        if '_erro' in d:
-            achados[alias] = {'erro': d['_erro']}; continue
-        baldes = (((d.get('aggregations') or {}).get('assuntos') or {}).get('buckets') or [])
-        lista = []
-        for b in baldes:
-            nb = (((b.get('nome') or {}).get('buckets') or [{}])[0]).get('key', '')
-            lista.append({'codigo': b['key'], 'nome': nb, 'n': b['doc_count']})
-        achados[alias] = {
-          'total_mes': ((d.get('hits') or {}).get('total') or {}).get('value'),
-          'assuntos': lista,
-          'saude': [x for x in lista if re.search(PADRAO_SAUDE, x['nome'] or '', re.I)],
-        }
-        print(f"      {alias}: {len(lista)} assuntos, "
-              f"{len(achados[alias]['saude'])} batem com saúde suplementar")
+        a = cnj_sondar(alias, ym, topo)
+        achados[alias] = a
+        if 'erro' in a:
+            print(f'      {alias}: {a["erro"][:90]}'); continue
+        print(f"      {alias}: {a.get('documentos_no_indice')} documentos no índice · "
+              f"{len(a.get('meses') or [])} meses com dado · "
+              f"{a.get('mes_analisado')}: {a.get('total_mes')} processos, "
+              f"{len(a.get('saude') or [])} assuntos de saúde suplementar")
+        if a.get('substituiu_mes'):
+            print(f"         (o mês pedido não existe no índice; usei {a['substituiu_mes']['usado']})")
+        if a.get('aviso'):
+            print(f"         {a['aviso']}")
     return achados
 
 
@@ -1985,7 +2031,7 @@ def acao_cnj(ym=None, verboso=True):
 
     achados = cnj_assuntos(ref)
     codigos = sorted({x['codigo'] for a in achados.values()
-                      if isinstance(a, dict) for x in a.get('saude', [])})
+                      if isinstance(a, dict) for x in (a.get('saude') or [])})
     print(f'        {len(codigos)} códigos de assunto de saúde suplementar encontrados: {codigos[:12]}')
     resultado = {'competencia': p_ref, 'base_all_instances': alvo,
                  'codigos_saude': codigos, 'por_tribunal_amostra': {}}
@@ -2002,6 +2048,38 @@ def acao_cnj(ym=None, verboso=True):
     json.dump(resultado, open(DIAG_CNJ, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(f'        diagnostico_cnj.json gravado')
     return resultado
+
+
+def embutir_base(caminho_html=None):
+    """Reescreve a base embutida no HTML com o dados.json atual.
+
+    O dashboard busca a base publicada ao abrir, mas guarda uma cópia dentro do
+    próprio HTML para funcionar sem rede. Se essa cópia envelhece, quem abrir o
+    arquivo offline vê números velhos sem perceber. Aqui ela é reescrita a cada
+    rodada, e o arquivo continua sendo um HTML só, sem dependência nenhuma.
+    """
+    if not os.path.exists(DADOS):
+        print('  sem dados.json — nada a embutir'); return None
+    htmls = [caminho_html] if caminho_html else [
+        os.path.join(HERE, f) for f in sorted(os.listdir(HERE)) if f.endswith('.html')]
+    dados = open(DADOS, encoding='utf-8').read()
+    tocados = []
+    for h in htmls:
+        if not h or not os.path.exists(h): continue
+        txt = open(h, encoding='utf-8').read()
+        novo, n = re.subn(r'(?s)(let DATA = )\{.*?\}(;\nconst SOURCES)',
+                          lambda m: m.group(1) + dados + m.group(2), txt, count=1)
+        if not n:
+            print(f'  {os.path.basename(h)}: não achei a base embutida, deixei como está')
+            continue
+        if novo != txt:
+            open(h, 'w', encoding='utf-8').write(novo)
+            tocados.append(os.path.basename(h))
+    if tocados:
+        print(f'  base embutida atualizada em: {", ".join(tocados)}')
+    else:
+        print('  base embutida já estava igual ao dados.json')
+    return tocados
 
 
 def main() -> None:
@@ -2074,6 +2152,8 @@ def _cli():
     ap.add_argument('--auto', action='store_true',
                     help='rodada completa: IPCA + beneficiários da ANS + leitos do CNES '
                          '(é também o comportamento padrão, sem nenhuma opção)')
+    ap.add_argument('--embutir', action='store_true',
+                    help='reescreve a cópia da base dentro do HTML a partir do dados.json')
     ap.add_argument('--refazer', metavar='AAAAMM',
                     help='reprocessa uma competência da ANS mesmo que a base já esteja nela '
                          '(usado para reescrever por encadeamento o que entrou só por nível)')
@@ -2096,6 +2176,9 @@ def _cli():
         base['ipca'] = ip
         print(f"IPCA: {antes or '—'} -> {ip['competencia']}")
         gravar_base(base); return
+
+    if a.embutir:
+        embutir_base(); return
 
     if a.auto:
         acao_auto(); return

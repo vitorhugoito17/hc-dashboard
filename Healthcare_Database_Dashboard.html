@@ -1832,11 +1832,15 @@ function covAudit(){
     const rr=COV_REASON.find(x=>x.re.test(k));
     const atual = alvo!==null && perKey(v.last)!==null && perKey(v.last)>=alvo;
     if(rr && rr.motivo==='zip' && atual){
-      const ret=a.pda024.retidas.length;
-      return {path:k, label:COV_LABEL[k]||k, last:v.last, n:v.n, motivo:'parcial',
-        txt:`Competência ${a.pda024.competencia} processada a partir dos ZIPs do PDA-024. `+
-            `${a.pda024.incorporadas.length} operadoras reconciliaram e entraram; ${ret} ficaram em mai/26 `+
-            `por diferença de escopo de grupo — detalhe na tabela de reconciliação acima.`};
+      const p=a.pda024, met=p.metodo||{};
+      const ret=(p.retidas||[]).length;
+      const enc=Object.values(met).filter(x=>x==='encadeado').length;
+      const niv=Object.values(met).filter(x=>x==='nível').length;
+      return {path:k, label:COV_LABEL[k]||k, last:v.last, n:v.n, motivo:ret?'parcial':'ok',
+        txt:`Competência ${p.competencia} processada a partir dos ZIPs do PDA-024. `+
+            `${niv} operadoras entraram pelo nível absoluto da ANS e ${enc} por encadeamento de variação`+
+            (ret?`; ${ret} ficaram em ${p.competencia_anterior||'mai/26'} por não serem mensuráveis nem em variação`:'')+
+            ` — detalhe na tabela de reconciliação acima.`};
     }
     return {path:k, label:COV_LABEL[k]||k, last:v.last, n:v.n,
             motivo:rr?rr.motivo:'ok', txt:rr?rr.txt:'Em dia com a última publicação da fonte.'};
@@ -1850,22 +1854,29 @@ function renderReconc(){
   const a=S('ans'); const p=a&&a.pda024; if(!p) return '';
   const lv=S('ben.lives_m');
   const i=lv.periods.indexOf(p.competencia);
+  const met=p.metodo||{};
+  const ANT=p.competencia_anterior||'mai/26';
+  const SELO={'nível':['badge-op','nível ANS'],'encadeado':['badge-up','encadeado'],
+              'retido':['badge-n','parado em '+ANT]};
   const linha=(op,dentro)=>{
     const v=lv.series[op]||[];
     const novo=i>=0?v[i]:null;
     let ant=null; for(let k=(i>=0?i-1:v.length-1);k>=0;k--){ if(isNum(v[k])){ant=v[k];break;} }
     const d=(isNum(novo)&&isNum(ant))?((novo-ant)/ant):null;
+    const st=met[op]||(dentro?'nível':'retido');
+    const [cls,lab]=SELO[st]||(ant===null?['badge-info','sem histórico']:SELO['retido']);
     return `<tr><td class="lbl">${esc(op)}</td>
       <td>${fmtVal(ant,'num0')}</td>
       <td>${isNum(novo)?fmtVal(novo,'num0'):'—'}</td>
       <td class="${d!==null&&d<0?'num-neg':''}">${d!==null?fmtVal(d,'pct_frac'):'—'}</td>
-      <td><span class="badge ${dentro?'badge-op':(ant===null?'badge-info':'badge-n')}">${dentro?p.competencia:(ant===null?'sem histórico':'mai/26')}</span></td></tr>`;
+      <td><span class="badge ${cls}">${lab}</span></td></tr>`;
   };
+  const nEnc=Object.values(met).filter(x=>x==='encadeado').length;
   return `
     <div class="section-h">Reconciliação por operadora — ${p.competencia}</div>
-    <div class="section-lede">A base histórica vem da consolidação do Bradesco BBI; o ponto novo vem do PDA-024 agrupado por razão social. Onde as duas metodologias batem dentro de ${(p.tolerancia*100).toFixed(1)}%, a competência nova entrou. Onde divergem, é diferença de escopo de grupo econômico — nesses casos a série ficou em mai/26 de propósito, porque gravar produziria um degrau que não existe no mercado.</div>
+    <div class="section-lede">A base histórica vem da consolidação do Bradesco BBI, que agrupa CNPJs por critério societário próprio; o ponto novo vem do PDA-024 agrupado por razão social. Onde os dois escopos coincidem dentro de ${(p.tolerancia*100).toFixed(1)}%, entra o <b>número absoluto da ANS</b> — é o selo <i>nível ANS</i>. Onde divergem, o nível não é comparável, mas a variação é: aplica-se a variação ${ANT}→${p.competencia} medida na própria ANS sobre o último nível da base${nEnc?` — são as ${nEnc} linhas marcadas como <i>encadeado</i>`:''}. É o mesmo procedimento de emenda que o IBGE usa ao trocar de amostra. Só fica parada a operadora que não dá para medir nem em variação, por não existir no cadastro sob nome reconhecível.</div>
     <div class="table-wrap"><table>
-      <thead><tr><th class="lbl">Operadora</th><th>mai/26 (mil)</th><th>${p.competencia} (mil)</th><th>Variação</th><th>Competência</th></tr></thead>
+      <thead><tr><th class="lbl">Operadora</th><th>${ANT} (mil)</th><th>${p.competencia} (mil)</th><th>Variação</th><th>Como entrou</th></tr></thead>
       <tbody>
         ${p.incorporadas.map(o=>linha(o,true)).join('')}
         ${p.retidas.map(o=>linha(o,false)).join('')}
