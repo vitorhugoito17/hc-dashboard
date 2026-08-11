@@ -1092,8 +1092,9 @@ FONTES = {
    'nome': 'CNJ · Novas ações de saúde suplementar',
    'dir': 'https://api-publica.datajud.cnj.jus.br/',
    'tipo': 'cnj', 'alimenta': ['legal.lawsuits','legal.topics'],
-   'obs': 'API pública com chave divulgada na wiki do CNJ. Em sondagem: conta, '
-          'compara com a base e só publica quando reproduzir.',
+   'obs': 'API pública funciona, mas o índice está ~18 meses atrasado: em ago/26 o mês '
+          'mais recente do TJSP era jan/25. Não serve para uma série que já está em '
+          'jun/26. A sondagem continua rodando todo mês para avisar quando alcançar.',
  },
  'sindusfarma': {
    'nome': 'Sindusfarma · Vendas do mercado farmacêutico',
