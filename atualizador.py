@@ -1441,13 +1441,46 @@ RUIDO = {'hospital','hosp','clinica','clínica','sa','s','a','ltda','de','da','d
          'unidade','und','filial','matriz','grupo','rede','h'}
 
 
+# O DATASUS devolve 503 para cliente que não parece navegador. Não é rejeição
+# de conteúdo — é o WAF na frente do serviço. Com estes cabeçalhos ele responde.
+CAB_CNES = {
+ 'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'),
+ 'Accept': 'application/json, text/plain, */*',
+ 'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+ 'Referer': 'https://cnes.datasus.gov.br/pages/downloads/arquivosBaseDados.jsp',
+ 'Connection': 'keep-alive',
+}
+
+
+def _get_cnes(url, tentativas=4, **kw):
+    """GET no DATASUS com cara de navegador e paciência com o 503."""
+    ultima = None
+    for k in range(tentativas):
+        try:
+            r = requests.get(url, headers=CAB_CNES, timeout=(30, 300), **kw)
+            if r.status_code in (429, 500, 502, 503, 504):
+                ultima = f'{r.status_code} {r.reason}'
+                espera = 8 * (k + 1)
+                print(f'        DATASUS respondeu {r.status_code}; nova tentativa em {espera}s')
+                time.sleep(espera); continue
+            r.raise_for_status()
+            return r
+        except Exception as e:
+            ultima = str(e)
+            if k == tentativas - 1: break
+            time.sleep(8 * (k + 1))
+    raise RuntimeError(f'DATASUS indisponível para este cliente após {tentativas} tentativas '
+                       f'({ultima}). O serviço costuma barrar requisição de fora do Brasil.')
+
+
 def cnes_competencia_mais_recente():
     """Competência mais nova publicada pelo CNES.
 
     O serviço devolve [{sequencial, nomeArquivo}]. Leio o texto cru e caço o
     padrão do nome: se um dia mudarem o formato do JSON, o regex ainda acha.
     """
-    txt = get(CNES_LISTA).text
+    txt = _get_cnes(CNES_LISTA).text
     yms = sorted(set(re.findall(r'BASE_DE_DADOS_CNES_(\d{6})\.ZIP', txt, re.I)))
     if not yms:
         print('        o serviço do CNES respondeu, mas sem nenhum nome de arquivo reconhecível')
@@ -1456,7 +1489,18 @@ def cnes_competencia_mais_recente():
 
 def baixar_cnes(ym):
     destino = os.path.join(CACHE, 'cnes', f'BASE_DE_DADOS_CNES_{ym}.ZIP')
-    return baixar(CNES_ARQUIVO.format(ym=ym), destino)
+    if os.path.exists(destino) and _zip_integro(destino):
+        print(f'        {os.path.basename(destino)} já em cache')
+        return destino
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    print(f'        baixando a base do CNES de {rotulo(ym)} (algumas centenas de MB)')
+    with _get_cnes(CNES_ARQUIVO.format(ym=ym), stream=True) as r, open(destino, 'wb') as f:
+        for pedaco in r.iter_content(1 << 20):
+            f.write(pedaco)
+    if not _zip_integro(destino):
+        os.remove(destino)
+        raise RuntimeError('o arquivo do CNES veio truncado ou não é um ZIP legível')
+    return destino
 
 
 def _membro(z, padrao):
@@ -1937,8 +1981,16 @@ def cnj_sondar(alias, ym, topo=400):
     fora['documentos_no_indice'] = ((d.get('hits') or {}).get('total') or {}).get('value')
 
     # 2) como se distribuem por mês de ajuizamento? (também testa o nome do campo)
+    #
+    # A base tem datas corrompidas — anos 2611, 4507, 9010 aparecem com milhões
+    # de processos, provavelmente erro de digitação ou de carga nos tribunais.
+    # Sem recortar a janela plausível, o mês "mais recente" do índice vira o ano
+    # 9010 e a sondagem inteira olha para o lugar errado.
+    limite = f'{ym[:4]}-{ym[4:6]}-28'
     d = _cnj_post(alias, {
         'size': 0,
+        'query': {'bool': {'filter': [
+            {'range': {'dataAjuizamento': {'gte': '2015-01-01', 'lte': limite}}}]}},
         'aggs': {'meses': {'date_histogram': {'field': 'dataAjuizamento',
                                               'calendar_interval': 'month',
                                               'min_doc_count': 1,
@@ -1947,16 +1999,17 @@ def cnj_sondar(alias, ym, topo=400):
     fora['meses'] = [{'mes': (b.get('key_as_string') or '')[:7], 'n': b['doc_count']}
                      for b in baldes[:18]]
     if not baldes:
-        fora['aviso'] = ('nenhum balde por dataAjuizamento — ou o campo tem outro nome '
-                         'neste tribunal, ou o índice não expõe a data de ajuizamento')
+        fora['aviso'] = ('nenhum balde por dataAjuizamento na janela 2015→hoje — ou o campo '
+                         'tem outro nome neste tribunal, ou o índice não expõe a data')
 
-    # 3) assuntos do mês pedido; se ele estiver vazio, usa o mês mais recente que existe
+    # 3) assuntos do mês pedido; se ele estiver vazio, usa o mês plausível mais recente
     alvo = ym
     disponiveis = [b['mes'] for b in fora['meses']]
     pedido = f'{ym[:4]}-{ym[4:6]}'
     if pedido not in disponiveis and disponiveis:
         alvo = disponiveis[0].replace('-', '')
-        fora['substituiu_mes'] = {'pedido': pedido, 'usado': disponiveis[0]}
+        fora['substituiu_mes'] = {'pedido': pedido, 'usado': disponiveis[0],
+                                  'motivo': 'o mês pedido ainda não aparece no índice'}
     ini, fim = _janela(alvo)
     d = _cnj_post(alias, {
         'size': 0, 'track_total_hits': True,
