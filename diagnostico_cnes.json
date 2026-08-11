@@ -1,0 +1,2958 @@
+{
+ "competencia": "202606",
+ "tipos_de_leito": [
+  [
+   "CLINICA GERAL",
+   171062
+  ],
+  [
+   "CIRURGIA GERAL",
+   73820
+  ],
+  [
+   "PEDIATRIA CLINICA",
+   49784
+  ],
+  [
+   "PSIQUIATRIA",
+   44922
+  ],
+  [
+   "UTI-A TIPO II",
+   37961
+  ],
+  [
+   "OBSTETRICIA CIRURGICA",
+   29470
+  ],
+  [
+   "OBSTETRICIA CLINICA",
+   29074
+  ],
+  [
+   "ORTOPEDIATRAUMATOLOGIA",
+   22647
+  ],
+  [
+   "CARDIOLOGIA",
+   14864
+  ],
+  [
+   "ONCOLOGIA",
+   13422
+  ],
+  [
+   "CRONICOS",
+   12689
+  ],
+  [
+   "CIRURGICO/DIAGNOSTICO/TERAPEUTICO",
+   11988
+  ],
+  [
+   "SAUDE MENTAL",
+   8992
+  ],
+  [
+   "UTI-A TIPO III",
+   8647
+  ],
+  [
+   "GINECOLOGIA",
+   8222
+  ],
+  [
+   "UTI NEONATAL - TIPO II",
+   8048
+  ],
+  [
+   "PEDIATRIA CIRURGICA",
+   6633
+  ],
+  [
+   "UTI PEDIATRICA - TIPO II",
+   6402
+  ],
+  [
+   "UNIDADE ISOLAMENTO",
+   6134
+  ],
+  [
+   "UNIDADE DE CUIDADOS INTERMEDIARIOS NEONATAL CONVENCIONAL",
+   5551
+  ],
+  [
+   "NEUROCIRURGIA",
+   5424
+  ],
+  [
+   "NEUROLOGIA",
+   5001
+  ],
+  [
+   "UCI-A",
+   4443
+  ],
+  [
+   "REABILITACAO",
+   4347
+  ],
+  [
+   "NEFROLOGIAUROLOGIA",
+   3799
+  ],
+  [
+   "SUPORTE VENTILATORIO PULMONAR",
+   3759
+  ],
+  [
+   "NEFROUROLOGIA",
+   3397
+  ],
+  [
+   "OFTALMOLOGIA",
+   3376
+  ],
+  [
+   "NEONATOLOGIA",
+   3287
+  ],
+  [
+   "PLASTICA",
+   3086
+  ],
+  [
+   "ACOLHIMENTO NOTURNO",
+   2855
+  ],
+  [
+   "GERIATRIA",
+   2809
+  ],
+  [
+   "PNEUMOLOGIA",
+   2739
+  ],
+  [
+   "OTORRINOLARINGOLOGIA",
+   2344
+  ],
+  [
+   "AIDS",
+   2328
+  ],
+  [
+   "GASTROENTEROLOGIA",
+   2180
+  ],
+  [
+   "UTI II ADULTO-SINDROME RESP. AGUDA GRAVE (SRAG)-COVID-19",
+   2120
+  ],
+  [
+   "UTI NEONATAL - TIPO III",
+   1887
+  ],
+  [
+   "HEMATOLOGIA",
+   1885
+  ],
+  [
+   "UTI-A TIPO I",
+   1865
+  ]
+ ],
+ "casamento": [
+  {
+   "unidade": "Hospital da Criança",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550302080168",
+   "fantasia": "HOSPITAL DA CRIANCA",
+   "pontuacao": 1.0,
+   "base": 73.0,
+   "calculado": 73,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Central de Guaianases",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550302819473",
+   "fantasia": "HOSPITAL CENTRAL SUL",
+   "pontuacao": 0.4,
+   "base": 42.0,
+   "calculado": 42,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz Jabaquara",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550302089599",
+   "fantasia": "HOSPITAL SAO LUIZ JABAQUARA",
+   "pontuacao": 1.0,
+   "base": 214.0,
+   "calculado": 214,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Santa Isabel",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550302079445",
+   "fantasia": "HOSPITAL SANTA ISABEL",
+   "pontuacao": 1.0,
+   "base": 78.0,
+   "calculado": 78,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz Itaim",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550302688611",
+   "fantasia": "SAO LUIZ UNIDADE ITAIM",
+   "pontuacao": 1.0,
+   "base": 325.0,
+   "calculado": 325,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz Morumbi",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550303824802",
+   "fantasia": "SAO LUIZ UNIDADE MORUMBI",
+   "pontuacao": 1.0,
+   "base": 187.0,
+   "calculado": 187,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz Anália Franco",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550305907594",
+   "fantasia": "HOSP SAO LUIZ ANALIA FRANCO",
+   "pontuacao": 1.0,
+   "base": 316.0,
+   "calculado": 316,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Villa Lobos",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550305590450",
+   "fantasia": "HOSPITAL VILLA LOBOS",
+   "pontuacao": 1.0,
+   "base": 154.0,
+   "calculado": 154,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Maternidade São Luiz Star",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550300993956",
+   "fantasia": "MATERNIDADE SAO LUIZ STAR",
+   "pontuacao": 1.0,
+   "base": 230.0,
+   "calculado": 230,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Vila Nova Star",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550309735372",
+   "fantasia": "HOSPITAL VILA NOVA STAR",
+   "pontuacao": 1.0,
+   "base": 42.0,
+   "calculado": 42,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz Alphaville",
+   "cidade": "Barueri",
+   "uf": "SP",
+   "cnes": "3505704873351",
+   "fantasia": "HOSPITAL SAO LUIZ ALPHAVILLE",
+   "pontuacao": 1.0,
+   "base": 58.0,
+   "calculado": 58,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "viValle",
+   "cidade": "São José dos Campos",
+   "uf": "SP",
+   "cnes": "3549906988938",
+   "fantasia": "HOSPITAL VIVALLE",
+   "pontuacao": 1.0,
+   "base": 212.0,
+   "calculado": 212,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Orthoservice",
+   "cidade": "São José dos Campos",
+   "uf": "SP",
+   "cnes": "3549903192059",
+   "fantasia": "HOSPITAL ORTHOSERVICE",
+   "pontuacao": 1.0,
+   "base": 12.0,
+   "calculado": 12,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz São Caetano",
+   "cidade": "São Caetano do Sul",
+   "uf": "SP",
+   "cnes": "3548809194258",
+   "fantasia": "HOSPITAL SAO LUIZ SAO CAETANO",
+   "pontuacao": 1.0,
+   "base": 267.0,
+   "calculado": 267,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz São Bernardo - Assunção",
+   "cidade": "São Bernardo do Campo",
+   "uf": "SP",
+   "cnes": "3548703024660",
+   "fantasia": "HOSPITAL SAO LUIZ SAO BERNARDO",
+   "pontuacao": 0.75,
+   "base": 224.0,
+   "calculado": 224,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "IFOR",
+   "cidade": "São Bernardo do Campo",
+   "uf": "SP",
+   "cnes": "3548702080591",
+   "fantasia": "HOSPITAL IFOR",
+   "pontuacao": 1.0,
+   "base": 58.0,
+   "calculado": 58,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Bartira",
+   "cidade": "Santo André",
+   "uf": "SP",
+   "cnes": "3547802084090",
+   "fantasia": "HOSPITAL BARTIRA",
+   "pontuacao": 1.0,
+   "base": 105.0,
+   "calculado": 105,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Maternidade Brasil",
+   "cidade": "Santo André",
+   "uf": "SP",
+   "cnes": "3547802789590",
+   "fantasia": "HOSPITAL E MATERNIDADE BRASIL",
+   "pontuacao": 1.0,
+   "base": 352.0,
+   "calculado": 352,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Ribeirão Pires",
+   "cidade": "Ribeirão Pires",
+   "uf": "SP",
+   "cnes": "3543303580822",
+   "fantasia": "HOSPITAL RIBEIRAO PIRES",
+   "pontuacao": 1.0,
+   "base": 101.0,
+   "calculado": 101,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Sino Brasileiro",
+   "cidade": "Osasco",
+   "uf": "SP",
+   "cnes": "3534405101654",
+   "fantasia": "HOSPITAL SINO BRASILEIRO",
+   "pontuacao": 1.0,
+   "base": 175.0,
+   "calculado": 175,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz Guarulhos",
+   "cidade": "Guarulhos",
+   "uf": "SP",
+   "cnes": "3518804813308",
+   "fantasia": "HOSPITAL SAO LUIZ GUARULHOS",
+   "pontuacao": 1.0,
+   "base": 162.0,
+   "calculado": 162,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Brasil Mauá",
+   "cidade": "Mauá",
+   "uf": "SP",
+   "cnes": "3529402690764",
+   "fantasia": "HOSPITAL E MATERNIDADE BRASIL UNIDADE MAUA",
+   "pontuacao": 0.867,
+   "base": 115.0,
+   "calculado": 115,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Antônio Afonso",
+   "cidade": "Jacareí",
+   "uf": "SP",
+   "cnes": "3524402026112",
+   "fantasia": "HOSPITAL DE CLINICAS ANTONIO AFONSO",
+   "pontuacao": 0.867,
+   "base": 48.0,
+   "calculado": 48,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Santa Luzia Duartina",
+   "cidade": "Duartina",
+   "uf": "SP",
+   "cnes": "3514502790637",
+   "fantasia": "HOSPITAL SANTA LUZIA DUARTINA",
+   "pontuacao": 1.0,
+   "base": 39.0,
+   "calculado": 39,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Luiz Campinas",
+   "cidade": "Campinas",
+   "uf": "SP",
+   "cnes": "3509504135059",
+   "fantasia": "HOSPITAL SAO LUIZ CAMPINAS",
+   "pontuacao": 1.0,
+   "base": 174.0,
+   "calculado": 174,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Novo Atibaia",
+   "cidade": "Atibaia",
+   "uf": "SP",
+   "cnes": "3504102078228",
+   "fantasia": "HOSPITAL NOVO ATIBAIA",
+   "pontuacao": 1.0,
+   "base": 79.0,
+   "calculado": 79,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Lucas",
+   "cidade": "Aracaju",
+   "uf": "SE",
+   "cnes": "2800300002585",
+   "fantasia": "HOSPITAL SAO LUCAS",
+   "pontuacao": 1.0,
+   "base": 177.0,
+   "calculado": 177,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Real D'Or",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304559151583",
+   "fantasia": "CENTRO MEDICO REAL DOR",
+   "pontuacao": 0.4,
+   "base": null,
+   "calculado": 48,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3304552280302",
+     "fantasia": "REAL E BENEMERITA SOC PORTUGUESA DE BENEFICENCIA DO RJ",
+     "p": 0.333,
+     "leitos": 200
+    }
+   ]
+  },
+  {
+   "unidade": "Copa D'Or",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304553005992",
+   "fantasia": "HOSPITAL COPA DOR",
+   "pontuacao": 0.4,
+   "base": 246.0,
+   "calculado": 246,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Balbino",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304552271451",
+   "fantasia": "HOSPITAL BALBINO",
+   "pontuacao": 1.0,
+   "base": 140.0,
+   "calculado": 140,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Quinta D'Or",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304553034984",
+   "fantasia": "HOSPITAL QUINTA DOR",
+   "pontuacao": 0.4,
+   "base": 403.0,
+   "calculado": 403,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Rio Barra",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304554176030",
+   "fantasia": "HOSPITAL DE CLINICAS RIO MAR BARRA HIG",
+   "pontuacao": 0.76,
+   "base": 84.0,
+   "calculado": 84,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Clínica São Vicente",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304552297833",
+   "fantasia": "CLINICA SAO VICENTE",
+   "pontuacao": 1.0,
+   "base": 87.0,
+   "calculado": 87,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Perinatal Laranjeiras",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304550908304",
+   "fantasia": "LARANJEIRAS CLINICA PERINATAL",
+   "pontuacao": 1.0,
+   "base": null,
+   "calculado": 5,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3304552881683",
+     "fantasia": "AMBULATORIO PERINATAL LARANJEIRAS",
+     "p": 0.867,
+     "leitos": 5
+    },
+    {
+     "cnes": "3304552814188",
+     "fantasia": "PERINATAL LARANJEIRAS CASA DE SAUDE LARANJEIRAS",
+     "p": 0.8,
+     "leitos": 85
+    },
+    {
+     "cnes": "3304556159397",
+     "fantasia": "PERINATAL BARRA CASA DE SAUDE LARANJEIRAS",
+     "p": 0.76,
+     "leitos": 149
+    }
+   ]
+  },
+  {
+   "unidade": "Maternidade Perinatal Barra",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304554228391",
+   "fantasia": "MATERNIDADE PERINATAL BARRA",
+   "pontuacao": 1.0,
+   "base": 161.0,
+   "calculado": 161,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Rios D'Or",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304556176666",
+   "fantasia": "HOSPITAL RIOS DOR",
+   "pontuacao": 0.4,
+   "base": 138.0,
+   "calculado": 138,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Badim",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304553048721",
+   "fantasia": "HOSPITAL DR BADIM",
+   "pontuacao": 0.9,
+   "base": 158.0,
+   "calculado": 158,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Oeste D'Or",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304557659415",
+   "fantasia": "HOSPITAL OESTE DOR",
+   "pontuacao": 0.4,
+   "base": 175.0,
+   "calculado": 175,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Bangu",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304557605935",
+   "fantasia": "HOSPITAL BANGU",
+   "pontuacao": 1.0,
+   "base": 49.0,
+   "calculado": 49,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Copa Star",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304559065946",
+   "fantasia": "HOSPITAL COPA STAR",
+   "pontuacao": 1.0,
+   "base": 51.0,
+   "calculado": 51,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Barra D'Or",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304557642415",
+   "fantasia": "SAMARITANO BARRA",
+   "pontuacao": 0.4,
+   "base": 30.0,
+   "calculado": 32,
+   "erro": 0.0667,
+   "status": "casado"
+  },
+  {
+   "unidade": "Norte D'Or",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304556681573",
+   "fantasia": "HOSPITAL NORTE DOR",
+   "pontuacao": 0.4,
+   "base": 146.0,
+   "calculado": 146,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Glória D'Or",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304559837426",
+   "fantasia": "HOSPITAL GLORIA DOR",
+   "pontuacao": 0.4,
+   "base": 218.0,
+   "calculado": 218,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Jutta Batista",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304557535546",
+   "fantasia": "HOSPITAL PRO CRIANCA JUTTA BATISTA",
+   "pontuacao": 0.8,
+   "base": 43.0,
+   "calculado": 49,
+   "erro": 0.1395,
+   "status": "sem casamento confiável",
+   "outros": []
+  },
+  {
+   "unidade": "Samer Resende",
+   "cidade": "Resende",
+   "uf": "RJ",
+   "cnes": "3304202299216",
+   "fantasia": "HOSPITAL SAMER SERVICO DE ASSISTENCIA MEDICA DE RESENDE",
+   "pontuacao": 0.76,
+   "base": 98.0,
+   "calculado": 98,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Niterói D'Or",
+   "cidade": "Niterói",
+   "uf": "RJ",
+   "cnes": "3303303594432",
+   "fantasia": "HOSPITAL NITEROI DOR",
+   "pontuacao": 0.4,
+   "base": 158.0,
+   "calculado": 158,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Macaé D'Or",
+   "cidade": "Macaé",
+   "uf": "RJ",
+   "cnes": "3302404906349",
+   "fantasia": "HOSPITAL MACAE",
+   "pontuacao": 0.5,
+   "base": 98.0,
+   "calculado": 98,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Caxias D'Or",
+   "cidade": "Duque de Caxias",
+   "uf": "RJ",
+   "cnes": "3301707244339",
+   "fantasia": "HOSPITAL CAXIAS DOR",
+   "pontuacao": 0.4,
+   "base": 220.0,
+   "calculado": 220,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Santa Cruz",
+   "cidade": "Curitiba",
+   "uf": "PR",
+   "cnes": "4106903000869",
+   "fantasia": "HOSPITAL SANTA CRUZ",
+   "pontuacao": 1.0,
+   "base": 148.0,
+   "calculado": 148,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Marcos",
+   "cidade": "Recife",
+   "uf": "PE",
+   "cnes": "2611603374599",
+   "fantasia": "HOSPITAL SAO MARCOS",
+   "pontuacao": 1.0,
+   "base": 124.0,
+   "calculado": 124,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Esperança Recife",
+   "cidade": "Recife",
+   "uf": "PE",
+   "cnes": "2611602355906",
+   "fantasia": "HOSPITAL ESPERANCA S A",
+   "pontuacao": 0.5,
+   "base": 250.0,
+   "calculado": 250,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Memorial São José",
+   "cidade": "Recife",
+   "uf": "PE",
+   "cnes": "2611602517140",
+   "fantasia": "HOSPITAL MEMORIAL SAO JOSE",
+   "pontuacao": 1.0,
+   "base": 279.0,
+   "calculado": 279,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Esperança Olinda",
+   "cidade": "Olinda",
+   "uf": "PE",
+   "cnes": "2609602344807",
+   "fantasia": "HOSPITAL ESPERANCA OLINDA",
+   "pontuacao": 1.0,
+   "base": 182.0,
+   "calculado": 182,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Nossa Sra. das Neves",
+   "cidade": "João Pessoa",
+   "uf": "PB",
+   "cnes": "2507507870930",
+   "fantasia": "HOSPITAL DAS NEVES",
+   "pontuacao": 0.52,
+   "base": 232.0,
+   "calculado": 232,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Proncor",
+   "cidade": "Campo Grande",
+   "uf": "MS",
+   "cnes": "5002702599848",
+   "fantasia": "PRONCOR",
+   "pontuacao": 1.0,
+   "base": 123.0,
+   "calculado": 123,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Santa Marina",
+   "cidade": "Campo Grande",
+   "uf": "MS",
+   "cnes": "5002706946194",
+   "fantasia": "HOSPITAL SANTA MARINA",
+   "pontuacao": 1.0,
+   "base": 41.0,
+   "calculado": 41,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "UDI",
+   "cidade": "São Luís",
+   "uf": "MA",
+   "cnes": "2111302309149",
+   "fantasia": "UDI HOSPITAL",
+   "pontuacao": 1.0,
+   "base": 170.0,
+   "calculado": 170,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Santa Helena",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300103019608",
+   "fantasia": "HOSPITAL SANTA HELENA",
+   "pontuacao": 1.0,
+   "base": 208.0,
+   "calculado": 208,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Santa Luzia",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300103005402",
+   "fantasia": "HOSPITAL SANTA LUZIA",
+   "pontuacao": 1.0,
+   "base": 157.0,
+   "calculado": 157,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital do Coração do Brasil",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300105027438",
+   "fantasia": "HOSPITAL DO CORACAO DO BRASIL",
+   "pontuacao": 1.0,
+   "base": 55.0,
+   "calculado": 55,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "DF Star",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300109727353",
+   "fantasia": "DF STAR",
+   "pontuacao": 1.0,
+   "base": 135.0,
+   "calculado": 135,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Carlos",
+   "cidade": "Fortaleza",
+   "uf": "CE",
+   "cnes": "2304403189546",
+   "fantasia": "HOSPITAL SAO CARLOS",
+   "pontuacao": 1.0,
+   "base": 119.0,
+   "calculado": 119,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Rafael",
+   "cidade": "Salvador",
+   "uf": "BA",
+   "cnes": "2927400003808",
+   "fantasia": "HOSPITAL SAO RAFAEL",
+   "pontuacao": 1.0,
+   "base": 290.0,
+   "calculado": 290,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Aliança",
+   "cidade": "Salvador",
+   "uf": "BA",
+   "cnes": "2927402389746",
+   "fantasia": "HOSPITAL ALIANCA",
+   "pontuacao": 1.0,
+   "base": 222.0,
+   "calculado": 222,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Cardio Pulmonar",
+   "cidade": "Salvador",
+   "uf": "BA",
+   "cnes": "2927403814378",
+   "fantasia": "CARDIO PULMONAR DA BAHIA",
+   "pontuacao": 0.867,
+   "base": 128.0,
+   "calculado": 128,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Aeroporto",
+   "cidade": "Lauro de Freitas",
+   "uf": "BA",
+   "cnes": "2919203260801",
+   "fantasia": "HOSPITAL AEROPORTO",
+   "pontuacao": 1.0,
+   "base": 70.0,
+   "calculado": 70,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Santa Emília",
+   "cidade": "Feira de Santana",
+   "uf": "BA",
+   "cnes": "2910803381412",
+   "fantasia": "HOSPITAL SANTA EMILIA",
+   "pontuacao": 1.0,
+   "base": 73.0,
+   "calculado": 73,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Arthur Ramos",
+   "cidade": "Maceió",
+   "uf": "AL",
+   "cnes": "2704302006472",
+   "fantasia": "HOSPITAL MEMORIAL ARTHUR RAMOS",
+   "pontuacao": 0.867,
+   "base": 172.0,
+   "calculado": 172,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Francisco",
+   "cidade": "Ribeirão Preto",
+   "uf": "SP",
+   "cnes": "3543405171946",
+   "fantasia": "HOSPITAL SAO LUCAS RIBEIRANIA",
+   "pontuacao": 0.367,
+   "base": 161.0,
+   "calculado": 143,
+   "erro": 0.1118,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3543402077973",
+     "fantasia": "HOSPITAL SAO LUCAS RIBEIRAO PRETO",
+     "p": 0.36,
+     "leitos": 89
+    },
+    {
+     "cnes": "3543402079038",
+     "fantasia": "HOSPITAL SAO PAULO RIBEIRAO PRETO",
+     "p": 0.35,
+     "leitos": 74
+    },
+    {
+     "cnes": "3543407420595",
+     "fantasia": "HOSPITAL MUNICIPAL FRANCISCO DE ASSIS RIBEIRAO PRETO",
+     "p": 0.34,
+     "leitos": 31
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital São Francisco Sinhá Junqueira",
+   "cidade": "Ribeirão Preto",
+   "uf": "SP",
+   "cnes": "3543405171946",
+   "fantasia": "HOSPITAL SAO LUCAS RIBEIRANIA",
+   "pontuacao": 0.183,
+   "base": 63.0,
+   "calculado": 143,
+   "erro": 1.2698,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3543402077973",
+     "fantasia": "HOSPITAL SAO LUCAS RIBEIRAO PRETO",
+     "p": 0.18,
+     "leitos": 89
+    },
+    {
+     "cnes": "3543402079038",
+     "fantasia": "HOSPITAL SAO PAULO RIBEIRAO PRETO",
+     "p": 0.175,
+     "leitos": 74
+    },
+    {
+     "cnes": "3543407420595",
+     "fantasia": "HOSPITAL MUNICIPAL FRANCISCO DE ASSIS RIBEIRAO PRETO",
+     "p": 0.17,
+     "leitos": 31
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Rio Preto",
+   "cidade": "São José do Rio Preto",
+   "uf": "SP",
+   "cnes": "3549804376439",
+   "fantasia": "HOSPITAL RIO PRETO",
+   "pontuacao": 1.0,
+   "base": 83.0,
+   "calculado": 83,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Francisco - Bauru",
+   "cidade": "Bauru",
+   "uf": "SP",
+   "cnes": "3506009915354",
+   "fantasia": "HOSPITAL BAURU",
+   "pontuacao": 0.333,
+   "base": 45.0,
+   "calculado": 45,
+   "erro": 0.0,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3506006025668",
+     "fantasia": "HOSPITAL SAO LUCAS",
+     "p": 0.267,
+     "leitos": 67
+    },
+    {
+     "cnes": "3506002790661",
+     "fantasia": "HOSPITAL UNIMED DE BAURU",
+     "p": 0.267,
+     "leitos": 294
+    },
+    {
+     "cnes": "3506002790602",
+     "fantasia": "HOSPITAL ESTADUAL BAURU",
+     "p": 0.267,
+     "leitos": 334
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Medical",
+   "cidade": "Limeira",
+   "uf": "SP",
+   "cnes": "3526902825309",
+   "fantasia": "HOSPITAL MEDICAL",
+   "pontuacao": 1.0,
+   "base": 51.0,
+   "calculado": 51,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São José",
+   "cidade": "São José dos Campos",
+   "uf": "SP",
+   "cnes": "3549903517918",
+   "fantasia": "HOSPITAL SAO JOSE",
+   "pontuacao": 1.0,
+   "base": 32.0,
+   "calculado": 32,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Nova Vida",
+   "cidade": "Itapevi",
+   "uf": "SP",
+   "cnes": "3522509769641",
+   "fantasia": "NOVA VIDA",
+   "pontuacao": 1.0,
+   "base": 59.0,
+   "calculado": 59,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Modelo",
+   "cidade": "Sorocaba",
+   "uf": "SP",
+   "cnes": "3552202082101",
+   "fantasia": "HOSPITAL MODELO SOROCABA",
+   "pontuacao": 0.8,
+   "base": 93.0,
+   "calculado": 93,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Lucas",
+   "cidade": "Americana",
+   "uf": "SP",
+   "cnes": "3501602688700",
+   "fantasia": "HOSPITAL SAO LUCAS",
+   "pontuacao": 1.0,
+   "base": 80.0,
+   "calculado": 80,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Francisco - Lins",
+   "cidade": "Lins",
+   "uf": "SP",
+   "cnes": "3527103060616",
+   "fantasia": "HOSPITAL LINS",
+   "pontuacao": 0.333,
+   "base": 23.0,
+   "calculado": 23,
+   "erro": 0.0,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3527103518949",
+     "fantasia": "HOSPITAL UNIMED LINS",
+     "p": 0.267,
+     "leitos": 47
+    },
+    {
+     "cnes": "3527102758245",
+     "fantasia": "SANTA CASA DE LINS",
+     "p": 0.244,
+     "leitos": 108
+    },
+    {
+     "cnes": "3527102081725",
+     "fantasia": "CAIS CLEMENTE FERREIRA DE LINS",
+     "p": 0.233,
+     "leitos": 186
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital São Francisco Netto Campello",
+   "cidade": "Sertãozinho",
+   "uf": "SP",
+   "cnes": "3551702078961",
+   "fantasia": "HOSPITAL NETTO CAMPELLO DE SERTAOZINHO",
+   "pontuacao": 0.433,
+   "base": 21.0,
+   "calculado": 21,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Francisco - Araraquara",
+   "cidade": "Araraquara",
+   "uf": "SP",
+   "cnes": "3503207564902",
+   "fantasia": "HOSPITAL ARARAQUARA",
+   "pontuacao": 0.333,
+   "base": null,
+   "calculado": 35,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3503203625087",
+     "fantasia": "HOSPITAL SAO PAULO",
+     "p": 0.267,
+     "leitos": 177
+    },
+    {
+     "cnes": "3503202082527",
+     "fantasia": "SANTA CASA DE ARARAQUARA",
+     "p": 0.244,
+     "leitos": 213
+    },
+    {
+     "cnes": "3503200102741",
+     "fantasia": "HOSPITAL DE CAMPANHA COVID 19 ARARAQUARA",
+     "p": 0.24,
+     "leitos": 54
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital São Francisco - Franca",
+   "cidade": "Franca",
+   "uf": "SP",
+   "cnes": "3516202081601",
+   "fantasia": "HOSPITAL FRANCA",
+   "pontuacao": 0.333,
+   "base": 72.0,
+   "calculado": 72,
+   "erro": 0.0,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3516207509065",
+     "fantasia": "HOSPITAL OFTALMOLOGICO DE FRANCA",
+     "p": 0.267,
+     "leitos": 4
+    },
+    {
+     "cnes": "3516202705982",
+     "fantasia": "SANTA CASA DE FRANCA",
+     "p": 0.244,
+     "leitos": 399
+    },
+    {
+     "cnes": "3516202080753",
+     "fantasia": "SAO JOAQUIM HOSPITAL E MATERNIDADE",
+     "p": 0.244,
+     "leitos": 117
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Salvalus",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550309554157",
+   "fantasia": "HOSPITAL E MATERNIDADE SALVALUS",
+   "pontuacao": 0.8,
+   "base": 469.0,
+   "calculado": 469,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Samaritano",
+   "cidade": "Sorocaba",
+   "uf": "SP",
+   "cnes": "3552202078732",
+   "fantasia": "HOSPITAL SAMARITANO DE SOROCABA",
+   "pontuacao": 0.8,
+   "base": 130.0,
+   "calculado": 130,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Bosque da Saúde",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550303309959",
+   "fantasia": "HOSPITAL BOSQUE DA SAUDE",
+   "pontuacao": 1.0,
+   "base": 141.0,
+   "calculado": 141,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Paulo Sacramento",
+   "cidade": "Jundiai",
+   "uf": "SP",
+   "cnes": "3525902078066",
+   "fantasia": "INTERMEDICA HPS HOSPITAL PAULO SACRAMENTO",
+   "pontuacao": 0.8,
+   "base": 147.0,
+   "calculado": 147,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Cruzeiro Do Sul",
+   "cidade": "Osasco",
+   "uf": "SP",
+   "cnes": "3534402079887",
+   "fantasia": "HOSPITAL CRUZEIRO DO SUL",
+   "pontuacao": 1.0,
+   "base": 116.0,
+   "calculado": 116,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Abc",
+   "cidade": "São Bernardo",
+   "uf": "SP",
+   "cnes": "3548706938876",
+   "fantasia": "HOSPITAL INTERMEDICA ABC",
+   "pontuacao": 0.8,
+   "base": 83.0,
+   "calculado": 83,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Bernardo",
+   "cidade": "São Bernardo",
+   "uf": "SP",
+   "cnes": "3548705135117",
+   "fantasia": "HOSPITAL SAO BERNARDO DO CAMPO",
+   "pontuacao": 0.867,
+   "base": 163.0,
+   "calculado": 163,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Notrecare (Baeta Neves)",
+   "cidade": "São Bernardo",
+   "uf": "SP",
+   "cnes": "3548702083000",
+   "fantasia": "HOSPITAL E MATERNIDADE BAETA NEVES",
+   "pontuacao": 0.578,
+   "base": 102.0,
+   "calculado": 136,
+   "erro": 0.3333,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3548707150938",
+     "fantasia": "HOSPITAL SAO BERNARDO S A UNIDADE BAETA NEVES",
+     "p": 0.533,
+     "leitos": 49
+    },
+    {
+     "cnes": "3548702038277",
+     "fantasia": "PRONTO SOCORRO BAETA NEVES",
+     "p": 0.533,
+     "leitos": 10
+    },
+    {
+     "cnes": "3548709738754",
+     "fantasia": "HOSPITAL E MATERNIDADE NOTRECARE ABC",
+     "p": 0.244,
+     "leitos": 102
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Montemagno",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550306148956",
+   "fantasia": "HOSPITAL MONTEMAGNO",
+   "pontuacao": 1.0,
+   "base": 113.0,
+   "calculado": 113,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Santana",
+   "cidade": "Mogi das Cruzes",
+   "uf": "SP",
+   "cnes": "3530602083256",
+   "fantasia": "HOSPITAL SANTANA",
+   "pontuacao": 1.0,
+   "base": 95.0,
+   "calculado": 95,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Guarulhos",
+   "cidade": "Guarulhos",
+   "uf": "SP",
+   "cnes": "3518807013981",
+   "fantasia": "HOSPITAL UNIMED GUARULHOS UNIDADE II",
+   "pontuacao": 0.733,
+   "base": 102.0,
+   "calculado": 37,
+   "erro": 0.6373,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3518805493323",
+     "fantasia": "HOSPITAL E MATERNIDADE BRASIL DE GUARULHOS",
+     "p": 0.733,
+     "leitos": 54
+    },
+    {
+     "cnes": "3518804813308",
+     "fantasia": "HOSPITAL SAO LUIZ GUARULHOS",
+     "p": 0.733,
+     "leitos": 162
+    },
+    {
+     "cnes": "3518803461963",
+     "fantasia": "HOSPITAL CASA DE SAUDE GUARULHOS",
+     "p": 0.733,
+     "leitos": 58
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital e Maternidade N. S. Rosario",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550309554157",
+   "fantasia": "HOSPITAL E MATERNIDADE SALVALUS",
+   "pontuacao": 0.4,
+   "base": 33.0,
+   "calculado": 469,
+   "erro": 13.2121,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3550305174465",
+     "fantasia": "HOSP E MATERNIDADE DO BRAZ",
+     "p": 0.4,
+     "leitos": 391
+    },
+    {
+     "cnes": "3550303559203",
+     "fantasia": "HOSPITAL E MATERNIDADE JARDINS LTDA",
+     "p": 0.4,
+     "leitos": 26
+    },
+    {
+     "cnes": "3550302078082",
+     "fantasia": "HOSPITAL E MATERNIDADE METROPOLITANO",
+     "p": 0.4,
+     "leitos": 91
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Renascenca De Campinas",
+   "cidade": "Campinas",
+   "uf": "SP",
+   "cnes": "3509507044666",
+   "fantasia": "HOSPITAL RENASCENCA CAMPINAS",
+   "pontuacao": 1.0,
+   "base": 69.0,
+   "calculado": 69,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Frei Galvao",
+   "cidade": "Santos",
+   "uf": "SP",
+   "cnes": "3548502081636",
+   "fantasia": "HOSPITAL FREI GALVAO",
+   "pontuacao": 1.0,
+   "base": 28.0,
+   "calculado": 28,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Gabriel Soares",
+   "cidade": "Aracaju",
+   "uf": "SE",
+   "cnes": "2800306137040",
+   "fantasia": "HOSPITAL GABRIEL SOARES",
+   "pontuacao": 1.0,
+   "base": 21.0,
+   "calculado": 21,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Geral de Joinville",
+   "cidade": "Joinville",
+   "uf": "SC",
+   "cnes": "4209109757090",
+   "fantasia": "HOSPITAL GERAL JOINVILLE HAPVIDA",
+   "pontuacao": 0.867,
+   "base": 56.0,
+   "calculado": 56,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Do Coração",
+   "cidade": "Balneario Camboriu",
+   "uf": "SC",
+   "cnes": "4202003119289",
+   "fantasia": "HOSPITAL DO CORACAO BALNEARIO CAMBORIU",
+   "pontuacao": 0.733,
+   "base": 62.0,
+   "calculado": 62,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Notrecare Rio (Samci)",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304556807771",
+   "fantasia": "HOSPITAL DO RIO",
+   "pontuacao": 0.333,
+   "base": 50.0,
+   "calculado": 40,
+   "erro": 0.2,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3304559198024",
+     "fantasia": "HOSPITAL RIO BOTAFOGO",
+     "p": 0.267,
+     "leitos": 70
+    },
+    {
+     "cnes": "3304556002455",
+     "fantasia": "CLINICA DE OLHOS RIO",
+     "p": 0.267,
+     "leitos": 1
+    },
+    {
+     "cnes": "3304555417643",
+     "fantasia": "OFTALMO RIO",
+     "p": 0.267,
+     "leitos": 15
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Intermedica Jacarepagua",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304553114554",
+   "fantasia": "HOSPITAL ALIANCA DE JACAREPAGUA",
+   "pontuacao": 0.4,
+   "base": 31.0,
+   "calculado": 32,
+   "erro": 0.0323,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Santa Martha",
+   "cidade": "Niterói",
+   "uf": "RJ",
+   "cnes": "3303303016501",
+   "fantasia": "CASA DE SAUDE E MATERNIDADE SANTA MARTHA S A",
+   "pontuacao": 0.76,
+   "base": 100.0,
+   "calculado": 100,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Duque De Caxias",
+   "cidade": "Duque de Caxias",
+   "uf": "RJ",
+   "cnes": "3301702277565",
+   "fantasia": "HOSPITAL MUNICIPAL DUQUE DE CAXIAS",
+   "pontuacao": 0.867,
+   "base": null,
+   "calculado": 171,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3301702290227",
+     "fantasia": "HOSPITAL MUNICIPAL ADAO PEREIRA NUNES",
+     "p": 0.78,
+     "leitos": 485
+    },
+    {
+     "cnes": "3301702277751",
+     "fantasia": "HOSPITAL INFANTIL ISMELIA SILVEIRA",
+     "p": 0.78,
+     "leitos": 62
+    },
+    {
+     "cnes": "3301702277743",
+     "fantasia": "POSTO MEDICO SANITARIO DO PILAR",
+     "p": 0.78,
+     "leitos": 22
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Humaniza",
+   "cidade": "Porto Alegre",
+   "uf": "RS",
+   "cnes": "4314900507237",
+   "fantasia": "HOSPITAL HUMANIZA",
+   "pontuacao": 1.0,
+   "base": 112.0,
+   "calculado": 112,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Antônio Prudente - Natal",
+   "cidade": "Natal",
+   "uf": "RN",
+   "cnes": "2408102654024",
+   "fantasia": "HOSPITAL ANTONIO PRUDENTE NATAL",
+   "pontuacao": 1.0,
+   "base": 138.0,
+   "calculado": 138,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Celina Guimarães Viana",
+   "cidade": "Mossoro",
+   "uf": "RN",
+   "cnes": "2408000930075",
+   "fantasia": "HOSPITAL CELINA GUIMARAES VIANA",
+   "pontuacao": 1.0,
+   "base": 45.0,
+   "calculado": 45,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Santa Brígida",
+   "cidade": "Curitiba",
+   "uf": "PR",
+   "cnes": "4106903000907",
+   "fantasia": "HOSPITAL E MATERNIDADE SANTA BRIGIDA",
+   "pontuacao": 0.867,
+   "base": 108.0,
+   "calculado": 108,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Onix Batel",
+   "cidade": "Curitiba",
+   "uf": "PR",
+   "cnes": "4106902361167",
+   "fantasia": "HOSPITAL ONIX",
+   "pontuacao": 0.5,
+   "base": null,
+   "calculado": 60,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "4106903371980",
+     "fantasia": "HOSPITAL VITA BATEL",
+     "p": 0.4,
+     "leitos": 90
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Rio Poty",
+   "cidade": "Teresina",
+   "uf": "PI",
+   "cnes": "2211009624325",
+   "fantasia": "HOSPITAL RIO POTY",
+   "pontuacao": 1.0,
+   "base": 48.0,
+   "calculado": 48,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Capibaribe",
+   "cidade": "Recife",
+   "uf": "PE",
+   "cnes": "2611609073116",
+   "fantasia": "HOSPITAL CAPIBARIBE",
+   "pontuacao": 1.0,
+   "base": 1.0,
+   "calculado": 1,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital do Cabo",
+   "cidade": "Cabo De Santo Agostinho",
+   "uf": "PE",
+   "cnes": "2602907944535",
+   "fantasia": "HOSPITAL E HAPCLINICA CABO",
+   "pontuacao": 0.8,
+   "base": 7.0,
+   "calculado": 7,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Espinheiro",
+   "cidade": "Recife",
+   "uf": "PE",
+   "cnes": "2611607653786",
+   "fantasia": "HOSPITAL ESPINHEIRO",
+   "pontuacao": 1.0,
+   "base": null,
+   "calculado": 54,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": []
+  },
+  {
+   "unidade": "Hospital Ilha Do Leite",
+   "cidade": "Recife",
+   "uf": "PE",
+   "cnes": "2611609109897",
+   "fantasia": "HOSPITAL ILHA DO LEITE",
+   "pontuacao": 1.0,
+   "base": 307.0,
+   "calculado": 307,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Vasco Lucena",
+   "cidade": "Recife",
+   "uf": "PE",
+   "cnes": "2611609069747",
+   "fantasia": "HOSPITAL VASCO LUCENA",
+   "pontuacao": 1.0,
+   "base": 76.0,
+   "calculado": 76,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Mandacaru",
+   "cidade": "Recife",
+   "uf": "PE",
+   "cnes": "2611600889490",
+   "fantasia": "HOSPITAL MANDACARU",
+   "pontuacao": 1.0,
+   "base": 59.0,
+   "calculado": 59,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital da Paraíba",
+   "cidade": "João Pessoa",
+   "uf": "PB",
+   "cnes": "2507504842944",
+   "fantasia": "PARAIBA OFTALMOLOGIA",
+   "pontuacao": 0.8,
+   "base": 74.0,
+   "calculado": 1,
+   "erro": 0.9865,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "2507500083615",
+     "fantasia": "HOSPITAL DE OLHOS DA PARAIBA",
+     "p": 0.8,
+     "leitos": 1
+    },
+    {
+     "cnes": "2507504404114",
+     "fantasia": "PROVISAO HOSPITAL OFTALMOLOGICO DA PARAIBA",
+     "p": 0.733,
+     "leitos": 1
+    },
+    {
+     "cnes": "2507502755807",
+     "fantasia": "OCULISTAS ASSOCIADOS DA PARAIBA LTDA",
+     "p": 0.733,
+     "leitos": 2
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital das Clínicas de Parauapebas",
+   "cidade": "Parauapebas",
+   "uf": "PA",
+   "cnes": "1505532615754",
+   "fantasia": "HOSPITAL DAS CLINICAS",
+   "pontuacao": 0.5,
+   "base": 18.0,
+   "calculado": 18,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Nova Serrana",
+   "cidade": "Nova Serrana",
+   "uf": "MG",
+   "cnes": "3145208081395",
+   "fantasia": "HOSPITAL MUNICIPAL DE NOVA SERRANA",
+   "pontuacao": 0.867,
+   "base": null,
+   "calculado": 1,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3145202143801",
+     "fantasia": "HOSPITAL SAO JOSE DE NOVA SERRANA",
+     "p": 0.8,
+     "leitos": 75
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Lifecenter Contagem",
+   "cidade": "Contagem",
+   "uf": "MG",
+   "cnes": "3118609208747",
+   "fantasia": "INSTITUTO UROLOGICO DE CONTAGEM LTDA",
+   "pontuacao": 0.4,
+   "base": null,
+   "calculado": 1,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3118602200473",
+     "fantasia": "HOSPITAL MUNICIPAL DE CONTAGEM",
+     "p": 0.4,
+     "leitos": 241
+    },
+    {
+     "cnes": "3118607319576",
+     "fantasia": "CAPS III ELDORADO",
+     "p": 0.36,
+     "leitos": 5
+    },
+    {
+     "cnes": "3118602191083",
+     "fantasia": "CENTRO DE ATENCAO PSICOSSOCIAL CAPS III SEDE",
+     "p": 0.36,
+     "leitos": 5
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Vera Cruz",
+   "cidade": "Belo Horizonte",
+   "uf": "MG",
+   "cnes": "3106200027847",
+   "fantasia": "HOSPITAL VERA CRUZ",
+   "pontuacao": 1.0,
+   "base": 109.0,
+   "calculado": 109,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Madrecor",
+   "cidade": "Uberlândia",
+   "uf": "MG",
+   "cnes": "3170203597156",
+   "fantasia": "MADRECOR HOSPITAL",
+   "pontuacao": 1.0,
+   "base": 53.0,
+   "calculado": 53,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Octaviano Neves",
+   "cidade": "Belo Horizonte",
+   "uf": "MG",
+   "cnes": "3106200027871",
+   "fantasia": "MATERNIDADE OCTAVIANO NEVES",
+   "pontuacao": 0.867,
+   "base": 45.0,
+   "calculado": 45,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Lifecenter",
+   "cidade": "Belo Horizonte",
+   "uf": "MG",
+   "cnes": "3106203314014",
+   "fantasia": "LIFECENTER SISTEMA DE SAUDE S A",
+   "pontuacao": 0.733,
+   "base": 146.0,
+   "calculado": 146,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Santa Mônica",
+   "cidade": "Divinopolis",
+   "uf": "MG",
+   "cnes": "3122302159376",
+   "fantasia": "HOSPITAL E MATERNIDADE SANTA MONICA",
+   "pontuacao": 0.867,
+   "base": 118.0,
+   "calculado": 118,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Poços De Caldas",
+   "cidade": "Pocos De Caldas",
+   "uf": "MG",
+   "cnes": "3151802208903",
+   "fantasia": "HOSPITAL POCOS DE CALDAS",
+   "pontuacao": 1.0,
+   "base": 118.0,
+   "calculado": 118,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Imesa",
+   "cidade": "Alfenas",
+   "uf": "MG",
+   "cnes": "3101602815214",
+   "fantasia": "IMESA",
+   "pontuacao": 1.0,
+   "base": 36.0,
+   "calculado": 36,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Varginha",
+   "cidade": "Varginha",
+   "uf": "MG",
+   "cnes": "3170706363326",
+   "fantasia": "HOSPITAL VARGINHA",
+   "pontuacao": 1.0,
+   "base": 17.0,
+   "calculado": 17,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Guarás",
+   "cidade": "São Luís",
+   "uf": "MA",
+   "cnes": "2111306913652",
+   "fantasia": "HOSPITAL GUARAS",
+   "pontuacao": 1.0,
+   "base": 61.0,
+   "calculado": 61,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Jardim América",
+   "cidade": "Goiânia",
+   "uf": "GO",
+   "cnes": "5208702518406",
+   "fantasia": "HOSPITAL JARDIM AMERICA",
+   "pontuacao": 1.0,
+   "base": 81.0,
+   "calculado": 81,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital América",
+   "cidade": "Goiânia",
+   "uf": "GO",
+   "cnes": "5208707975023",
+   "fantasia": "HOSPITAL AMERICA",
+   "pontuacao": 1.0,
+   "base": 72.0,
+   "calculado": 72,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Promed",
+   "cidade": "Goiânia",
+   "uf": "GO",
+   "cnes": "5208709357661",
+   "fantasia": "HOSPITAL PROMED",
+   "pontuacao": 1.0,
+   "base": 42.0,
+   "calculado": 42,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Francisco Quirinopolis",
+   "cidade": "Quirinopolis",
+   "uf": "GO",
+   "cnes": "5218502340593",
+   "fantasia": "HOSPITAL SAO FRANCISCO QUIRINOPOLIS",
+   "pontuacao": 1.0,
+   "base": 28.0,
+   "calculado": 20,
+   "erro": 0.2857,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "5218502340585",
+     "fantasia": "HOSPITAL QUIRINOPOLIS",
+     "p": 0.333,
+     "leitos": 28
+    },
+    {
+     "cnes": "5218502360470",
+     "fantasia": "HOSPITAL MUNICIPAL ANTONIO MARTINS DA COSTA",
+     "p": 0.22,
+     "leitos": 54
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Brasiliense",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300100797146",
+   "fantasia": "HOSPITAL BRASILIENSE",
+   "pontuacao": 1.0,
+   "base": 66.0,
+   "calculado": 66,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Aldeota",
+   "cidade": "Fortaleza",
+   "uf": "CE",
+   "cnes": "2304407371985",
+   "fantasia": "HOSPITAL ALDEOTA",
+   "pontuacao": 1.0,
+   "base": 22.0,
+   "calculado": 22,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Antônio Prudente",
+   "cidade": "Fortaleza",
+   "uf": "CE",
+   "cnes": "2304402415631",
+   "fantasia": "HOSPITAL ANTONIO PRUDENTE",
+   "pontuacao": 1.0,
+   "base": 202.0,
+   "calculado": 202,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Ana Lima - Maracanaú",
+   "cidade": "Maracanau",
+   "uf": "CE",
+   "cnes": "2307652372207",
+   "fantasia": "HOSPITAL ANA LIMA",
+   "pontuacao": 0.667,
+   "base": 25.0,
+   "calculado": 25,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital e Mat. Eugênia Pinheiro",
+   "cidade": "Fortaleza",
+   "uf": "CE",
+   "cnes": "2304409297502",
+   "fantasia": "HOSPITAL E MATERNIDADE EUGENIA PINHEIRO",
+   "pontuacao": 0.578,
+   "base": 108.0,
+   "calculado": 108,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Geral Padre Cícero",
+   "cidade": "Juazeiro Do Norte",
+   "uf": "CE",
+   "cnes": "2307302426099",
+   "fantasia": "HOSPITAL GERAL PADRE CICERO",
+   "pontuacao": 1.0,
+   "base": 17.0,
+   "calculado": 17,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Luis França",
+   "cidade": "Fortaleza",
+   "uf": "CE",
+   "cnes": "2304403007898",
+   "fantasia": "HOSPITAL LUIZ FRANCA",
+   "pontuacao": 0.4,
+   "base": 69.0,
+   "calculado": 69,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Lauro de Freitas",
+   "cidade": "Lauro de Freitas",
+   "uf": "BA",
+   "cnes": "2919200106534",
+   "fantasia": "HOSPITAL LAURO DE FREITAS",
+   "pontuacao": 1.0,
+   "base": null,
+   "calculado": 8,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "2919209216235",
+     "fantasia": "COMPLEXO MEDICO LAURO DE FREITAS",
+     "p": 0.867,
+     "leitos": 54
+    },
+    {
+     "cnes": "2919209020349",
+     "fantasia": "UNIDADE DE PRONTO ATENDIMENTO DA CRIANCA",
+     "p": 0.78,
+     "leitos": 1
+    },
+    {
+     "cnes": "2919207785577",
+     "fantasia": "UNIDADE DE PRONTO ATENDIMENTO DE ITINGA",
+     "p": 0.78,
+     "leitos": 1
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Tereza de Lisieux",
+   "cidade": "Salvador",
+   "uf": "BA",
+   "cnes": "2927406558143",
+   "fantasia": "HOSPITAL TEREZA DE LISIEUX",
+   "pontuacao": 1.0,
+   "base": 68.0,
+   "calculado": 68,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Cetro",
+   "cidade": "Alagoinhas",
+   "uf": "BA",
+   "cnes": "2900708303193",
+   "fantasia": "HOSPITAL CETRO",
+   "pontuacao": 1.0,
+   "base": 49.0,
+   "calculado": 2,
+   "erro": 0.9592,
+   "status": "sem casamento confiável",
+   "outros": []
+  },
+  {
+   "unidade": "Hospital Semed",
+   "cidade": "Camacari",
+   "uf": "BA",
+   "cnes": "2905703556239",
+   "fantasia": "HOSPITAL SEMED",
+   "pontuacao": 1.0,
+   "base": 22.0,
+   "calculado": 22,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Francisca de Sande",
+   "cidade": "Feira de Santana",
+   "uf": "BA",
+   "cnes": "2910800188581",
+   "fantasia": "HOSPITAL FRANCISCA DE SANDE",
+   "pontuacao": 1.0,
+   "base": 10.0,
+   "calculado": 10,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Pediátrico Rio Solimões",
+   "cidade": "Manaus",
+   "uf": "AM",
+   "cnes": "1302604727118",
+   "fantasia": "HOSPITAL RIO SOLIMOES",
+   "pontuacao": 0.667,
+   "base": 44.0,
+   "calculado": 44,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Rio Amazonas",
+   "cidade": "Manaus",
+   "uf": "AM",
+   "cnes": "1302609697217",
+   "fantasia": "HOSPITAL RIO AMAZONAS",
+   "pontuacao": 1.0,
+   "base": 57.0,
+   "calculado": 57,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Rio Negro",
+   "cidade": "Manaus",
+   "uf": "AM",
+   "cnes": "1302609115153",
+   "fantasia": "HOSPITAL RIO NEGRO",
+   "pontuacao": 1.0,
+   "base": 39.0,
+   "calculado": 39,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Lucas",
+   "cidade": "Manaus",
+   "uf": "AM",
+   "cnes": "1302602018012",
+   "fantasia": "HOSPITAL SAO LUCAS",
+   "pontuacao": 1.0,
+   "base": null,
+   "calculado": 22,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "1302603937127",
+     "fantasia": "CLINICA DR LISBOA",
+     "p": 0.36,
+     "leitos": 20
+    },
+    {
+     "cnes": "1302602018969",
+     "fantasia": "ICON INSTITUTO DE CIRURGIA OCULAR DO NORTE",
+     "p": 0.33,
+     "leitos": 4
+    },
+    {
+     "cnes": "1302604925645",
+     "fantasia": "BARCO HOSPITALAR SAO JOAO XXIII NA PROVIDENCIA DE DEUS",
+     "p": 0.325,
+     "leitos": 14
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Maceió",
+   "cidade": "Maceió",
+   "uf": "AL",
+   "cnes": "2704306485960",
+   "fantasia": "HOSPITAL MACEIO",
+   "pontuacao": 1.0,
+   "base": 29.0,
+   "calculado": 29,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Nove de Julho",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550307252455",
+   "fantasia": "HOSPITAL PROFESSORA LYDIA STOROPOLI",
+   "pontuacao": 0.72,
+   "base": 224.0,
+   "calculado": 210,
+   "erro": 0.0625,
+   "status": "casado"
+  },
+  {
+   "unidade": "Santa Paula",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550300255661",
+   "fantasia": "IMPAR SERVICOS HOSPITALARES FILIAL SANTA PAULA",
+   "pontuacao": 0.76,
+   "base": 149.0,
+   "calculado": 149,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Innova",
+   "cidade": "Diadema",
+   "uf": "SP",
+   "cnes": "3513807261012",
+   "fantasia": "INNOVA HOSPITAIS ASSOCIADOS LTDA",
+   "pontuacao": 0.733,
+   "base": 60.0,
+   "calculado": 60,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Leforte Morumbi",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550306283993",
+   "fantasia": "HOSPITAL LEFORTE",
+   "pontuacao": 0.5,
+   "base": 114.0,
+   "calculado": 114,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Leforte Liberdade",
+   "cidade": "São Paulo",
+   "uf": "SP",
+   "cnes": "3550302077507",
+   "fantasia": "HOSPITAL LEFORTE LIBERDADE",
+   "pontuacao": 1.0,
+   "base": 270.0,
+   "calculado": 270,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Lucas",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304557474059",
+   "fantasia": "HOSPITAL SAO LUCAS",
+   "pontuacao": 1.0,
+   "base": 184.0,
+   "calculado": 184,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "CHN",
+   "cidade": "Niterói",
+   "uf": "RJ",
+   "cnes": "3303303065634",
+   "fantasia": "CHN COMPLEXO HOSPITALAR DE NITEROI",
+   "pontuacao": 0.7,
+   "base": 210.0,
+   "calculado": 210,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "N. Sra. do Carmo",
+   "cidade": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnes": "3304553002918",
+   "fantasia": "HOSPITAL DA ORDEM DO CARMO",
+   "pontuacao": 0.4,
+   "base": 120.0,
+   "calculado": 26,
+   "erro": 0.7833,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3304553046281",
+     "fantasia": "CASA DE SAUDE NOSSA SENHORA DO CARMO",
+     "p": 0.34,
+     "leitos": 120
+    },
+    {
+     "cnes": "3304559945709",
+     "fantasia": "CSNSC FILIAL 02",
+     "p": 0.306,
+     "leitos": 57
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital Brasília",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300103048551",
+   "fantasia": "HOSPITAL BRASILIA",
+   "pontuacao": 1.0,
+   "base": 369.0,
+   "calculado": 369,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Maternidade Brasília",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300107981457",
+   "fantasia": "MATERNIDADE BRASILIA",
+   "pontuacao": 1.0,
+   "base": 155.0,
+   "calculado": 155,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Águas Claras",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300100049867",
+   "fantasia": "HOSPITAL AGUAS CLARAS",
+   "pontuacao": 1.0,
+   "base": 260.0,
+   "calculado": 260,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Paraná",
+   "cidade": "Maringá",
+   "uf": "PR",
+   "cnes": "4115202587165",
+   "fantasia": "HOSPITAL PARANA",
+   "pontuacao": 1.0,
+   "base": 140.0,
+   "calculado": 140,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "São Domingos",
+   "cidade": "São Luiz",
+   "uf": "MA",
+   "cnes": "2111302308665",
+   "fantasia": "HOSPITAL SAO DOMINGOS",
+   "pontuacao": 1.0,
+   "base": 312.0,
+   "calculado": 312,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital da Bahia",
+   "cidade": "Salvador",
+   "uf": "BA",
+   "cnes": "2927403827992",
+   "fantasia": "HOSPITAL DA BAHIA",
+   "pontuacao": 1.0,
+   "base": 159.0,
+   "calculado": 159,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Medical Santa Thereza",
+   "cidade": "Palmas",
+   "uf": "TO",
+   "cnes": "1721009202749",
+   "fantasia": "HOSPITAL SANTA THEREZA",
+   "pontuacao": 0.667,
+   "base": 59.0,
+   "calculado": 59,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Medical Palmas",
+   "cidade": "Palmas",
+   "uf": "TO",
+   "cnes": "1721007373120",
+   "fantasia": "HOSPITAL PALMAS MEDICAL HPM",
+   "pontuacao": 0.9,
+   "base": 103.0,
+   "calculado": 103,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Mateus",
+   "cidade": "Cuiabá",
+   "uf": "MT",
+   "cnes": "5103403953238",
+   "fantasia": "HOSPITAL E MATERNIDADE SAO MATEUS",
+   "pontuacao": 0.867,
+   "base": 127.0,
+   "calculado": 127,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Instituto de Neurologia de Goiânia",
+   "cidade": "Goiânia",
+   "uf": "GO",
+   "cnes": "5208702339765",
+   "fantasia": "HOSPITAL NEUROLOGICO",
+   "pontuacao": 0.9,
+   "base": 70.0,
+   "calculado": 70,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital Encore",
+   "cidade": "Aparecidade de Goiânia",
+   "uf": "GO",
+   "cnes": "5201402589761",
+   "fantasia": "HOSPITAL SAO BERNARDO",
+   "pontuacao": 0.9,
+   "base": 49.0,
+   "calculado": 49,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Meridional Vitória",
+   "cidade": "Vitoria",
+   "uf": "ES",
+   "cnes": "3205300494658",
+   "fantasia": "HOSPITAL VITORIA LTDA",
+   "pontuacao": 0.5,
+   "base": 71.0,
+   "calculado": 42,
+   "erro": 0.4085,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "3205306414419",
+     "fantasia": "HOSPITAL DE OLHOS DE VITORIA",
+     "p": 0.4,
+     "leitos": 1
+    },
+    {
+     "cnes": "3205303551857",
+     "fantasia": "CLINICA CIRURGICA DE VITORIA",
+     "p": 0.4,
+     "leitos": 5
+    },
+    {
+     "cnes": "3205302705591",
+     "fantasia": "CLINICA DE ACIDENTADOS DE VITORIA",
+     "p": 0.4,
+     "leitos": 60
+    }
+   ]
+  },
+  {
+   "unidade": "Hospital São Luiz",
+   "cidade": "Vila Velha",
+   "uf": "ES",
+   "cnes": "3205203405702",
+   "fantasia": "HOSPITAL SAO LUIZ",
+   "pontuacao": 1.0,
+   "base": 35.0,
+   "calculado": 35,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Meridional Praia da Costa",
+   "cidade": "Vila Velha",
+   "uf": "ES",
+   "cnes": "3205203421597",
+   "fantasia": "MERIDIONAL PRAIA DA COSTA",
+   "pontuacao": 1.0,
+   "base": 86.0,
+   "calculado": 86,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Hospital São Francisco",
+   "cidade": "Cariacica",
+   "uf": "ES",
+   "cnes": "3201303340503",
+   "fantasia": "HOSPITAL E MATERNIDADE SAO FRANCISCO DE ASSIS S A",
+   "pontuacao": 0.8,
+   "base": null,
+   "calculado": 45,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": []
+  },
+  {
+   "unidade": "Meridional Cariacica",
+   "cidade": "Cariacica",
+   "uf": "ES",
+   "cnes": "3201302494450",
+   "fantasia": "HOSPITAL MERIDIONAL",
+   "pontuacao": 0.5,
+   "base": 253.0,
+   "calculado": 253,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Meridional São Mateus",
+   "cidade": "São Mateus",
+   "uf": "ES",
+   "cnes": "3204907914075",
+   "fantasia": "HOSPITAL MERIDIONAL SAO MATEUS",
+   "pontuacao": 1.0,
+   "base": 105.0,
+   "calculado": 105,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Meridional Serra",
+   "cidade": "Serra",
+   "uf": "ES",
+   "cnes": "3205002485966",
+   "fantasia": "HOSPITAL MUNICIPAL MATERNO INFANTIL",
+   "pontuacao": 0.33,
+   "base": 191.0,
+   "calculado": 145,
+   "erro": 0.2408,
+   "status": "sem casamento confiável",
+   "outros": []
+  },
+  {
+   "unidade": "Hospital Anchieta Taguatinga",
+   "cidade": "Brasília",
+   "uf": "DF",
+   "cnes": "5300103030121",
+   "fantasia": "HOSPITAL ANCHIETA",
+   "pontuacao": 0.5,
+   "base": 293.0,
+   "calculado": 293,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Mater Dei Santo Agostinho",
+   "cidade": "Belo Horizonte",
+   "uf": "MG",
+   "cnes": "3106200027995",
+   "fantasia": "HOSPITAL MATER DEI S A MATRIZ",
+   "pontuacao": 0.5,
+   "base": 274.0,
+   "calculado": 274,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Mater Dei Betim-Contagem",
+   "cidade": "Betim",
+   "uf": "MG",
+   "cnes": "3106709696733",
+   "fantasia": "HOSPITAL MATER DEI SA BETIM",
+   "pontuacao": 0.75,
+   "base": 426.0,
+   "calculado": 426,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Mater Dei Santa Genoveva",
+   "cidade": "Uberlândia",
+   "uf": "MG",
+   "cnes": "3170202151812",
+   "fantasia": "HOSPITAL SANTA GENOVEVA",
+   "pontuacao": 0.5,
+   "base": 144.0,
+   "calculado": 144,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Mater Dei Santa Clara",
+   "cidade": "Uberlândia",
+   "uf": "MG",
+   "cnes": "3170202151871",
+   "fantasia": "HOSPITAL SANTA CLARA",
+   "pontuacao": 0.5,
+   "base": 117.0,
+   "calculado": 117,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Mater Dei Contorno",
+   "cidade": "Belo Horizonte",
+   "uf": "MG",
+   "cnes": "3106207684878",
+   "fantasia": "HOSPITAL MATER DEI S A UNIDADE CONTORNO",
+   "pontuacao": 1.0,
+   "base": 400.0,
+   "calculado": 400,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Mater Dei Nova Lima",
+   "cidade": "Nova Lima",
+   "uf": "MG",
+   "cnes": "3144804585690",
+   "fantasia": "HOSPITAL MATER DEI NOVA LIMA",
+   "pontuacao": 1.0,
+   "base": 129.0,
+   "calculado": 129,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Mater Dei Premium Goiânia",
+   "cidade": "Goiânia",
+   "uf": "GO",
+   "cnes": "5208707306504",
+   "fantasia": "HOSPITAL MATER DEI GOIANIA",
+   "pontuacao": 0.75,
+   "base": 102.0,
+   "calculado": 102,
+   "erro": 0.0,
+   "status": "casado"
+  },
+  {
+   "unidade": "Mater Dei EMEC",
+   "cidade": "Feira de Santana",
+   "uf": "BA",
+   "cnes": "2910802802031",
+   "fantasia": "HOSPITAL MATER DEI",
+   "pontuacao": 0.667,
+   "base": null,
+   "calculado": 150,
+   "erro": null,
+   "status": "sem casamento confiável",
+   "outros": [
+    {
+     "cnes": "2910803037495",
+     "fantasia": "EMEC",
+     "p": 0.333,
+     "leitos": 150
+    }
+   ]
+  },
+  {
+   "unidade": "Mater Dei Salvador",
+   "cidade": "Salvador",
+   "uf": "BA",
+   "cnes": "2927402875802",
+   "fantasia": "HOSPITAL MATER DEI S A SALVADOR",
+   "pontuacao": 1.0,
+   "base": 145.0,
+   "calculado": 145,
+   "erro": 0.0,
+   "status": "casado"
+  }
+ ],
+ "por_uf": [
+  {
+   "uf": "SP",
+   "base": 23251.0,
+   "total": 139409,
+   "nao_sus": 64739,
+   "erro_total": 4.9958,
+   "erro_nao_sus": 1.7844
+  },
+  {
+   "uf": "RJ",
+   "base": 13063.0,
+   "total": 65231,
+   "nao_sus": 33316,
+   "erro_total": 3.9936,
+   "erro_nao_sus": 1.5504
+  },
+  {
+   "uf": "MG",
+   "base": 8359.0,
+   "total": 58610,
+   "nao_sus": 21454,
+   "erro_total": 6.0116,
+   "erro_nao_sus": 1.5666
+  },
+  {
+   "uf": "BA",
+   "base": 5474.0,
+   "total": 41129,
+   "nao_sus": 10518,
+   "erro_total": 6.5135,
+   "erro_nao_sus": 0.9214
+  },
+  {
+   "uf": "DF",
+   "base": 3339.0,
+   "total": 12691,
+   "nao_sus": 6649,
+   "erro_total": 2.8008,
+   "erro_nao_sus": 0.9913
+  },
+  {
+   "uf": "PE",
+   "base": 4494.0,
+   "total": 32870,
+   "nao_sus": 11223,
+   "erro_total": 6.3142,
+   "erro_nao_sus": 1.4973
+  },
+  {
+   "uf": "CE",
+   "base": 2640.0,
+   "total": 26138,
+   "nao_sus": 6782,
+   "erro_total": 8.9008,
+   "erro_nao_sus": 1.5689
+  },
+  {
+   "uf": "PR",
+   "base": 5410.0,
+   "total": 37942,
+   "nao_sus": 12230,
+   "erro_total": 6.0133,
+   "erro_nao_sus": 1.2606
+  },
+  {
+   "uf": "GO",
+   "base": 5626.0,
+   "total": 24579,
+   "nao_sus": 9598,
+   "erro_total": 3.3688,
+   "erro_nao_sus": 0.706
+  },
+  {
+   "uf": "ES",
+   "base": 2606.0,
+   "total": 12786,
+   "nao_sus": 4625,
+   "erro_total": 3.9064,
+   "erro_nao_sus": 0.7748
+  },
+  {
+   "uf": "AM",
+   "base": 674.0,
+   "total": 9310,
+   "nao_sus": 2497,
+   "erro_total": 12.8131,
+   "erro_nao_sus": 2.7047
+  },
+  {
+   "uf": "MA",
+   "base": 2774.0,
+   "total": 20279,
+   "nao_sus": 3385,
+   "erro_total": 6.3104,
+   "erro_nao_sus": 0.2203
+  },
+  {
+   "uf": "PB",
+   "base": 2288.0,
+   "total": 14165,
+   "nao_sus": 3588,
+   "erro_total": 5.191,
+   "erro_nao_sus": 0.5682
+  },
+  {
+   "uf": "PA",
+   "base": 3260.0,
+   "total": 23392,
+   "nao_sus": 7507,
+   "erro_total": 6.1755,
+   "erro_nao_sus": 1.3028
+  },
+  {
+   "uf": "TO",
+   "base": 909.0,
+   "total": 4602,
+   "nao_sus": 1266,
+   "erro_total": 4.0627,
+   "erro_nao_sus": 0.3927
+  },
+  {
+   "uf": "SE",
+   "base": 1094.0,
+   "total": 4995,
+   "nao_sus": 1354,
+   "erro_total": 3.5658,
+   "erro_nao_sus": 0.2377
+  },
+  {
+   "uf": "SC",
+   "base": 2458.0,
+   "total": 20659,
+   "nao_sus": 6279,
+   "erro_total": 7.4048,
+   "erro_nao_sus": 1.5545
+  },
+  {
+   "uf": "MS",
+   "base": 1089.0,
+   "total": 7594,
+   "nao_sus": 2629,
+   "erro_total": 5.9734,
+   "erro_nao_sus": 1.4141
+  },
+  {
+   "uf": "AL",
+   "base": 1394.0,
+   "total": 9738,
+   "nao_sus": 2484,
+   "erro_total": 5.9857,
+   "erro_nao_sus": 0.7819
+  },
+  {
+   "uf": "RS",
+   "base": 3971.0,
+   "total": 37430,
+   "nao_sus": 12179,
+   "erro_total": 8.4258,
+   "erro_nao_sus": 2.067
+  },
+  {
+   "uf": "PI",
+   "base": 1100.0,
+   "total": 9653,
+   "nao_sus": 2233,
+   "erro_total": 7.7755,
+   "erro_nao_sus": 1.03
+  },
+  {
+   "uf": "MT",
+   "base": 2611.0,
+   "total": 11490,
+   "nao_sus": 3628,
+   "erro_total": 3.4006,
+   "erro_nao_sus": 0.3895
+  }
+ ]
+}

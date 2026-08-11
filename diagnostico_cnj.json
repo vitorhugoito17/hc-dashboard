@@ -1,186 +1,537 @@
 {
  "competencia": "jun/26",
  "base_all_instances": 28291.0,
- "codigos_saude": [],
+ "codigos_saude": [
+  10244
+ ],
  "por_tribunal_amostra": {},
+ "total_datajud": 0,
+ "erro_vs_base": -1.0,
+ "por_tribunal": {
+  "tjac": 0,
+  "tjal": 0,
+  "tjam": 0,
+  "tjap": 0,
+  "tjba": 0,
+  "tjce": 0,
+  "tjdft": 0,
+  "tjes": 0,
+  "tjgo": 0,
+  "tjma": 0,
+  "tjmg": 0,
+  "tjms": 0,
+  "tjmt": 0,
+  "tjpa": 0,
+  "tjpb": 0,
+  "tjpe": 0,
+  "tjpi": 0,
+  "tjpr": 0,
+  "tjrj": 0,
+  "tjrn": 0,
+  "tjro": 0,
+  "tjrr": 0,
+  "tjrs": 0,
+  "tjsc": 0,
+  "tjse": 0,
+  "tjsp": 0,
+  "tjto": 0
+ },
  "assuntos_por_tribunal": {
   "tjsp": {
    "documentos_no_indice": 74492169,
    "meses": [
     {
-     "mes": "9010-09",
-     "n": 1
+     "mes": "2025-01",
+     "n": 94680
     },
     {
-     "mes": "4507-05",
-     "n": 1
+     "mes": "2024-12",
+     "n": 151197
     },
     {
-     "mes": "4189-10",
-     "n": 1
+     "mes": "2024-11",
+     "n": 108096
     },
     {
-     "mes": "3301-04",
-     "n": 1
+     "mes": "2024-10",
+     "n": 142155
     },
     {
-     "mes": "2669-02",
-     "n": 1
+     "mes": "2024-09",
+     "n": 140987
     },
     {
-     "mes": "2612-01",
-     "n": 2544860
+     "mes": "2024-08",
+     "n": 138949
     },
     {
-     "mes": "2611-09",
-     "n": 4204841
+     "mes": "2024-07",
+     "n": 147592
     },
     {
-     "mes": "2611-06",
-     "n": 780708
+     "mes": "2024-06",
+     "n": 143829
     },
     {
-     "mes": "2611-05",
-     "n": 2548872
+     "mes": "2024-05",
+     "n": 149005
     },
     {
-     "mes": "2611-02",
-     "n": 2099370
+     "mes": "2024-04",
+     "n": 159024
     },
     {
-     "mes": "2611-01",
-     "n": 2009792
+     "mes": "2024-03",
+     "n": 142791
     },
     {
-     "mes": "2610-10",
-     "n": 3689470
+     "mes": "2024-02",
+     "n": 145604
     },
     {
-     "mes": "2610-06",
-     "n": 3314267
+     "mes": "2024-01",
+     "n": 128603
     },
     {
-     "mes": "2610-02",
-     "n": 2770642
+     "mes": "2023-12",
+     "n": 197000
     },
     {
-     "mes": "2609-11",
-     "n": 340052
+     "mes": "2023-11",
+     "n": 181923
     },
     {
-     "mes": "2609-10",
-     "n": 2345783
+     "mes": "2023-10",
+     "n": 172028
     },
     {
-     "mes": "2609-07",
-     "n": 1154105
+     "mes": "2023-09",
+     "n": 150066
     },
     {
-     "mes": "2609-06",
-     "n": 513582
+     "mes": "2023-08",
+     "n": 175306
     }
    ],
    "substituiu_mes": {
     "pedido": "2026-06",
-    "usado": "9010-09"
+    "usado": "2025-01",
+    "motivo": "o mês pedido ainda não aparece no índice"
    },
-   "mes_analisado": "set/10",
-   "total_mes": 1,
+   "mes_analisado": "jan/25",
+   "total_mes": 94680,
    "assuntos_top": [
     {
-     "codigo": 9045,
-     "nome": "Recurso",
-     "n": 1
+     "codigo": 6017,
+     "nome": "Dívida Ativa (Execução Fiscal)",
+     "n": 9679
+    },
+    {
+     "codigo": 7681,
+     "nome": "Obrigações",
+     "n": 6003
+    },
+    {
+     "codigo": 9582,
+     "nome": "Alienação Fiduciária",
+     "n": 3317
+    },
+    {
+     "codigo": 11811,
+     "nome": "Práticas Abusivas",
+     "n": 2968
+    },
+    {
+     "codigo": 7779,
+     "nome": "Indenização por Dano Moral",
+     "n": 2371
+    },
+    {
+     "codigo": 7780,
+     "nome": "Indenização por Dano Material",
+     "n": 2329
+    },
+    {
+     "codigo": 11781,
+     "nome": "Objetos de cartas precatórias cíveis/de ordem",
+     "n": 2282
+    },
+    {
+     "codigo": 7792,
+     "nome": "Pena de Multa",
+     "n": 1673
+    },
+    {
+     "codigo": 1209,
+     "nome": "DIREITO PROCESSUAL PENAL",
+     "n": 1649
+    },
+    {
+     "codigo": 3402,
+     "nome": "Ameaça ",
+     "n": 1639
+    },
+    {
+     "codigo": 7752,
+     "nome": "Bancários",
+     "n": 1499
+    },
+    {
+     "codigo": 7768,
+     "nome": "Rescisão do contrato e devolução do dinheiro",
+     "n": 1476
+    },
+    {
+     "codigo": 7698,
+     "nome": "Perdas e Danos",
+     "n": 1469
+    },
+    {
+     "codigo": 15035,
+     "nome": "Intimação",
+     "n": 1406
+    },
+    {
+     "codigo": 9596,
+     "nome": "Prestação de Serviços",
+     "n": 1336
+    },
+    {
+     "codigo": 4703,
+     "nome": "Defeito, nulidade ou anulação",
+     "n": 1329
+    },
+    {
+     "codigo": 9607,
+     "nome": "Contratos Bancários",
+     "n": 1261
+    },
+    {
+     "codigo": 6220,
+     "nome": "Responsabilidade do Fornecedor",
+     "n": 1084
+    },
+    {
+     "codigo": 3608,
+     "nome": "Tráfico de Drogas e Condutas Afins",
+     "n": 1020
+    },
+    {
+     "codigo": 14925,
+     "nome": "Repetição do Indébito",
+     "n": 981
+    },
+    {
+     "codigo": 4830,
+     "nome": "Cancelamento de vôo",
+     "n": 930
+    },
+    {
+     "codigo": 10467,
+     "nome": "Despesas Condominiais",
+     "n": 918
+    },
+    {
+     "codigo": 9580,
+     "nome": "Espécies de Contratos",
+     "n": 901
+    },
+    {
+     "codigo": 3386,
+     "nome": "Leve",
+     "n": 881
+    },
+    {
+     "codigo": 4980,
+     "nome": "Nota Promissória",
+     "n": 845
+    },
+    {
+     "codigo": 7703,
+     "nome": "Pagamento",
+     "n": 838
+    },
+    {
+     "codigo": 9593,
+     "nome": "Locação de Imóvel",
+     "n": 764
+    },
+    {
+     "codigo": 7791,
+     "nome": "Pena Privativa de Liberdade",
+     "n": 712
+    },
+    {
+     "codigo": 5952,
+     "nome": "IPTU/ Imposto Predial e Territorial Urbano",
+     "n": 700
+    },
+    {
+     "codigo": 7687,
+     "nome": "Inventário e Partilha",
+     "n": 695
+    },
+    {
+     "codigo": 6107,
+     "nome": "Auxílio-Acidente (Art. 86)",
+     "n": 693
+    },
+    {
+     "codigo": 3632,
+     "nome": "Crimes de Trânsito",
+     "n": 689
+    },
+    {
+     "codigo": 6226,
+     "nome": "Inclusão Indevida em Cadastro de Inadimplentes",
+     "n": 684
+    },
+    {
+     "codigo": 15034,
+     "nome": "Citação",
+     "n": 672
+    },
+    {
+     "codigo": 4829,
+     "nome": "Atraso de vôo",
+     "n": 667
+    },
+    {
+     "codigo": 10441,
+     "nome": "Acidente de Trânsito",
+     "n": 662
+    },
+    {
+     "codigo": 9587,
+     "nome": "Compra e Venda",
+     "n": 659
+    },
+    {
+     "codigo": 10439,
+     "nome": "Indenização por Dano Material",
+     "n": 653
+    },
+    {
+     "codigo": 14915,
+     "nome": "Despejo por Inadimplemento",
+     "n": 650
+    },
+    {
+     "codigo": 10433,
+     "nome": "Indenização por Dano Moral",
+     "n": 639
+    },
+    {
+     "codigo": 9160,
+     "nome": "Levantamento de Valor",
+     "n": 547
+    },
+    {
+     "codigo": 3416,
+     "nome": "Furto ",
+     "n": 532
+    },
+    {
+     "codigo": 10952,
+     "nome": "Fato Atípico",
+     "n": 526
+    },
+    {
+     "codigo": 3431,
+     "nome": "Estelionato",
+     "n": 525
+    },
+    {
+     "codigo": 10338,
+     "nome": "Gratificações e Adicionais",
+     "n": 508
+    },
+    {
+     "codigo": 4960,
+     "nome": "Cédula de Crédito Bancário",
+     "n": 503
+    },
+    {
+     "codigo": 9149,
+     "nome": "Valor da Execução / Cálculo / Atualização",
+     "n": 499
+    },
+    {
+     "codigo": 4972,
+     "nome": "Duplicata",
+     "n": 489
+    },
+    {
+     "codigo": 11806,
+     "nome": "Empréstimo consignado",
+     "n": 474
+    },
+    {
+     "codigo": 12489,
+     "nome": "Tratamento médico-hospitalar",
+     "n": 471
+    },
+    {
+     "codigo": 3692,
+     "nome": "Contravenções Penais",
+     "n": 469
+    },
+    {
+     "codigo": 10671,
+     "nome": "Obrigação de Fazer / Não Fazer",
+     "n": 447
+    },
+    {
+     "codigo": 12931,
+     "nome": "Cobrança",
+     "n": 440
+    },
+    {
+     "codigo": 5951,
+     "nome": "ISS/ Imposto sobre Serviços",
+     "n": 427
+    },
+    {
+     "codigo": 6007,
+     "nome": "Repetição de indébito",
+     "n": 427
+    },
+    {
+     "codigo": 3417,
+     "nome": "Furto Qualificado ",
+     "n": 421
+    },
+    {
+     "codigo": 9163,
+     "nome": "Penhora / Depósito/ Avaliação ",
+     "n": 386
+    },
+    {
+     "codigo": 10418,
+     "nome": "CNH - Carteira Nacional de Habilitação",
+     "n": 378
+    },
+    {
+     "codigo": 11974,
+     "nome": "Cláusulas Abusivas",
+     "n": 377
+    },
+    {
+     "codigo": 9196,
+     "nome": "Liminar ",
+     "n": 374
     }
    ],
-   "saude": []
+   "saude": [
+    {
+     "codigo": 10244,
+     "nome": "Assistência à Saúde",
+     "n": 19
+    }
+   ]
   },
   "tjrj": {
    "documentos_no_indice": 23117604,
    "meses": [
     {
-     "mes": "2617-05",
-     "n": 1
+     "mes": "2025-05",
+     "n": 3
     },
     {
-     "mes": "2612-01",
-     "n": 783865
+     "mes": "2025-04",
+     "n": 3212
     },
     {
-     "mes": "2611-09",
-     "n": 1848795
+     "mes": "2025-03",
+     "n": 5603
     },
     {
-     "mes": "2611-06",
-     "n": 446676
+     "mes": "2025-02",
+     "n": 10161
     },
     {
-     "mes": "2611-05",
-     "n": 984107
+     "mes": "2025-01",
+     "n": 27236
     },
     {
-     "mes": "2611-02",
-     "n": 880686
+     "mes": "2024-12",
+     "n": 43431
     },
     {
-     "mes": "2611-01",
-     "n": 772138
+     "mes": "2024-11",
+     "n": 32366
     },
     {
-     "mes": "2610-10",
-     "n": 1181498
+     "mes": "2024-10",
+     "n": 30666
     },
     {
-     "mes": "2610-06",
-     "n": 1098177
+     "mes": "2024-09",
+     "n": 53696
     },
     {
-     "mes": "2610-02",
-     "n": 607431
+     "mes": "2024-08",
+     "n": 79186
     },
     {
-     "mes": "2609-11",
-     "n": 214745
+     "mes": "2024-07",
+     "n": 40603
     },
     {
-     "mes": "2609-10",
-     "n": 1306324
+     "mes": "2024-06",
+     "n": 40248
     },
     {
-     "mes": "2609-07",
-     "n": 542369
+     "mes": "2024-05",
+     "n": 47515
     },
     {
-     "mes": "2609-06",
-     "n": 230976
+     "mes": "2024-04",
+     "n": 55821
     },
     {
-     "mes": "2609-03",
-     "n": 788114
+     "mes": "2024-03",
+     "n": 61575
     },
     {
-     "mes": "2608-11",
-     "n": 632784
+     "mes": "2024-02",
+     "n": 56713
     },
     {
-     "mes": "2608-07",
-     "n": 551267
+     "mes": "2024-01",
+     "n": 56294
     },
     {
-     "mes": "2608-04",
-     "n": 131067
+     "mes": "2023-12",
+     "n": 20717
     }
    ],
    "substituiu_mes": {
     "pedido": "2026-06",
-    "usado": "2617-05"
+    "usado": "2025-05",
+    "motivo": "o mês pedido ainda não aparece no índice"
    },
-   "mes_analisado": "mai/17",
-   "total_mes": 1,
+   "mes_analisado": "mai/25",
+   "total_mes": 3,
    "assuntos_top": [
     {
-     "codigo": 8990,
-     "nome": "Provas",
+     "codigo": 3692,
+     "nome": "Contravenções Penais",
+     "n": 1
+    },
+    {
+     "codigo": 6104,
+     "nome": "Abuso de Poder",
+     "n": 1
+    },
+    {
+     "codigo": 10894,
+     "nome": "Abuso de Poder",
+     "n": 1
+    },
+    {
+     "codigo": 11806,
+     "nome": "Empréstimo consignado",
      "n": 1
     }
    ],
@@ -190,88 +541,99 @@
    "documentos_no_indice": 36595940,
    "meses": [
     {
-     "mes": "7856-06",
+     "mes": "2020-01",
      "n": 1
     },
     {
-     "mes": "5138-07",
-     "n": 1
+     "mes": "2019-12",
+     "n": 14
     },
     {
-     "mes": "4252-11",
-     "n": 1
+     "mes": "2019-11",
+     "n": 283
     },
     {
-     "mes": "2919-02",
-     "n": 1
+     "mes": "2019-10",
+     "n": 678
     },
     {
-     "mes": "2670-01",
-     "n": 1
+     "mes": "2019-09",
+     "n": 741
     },
     {
-     "mes": "2668-10",
-     "n": 1
+     "mes": "2019-08",
+     "n": 675
     },
     {
-     "mes": "2668-02",
-     "n": 2
+     "mes": "2019-07",
+     "n": 710
     },
     {
-     "mes": "2667-10",
-     "n": 3
+     "mes": "2019-06",
+     "n": 573
     },
     {
-     "mes": "2667-06",
-     "n": 1
+     "mes": "2019-05",
+     "n": 678
     },
     {
-     "mes": "2621-03",
-     "n": 1
+     "mes": "2019-04",
+     "n": 624
     },
     {
-     "mes": "2612-01",
-     "n": 1410345
+     "mes": "2019-03",
+     "n": 601
     },
     {
-     "mes": "2611-09",
-     "n": 2762730
+     "mes": "2019-02",
+     "n": 604
     },
     {
-     "mes": "2611-06",
-     "n": 556762
+     "mes": "2019-01",
+     "n": 518
     },
     {
-     "mes": "2611-05",
-     "n": 2202710
+     "mes": "2018-12",
+     "n": 267
     },
     {
-     "mes": "2611-02",
-     "n": 1353433
+     "mes": "2018-11",
+     "n": 222
     },
     {
-     "mes": "2611-01",
-     "n": 1356528
+     "mes": "2018-10",
+     "n": 240
     },
     {
-     "mes": "2610-10",
-     "n": 2492344
+     "mes": "2018-09",
+     "n": 212
     },
     {
-     "mes": "2610-06",
-     "n": 2261555
+     "mes": "2018-08",
+     "n": 215
     }
    ],
    "substituiu_mes": {
     "pedido": "2026-06",
-    "usado": "7856-06"
+    "usado": "2020-01",
+    "motivo": "o mês pedido ainda não aparece no índice"
    },
-   "mes_analisado": "jun/56",
+   "mes_analisado": "jan/20",
    "total_mes": 1,
    "assuntos_top": [
     {
-     "codigo": 287,
-     "nome": "DIREITO PENAL",
+     "codigo": 10239,
+     "nome": "Classificação e/ou Preterição",
+     "n": 1
+    },
+    {
+     "codigo": 10240,
+     "nome": "Classificação e/ou Preterição",
+     "n": 1
+    },
+    {
+     "codigo": 10381,
+     "nome": "Classificação e/ou Preterição",
      "n": 1
     }
    ],
