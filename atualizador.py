@@ -582,6 +582,15 @@ def calibrar(D, ag, ag_ant=None, tol=0.015, limite_var=0.06):
             diag.append((op, 'retido', base, novo, var, None)); continue
         fatores[op] = (base * 1000.0) / anterior
         diag.append((op, 'encadeado', base, base * (1 + var), var, fatores[op]))
+    # Séries da base que o agrupamento não encontrou em NENHUMA linha do cadastro
+    # — a Athena, por exemplo, é um roll-up cujas operadoras têm razão social
+    # própria. Sem isso elas sumiriam do relatório em vez de aparecer como
+    # retidas, que é o que de fato são.
+    vistos = {op for op, *_ in diag}
+    for op, base in ult.items():
+        if op in vistos or op == 'Market':
+            continue
+        diag.append((op, 'retido', base, None, None, None))
     return fatores, diag
 
 
@@ -2062,6 +2071,9 @@ def _cli():
                     help='refaz o casamento unidade->CNES e regrava cnes_map.json')
     ap.add_argument('--cnj', nargs='?', const=True, metavar='AAAAMM',
                     help='sondagem do DataJud (não grava na série)')
+    ap.add_argument('--auto', action='store_true',
+                    help='rodada completa: IPCA + beneficiários da ANS + leitos do CNES '
+                         '(é também o comportamento padrão, sem nenhuma opção)')
     ap.add_argument('--refazer', metavar='AAAAMM',
                     help='reprocessa uma competência da ANS mesmo que a base já esteja nela '
                          '(usado para reescrever por encadeamento o que entrou só por nível)')
@@ -2084,6 +2096,9 @@ def _cli():
         base['ipca'] = ip
         print(f"IPCA: {antes or '—'} -> {ip['competencia']}")
         gravar_base(base); return
+
+    if a.auto:
+        acao_auto(); return
 
     ym = a.competencia
     if not ym and not a.cache:
