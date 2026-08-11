@@ -59,7 +59,7 @@ O parser não assume nomes de coluna fixos: lê o cabeçalho e casa cada campo
 por padrão, imprimindo o que casou. Se a ANS renomear uma coluna, o script
 avisa em vez de devolver número errado.
 """
-import csv, io, os, re, sys, unicodedata, zipfile
+import csv, io, os, re, sys, time, unicodedata, zipfile
 from collections import defaultdict
 
 BASE = 'https://dadosabertos.ans.gov.br/FTP/PDA/informacoes_consolidadas_de_beneficiarios-024/'
@@ -192,32 +192,81 @@ def eh_odonto(cobertura):
     return bool(re.search(r'odonto', _norm(cobertura)))
 
 # ---------------------------------------------------------------- download
-def baixar_competencia(ym, destino, ufs=None, requests=None):
-    """Baixa os 28 ZIPs de uma competência do PDA-024 para `destino`."""
+def _zip_integro(caminho):
+    """O arquivo baixado é mesmo um ZIP legível e com CSV dentro?
+
+    O servidor da ANS derruba conexão no meio do download com frequência. Um
+    ZIP truncado abre e falha só na hora de ler — e aí o agregado sai menor sem
+    ninguém perceber. Melhor descobrir na hora de baixar.
+    """
+    try:
+        if os.path.getsize(caminho) < 1024:
+            return False
+        with zipfile.ZipFile(caminho) as z:
+            nomes = [n for n in z.namelist() if n.lower().endswith(('.csv', '.txt'))]
+            if not nomes:
+                return False
+            with z.open(nomes[0]) as fh:      # força a leitura do início do stream
+                fh.read(1 << 16)
+        return True
+    except Exception:
+        return False
+
+
+def baixar_competencia(ym, destino, ufs=None, requests=None, tentativas=4):
+    """Baixa os 28 ZIPs de uma competência do PDA-024 para `destino`.
+
+    Cada UF é tentada até `tentativas` vezes, com espera crescente, e o arquivo
+    só entra na lista depois de passar no teste de integridade. Devolver menos
+    de 28 arquivos é motivo para abortar, não para seguir com menos — quem
+    chama confere.
+    """
     import requests as rq
     requests = requests or rq
     os.makedirs(destino, exist_ok=True)
     alvos = ufs or UFS
-    arquivos = []
+    arquivos, faltando = [], []
+    sessao = requests.Session()
+    sessao.headers.update({'User-Agent': 'Healthcare-Dashboard-Updater/2.0',
+                           'Accept-Encoding': 'identity', 'Connection': 'close'})
     for uf in alvos:
         nome = f'pda-024-icb-{uf}-{ym[:4]}_{ym[4:]}.zip'
         caminho = os.path.join(destino, nome)
-        if os.path.exists(caminho) and os.path.getsize(caminho) > 0:
+        if os.path.exists(caminho) and _zip_integro(caminho):
             arquivos.append(caminho); continue
         url = BASE + f'{ym}/' + nome
         print(f'      {uf} …', end='', flush=True)
-        try:
-            with requests.get(url, stream=True, timeout=600,
-                              headers={'User-Agent':'Healthcare-Dashboard-Updater/2.0'}) as r:
-                if r.status_code == 404:
-                    print(' (não existe)'); continue
-                r.raise_for_status()
-                with open(caminho,'wb') as f:
-                    for c in r.iter_content(1<<20): f.write(c)
-            print(f' {os.path.getsize(caminho)/1e6:.0f} MB')
-            arquivos.append(caminho)
-        except Exception as e:
-            print(f' ERRO: {e}')
+        ok = False
+        for k in range(tentativas):
+            try:
+                with sessao.get(url, stream=True, timeout=(30, 180)) as r:
+                    if r.status_code == 404:
+                        print(' (não existe)'); ok = True; break
+                    r.raise_for_status()
+                    esperado = int(r.headers.get('Content-Length') or 0)
+                    with open(caminho, 'wb') as f:
+                        for c in r.iter_content(1 << 20):
+                            f.write(c)
+                obtido = os.path.getsize(caminho)
+                if esperado and obtido != esperado:
+                    raise IOError(f'truncado: {obtido} de {esperado} bytes')
+                if not _zip_integro(caminho):
+                    raise IOError('ZIP ilegível')
+                print(f' {obtido/1e6:.0f} MB' + (f' (tentativa {k+1})' if k else ''))
+                arquivos.append(caminho); ok = True; break
+            except Exception as e:
+                try: os.remove(caminho)
+                except OSError: pass
+                if k == tentativas - 1:
+                    print(f' ERRO após {tentativas} tentativas: {e}')
+                else:
+                    espera = 5 * (k + 1)
+                    print(f' [{type(e).__name__}, nova tentativa em {espera}s]', end='', flush=True)
+                    time.sleep(espera)
+        if not ok:
+            faltando.append(uf)
+    if faltando:
+        print(f'\n   NÃO baixaram: {", ".join(faltando)}')
     return arquivos
 
 # ------------------------------------------------------------------ parse
@@ -318,6 +367,28 @@ def agregar(arquivos, verboso=True):
     for chave in ('contratacao','faixa'):
         for k in [x for x in ag[chave] if x.startswith('_')]: del ag[chave][k]
     return ag
+
+
+def conferir_cobertura(arquivos, ufs=None):
+    """Aborta se faltar UF. Um agregado parcial não é 'quase certo': é errado.
+
+    Sem as 28 UFs o total do mercado sai menor, o encadeamento mede variação
+    contra um universo diferente e todo o resto herda o erro em silêncio.
+    """
+    esperadas = set(ufs or UFS)
+    obtidas = set()
+    for c in arquivos:
+        m = re.search(r'pda-024-icb-([A-Z]{2})-', os.path.basename(c))
+        if m: obtidas.add(m.group(1))
+    faltam = sorted(esperadas - obtidas)
+    if faltam:
+        raise SystemExit(
+            f'Faltaram {len(faltam)} de {len(esperadas)} UFs: {", ".join(faltam)}.\n'
+            'Nada foi gravado. O servidor da ANS costuma derrubar conexão em horário '
+            'de pico; rodar de novo mais tarde normalmente resolve, e os ZIPs que já '
+            'vieram ficam em cache.')
+    print(f'   {len(obtidas)} de {len(esperadas)} UFs — cobertura completa')
+
 
 def conferir(ag):
     """Imprime o resultado do agrupamento para validação antes de gravar."""
@@ -579,13 +650,25 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     ag['uf_op'] = {uf: {k: v for k, v in d.items() if k in aceitos} for uf, d in ag['uf_op'].items()}
     ag['contratacao'] = {k: v for k, v in ag['contratacao'].items() if k in aceitos}
     ag['faixa'] = {k: v for k, v in ag['faixa'].items() if k in aceitos}
+    metodo = {op: st for op, st, *_ in diag if st in ('nível', 'encadeado')}
+    incorporadas = sorted(x for x in aceitos if x != 'Market')
+    retidas = sorted(op for op, st, *_ in diag if st == 'retido')
     D.setdefault('meta', {})['reconciliacao'] = {
         'competencia': p, 'tolerancia': tolerancia,
         'competencia_anterior': rotulo(ym_ant) if ym_ant else None,
-        'metodo': {op: st for op, st, *_ in diag if st in ('nível', 'encadeado')},
-        'incorporadas': sorted(x for x in aceitos if x != 'Market'),
-        'retidas': sorted(op for op, st, *_ in diag if st == 'retido'),
+        'metodo': metodo, 'incorporadas': incorporadas, 'retidas': retidas,
     }
+    # o dashboard lê a tabela de reconciliação daqui, não do meta
+    pda = D.setdefault('ans', {}).setdefault('pda024', {})
+    pda.update({'competencia': p, 'competencia_anterior': rotulo(ym_ant) if ym_ant else None,
+                'processado_em': datetime.date.today().strftime('%d/%m/%Y'),
+                'tolerancia': tolerancia, 'metodo': metodo,
+                'incorporadas': incorporadas, 'retidas': retidas,
+                'total_medico': round(ag['total'] / 1000, 3),
+                'total_odonto': round(ag['total_odonto'] / 1000, 3)})
+    D['ans']['periodo'] = p
+    D['ans']['medico'] = round(ag['total'] / 1000, 3)
+    D['ans']['odonto'] = round(ag['total_odonto'] / 1000, 3)
 
     # ---------- vidas e market share por operadora (médico) ----------
     vidas = {g: _mil(v) for g, v in ag['vidas'].items()}
@@ -1140,8 +1223,12 @@ def obter_agregado(ym: str):
         return ag
     print(f'        referência {rotulo(ym)} não está em cache — baixando para medir a variação')
     arqs = baixar_competencia(ym, os.path.join(CACHE, 'pda024', ym))
-    if not arqs:
-        print(f'        {rotulo(ym)} indisponível; sem referência não dá para encadear')
+    try:
+        conferir_cobertura(arqs)
+    except SystemExit as e:
+        # referência incompleta não aborta a rodada: só desliga o encadeamento,
+        # e aí as operadoras de escopo divergente ficam onde estavam
+        print(f'        referência {rotulo(ym)} incompleta — sigo sem encadear\n        {e}')
         return None
     return agregar(arqs, verboso=False)
 
@@ -1229,6 +1316,7 @@ def acao_auto():
             destino = os.path.join(CACHE, 'pda024', novo)
             arquivos = baixar_competencia(novo, destino)
             if arquivos:
+                conferir_cobertura(arquivos)
                 ag = agregar(arquivos)
                 conferir(ag)
                 merge(base, ag, novo, ag_ant, anterior)
@@ -1259,15 +1347,9 @@ def acao_beneficiarios(ym, ufs, apenas_conferir, cache_dir=None):
     destino = cache_dir or os.path.join(CACHE, 'pda024', ym)
     print(f'\nCompetência {ym} — PDA-024 (informações consolidadas de beneficiários)')
     print('='*72)
-    arquivos = [f for f in (os.listdir(destino) if os.path.isdir(destino) else []) if f.endswith('.zip')]
-    if arquivos:
-        print(f'   {len(arquivos)} ZIPs já em cache ({destino})')
-        arquivos = [os.path.join(destino, f) for f in sorted(arquivos)]
-    else:
-        print('   baixando (são ~360 MB no total; o cache evita rebaixar)')
-        arquivos = baixar_competencia(ym, destino, ufs)
-    if not arquivos:
-        raise SystemExit('Nenhum arquivo baixado — verifique a conectividade e a competência.')
+    print('   baixando (são ~360 MB no total; o cache evita rebaixar)')
+    arquivos = baixar_competencia(ym, destino, ufs)
+    conferir_cobertura(arquivos, ufs)
 
     print(f'\n   processando {len(arquivos)} arquivos')
     ag = agregar(arquivos)
