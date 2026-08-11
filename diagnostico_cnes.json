@@ -678,9 +678,9 @@
    "cnes": "3304557642415",
    "fantasia": "SAMARITANO BARRA",
    "pontuacao": 0.4,
-   "base": 30.0,
+   "base": 32.0,
    "calculado": 32,
-   "erro": 0.0667,
+   "erro": 0.0,
    "status": "casado"
   },
   {
@@ -1094,27 +1094,7 @@
    "base": 45.0,
    "calculado": 45,
    "erro": 0.0,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "3506006025668",
-     "fantasia": "HOSPITAL SAO LUCAS",
-     "p": 0.267,
-     "leitos": 67
-    },
-    {
-     "cnes": "3506002790661",
-     "fantasia": "HOSPITAL UNIMED DE BAURU",
-     "p": 0.267,
-     "leitos": 294
-    },
-    {
-     "cnes": "3506002790602",
-     "fantasia": "HOSPITAL ESTADUAL BAURU",
-     "p": 0.267,
-     "leitos": 334
-    }
-   ]
+   "status": "casado"
   },
   {
    "unidade": "Hospital Medical",
@@ -1186,27 +1166,7 @@
    "base": 23.0,
    "calculado": 23,
    "erro": 0.0,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "3527103518949",
-     "fantasia": "HOSPITAL UNIMED LINS",
-     "p": 0.267,
-     "leitos": 47
-    },
-    {
-     "cnes": "3527102758245",
-     "fantasia": "SANTA CASA DE LINS",
-     "p": 0.244,
-     "leitos": 108
-    },
-    {
-     "cnes": "3527102081725",
-     "fantasia": "CAIS CLEMENTE FERREIRA DE LINS",
-     "p": 0.233,
-     "leitos": 186
-    }
-   ]
+   "status": "casado"
   },
   {
    "unidade": "Hospital São Francisco Netto Campello",
@@ -1262,27 +1222,7 @@
    "base": 72.0,
    "calculado": 72,
    "erro": 0.0,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "3516207509065",
-     "fantasia": "HOSPITAL OFTALMOLOGICO DE FRANCA",
-     "p": 0.267,
-     "leitos": 4
-    },
-    {
-     "cnes": "3516202705982",
-     "fantasia": "SANTA CASA DE FRANCA",
-     "p": 0.244,
-     "leitos": 399
-    },
-    {
-     "cnes": "3516202080753",
-     "fantasia": "SAO JOAQUIM HOSPITAL E MATERNIDADE",
-     "p": 0.244,
-     "leitos": 117
-    }
-   ]
+   "status": "casado"
   },
   {
    "unidade": "Hospital Salvalus",
@@ -1372,33 +1312,13 @@
    "unidade": "Hospital Notrecare (Baeta Neves)",
    "cidade": "São Bernardo",
    "uf": "SP",
-   "cnes": "3548702083000",
-   "fantasia": "HOSPITAL E MATERNIDADE BAETA NEVES",
-   "pontuacao": 0.578,
+   "cnes": "3548709738754",
+   "fantasia": "HOSPITAL E MATERNIDADE NOTRECARE ABC",
+   "pontuacao": 0.244,
    "base": 102.0,
-   "calculado": 136,
-   "erro": 0.3333,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "3548707150938",
-     "fantasia": "HOSPITAL SAO BERNARDO S A UNIDADE BAETA NEVES",
-     "p": 0.533,
-     "leitos": 49
-    },
-    {
-     "cnes": "3548702038277",
-     "fantasia": "PRONTO SOCORRO BAETA NEVES",
-     "p": 0.533,
-     "leitos": 10
-    },
-    {
-     "cnes": "3548709738754",
-     "fantasia": "HOSPITAL E MATERNIDADE NOTRECARE ABC",
-     "p": 0.244,
-     "leitos": 102
-    }
-   ]
+   "calculado": 102,
+   "erro": 0.0,
+   "status": "casado"
   },
   {
    "unidade": "Hospital Montemagno",
@@ -1428,65 +1348,25 @@
    "unidade": "Hospital Guarulhos",
    "cidade": "Guarulhos",
    "uf": "SP",
-   "cnes": "3518807013981",
-   "fantasia": "HOSPITAL UNIMED GUARULHOS UNIDADE II",
-   "pontuacao": 0.733,
+   "cnes": "3518806625649",
+   "fantasia": "UNIMED DE GUARULHOS COOPERATIVA DE TRABALHO MEDICO",
+   "pontuacao": 0.7,
    "base": 102.0,
-   "calculado": 37,
-   "erro": 0.6373,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "3518805493323",
-     "fantasia": "HOSPITAL E MATERNIDADE BRASIL DE GUARULHOS",
-     "p": 0.733,
-     "leitos": 54
-    },
-    {
-     "cnes": "3518804813308",
-     "fantasia": "HOSPITAL SAO LUIZ GUARULHOS",
-     "p": 0.733,
-     "leitos": 162
-    },
-    {
-     "cnes": "3518803461963",
-     "fantasia": "HOSPITAL CASA DE SAUDE GUARULHOS",
-     "p": 0.733,
-     "leitos": 58
-    }
-   ]
+   "calculado": 100,
+   "erro": 0.0196,
+   "status": "casado"
   },
   {
    "unidade": "Hospital e Maternidade N. S. Rosario",
    "cidade": "São Paulo",
    "uf": "SP",
-   "cnes": "3550309554157",
-   "fantasia": "HOSPITAL E MATERNIDADE SALVALUS",
-   "pontuacao": 0.4,
+   "cnes": "3550302084368",
+   "fantasia": "HOSPITAL NOSSA SENHORA DO ROSARIO",
+   "pontuacao": 0.367,
    "base": 33.0,
-   "calculado": 469,
-   "erro": 13.2121,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "3550305174465",
-     "fantasia": "HOSP E MATERNIDADE DO BRAZ",
-     "p": 0.4,
-     "leitos": 391
-    },
-    {
-     "cnes": "3550303559203",
-     "fantasia": "HOSPITAL E MATERNIDADE JARDINS LTDA",
-     "p": 0.4,
-     "leitos": 26
-    },
-    {
-     "cnes": "3550302078082",
-     "fantasia": "HOSPITAL E MATERNIDADE METROPOLITANO",
-     "p": 0.4,
-     "leitos": 91
-    }
-   ]
+   "calculado": 33,
+   "erro": 0.0,
+   "status": "casado"
   },
   {
    "unidade": "Hospital Renascenca De Campinas",
@@ -1552,33 +1432,13 @@
    "unidade": "Hospital Notrecare Rio (Samci)",
    "cidade": "Rio de Janeiro",
    "uf": "RJ",
-   "cnes": "3304556807771",
-   "fantasia": "HOSPITAL DO RIO",
-   "pontuacao": 0.333,
+   "cnes": "3304553067556",
+   "fantasia": "SAMCI HOSPITAL INFANTIL",
+   "pontuacao": 0.267,
    "base": 50.0,
-   "calculado": 40,
-   "erro": 0.2,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "3304559198024",
-     "fantasia": "HOSPITAL RIO BOTAFOGO",
-     "p": 0.267,
-     "leitos": 70
-    },
-    {
-     "cnes": "3304556002455",
-     "fantasia": "CLINICA DE OLHOS RIO",
-     "p": 0.267,
-     "leitos": 1
-    },
-    {
-     "cnes": "3304555417643",
-     "fantasia": "OFTALMO RIO",
-     "p": 0.267,
-     "leitos": 15
-    }
-   ]
+   "calculado": 54,
+   "erro": 0.08,
+   "status": "casado"
   },
   {
    "unidade": "Hospital Intermedica Jacarepagua",
@@ -1587,9 +1447,9 @@
    "cnes": "3304553114554",
    "fantasia": "HOSPITAL ALIANCA DE JACAREPAGUA",
    "pontuacao": 0.4,
-   "base": 31.0,
+   "base": 32.0,
    "calculado": 32,
-   "erro": 0.0323,
+   "erro": 0.0,
    "status": "casado"
   },
   {
@@ -1793,33 +1653,13 @@
    "unidade": "Hospital da Paraíba",
    "cidade": "João Pessoa",
    "uf": "PB",
-   "cnes": "2507504842944",
-   "fantasia": "PARAIBA OFTALMOLOGIA",
-   "pontuacao": 0.8,
+   "cnes": "2507502399989",
+   "fantasia": "HOSPITAL GERAL DA PARAIBA E HAPCLINICA JOAO PESSOA",
+   "pontuacao": 0.68,
    "base": 74.0,
-   "calculado": 1,
-   "erro": 0.9865,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "2507500083615",
-     "fantasia": "HOSPITAL DE OLHOS DA PARAIBA",
-     "p": 0.8,
-     "leitos": 1
-    },
-    {
-     "cnes": "2507504404114",
-     "fantasia": "PROVISAO HOSPITAL OFTALMOLOGICO DA PARAIBA",
-     "p": 0.733,
-     "leitos": 1
-    },
-    {
-     "cnes": "2507502755807",
-     "fantasia": "OCULISTAS ASSOCIADOS DA PARAIBA LTDA",
-     "p": 0.733,
-     "leitos": 2
-    }
-   ]
+   "calculado": 74,
+   "erro": 0.0,
+   "status": "casado"
   },
   {
    "unidade": "Hospital das Clínicas de Parauapebas",
@@ -2033,27 +1873,13 @@
    "unidade": "Hospital São Francisco Quirinopolis",
    "cidade": "Quirinopolis",
    "uf": "GO",
-   "cnes": "5218502340593",
-   "fantasia": "HOSPITAL SAO FRANCISCO QUIRINOPOLIS",
-   "pontuacao": 1.0,
+   "cnes": "5218502340585",
+   "fantasia": "HOSPITAL QUIRINOPOLIS",
+   "pontuacao": 0.333,
    "base": 28.0,
-   "calculado": 20,
-   "erro": 0.2857,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "5218502340585",
-     "fantasia": "HOSPITAL QUIRINOPOLIS",
-     "p": 0.333,
-     "leitos": 28
-    },
-    {
-     "cnes": "5218502360470",
-     "fantasia": "HOSPITAL MUNICIPAL ANTONIO MARTINS DA COSTA",
-     "p": 0.22,
-     "leitos": 54
-    }
-   ]
+   "calculado": 28,
+   "erro": 0.0,
+   "status": "casado"
   },
   {
    "unidade": "Hospital Brasiliense",
@@ -2307,9 +2133,9 @@
    "cnes": "3550307252455",
    "fantasia": "HOSPITAL PROFESSORA LYDIA STOROPOLI",
    "pontuacao": 0.72,
-   "base": 224.0,
+   "base": 210.0,
    "calculado": 210,
-   "erro": 0.0625,
+   "erro": 0.0,
    "status": "casado"
   },
   {
@@ -2388,27 +2214,13 @@
    "unidade": "N. Sra. do Carmo",
    "cidade": "Rio de Janeiro",
    "uf": "RJ",
-   "cnes": "3304553002918",
-   "fantasia": "HOSPITAL DA ORDEM DO CARMO",
-   "pontuacao": 0.4,
+   "cnes": "3304553046281",
+   "fantasia": "CASA DE SAUDE NOSSA SENHORA DO CARMO",
+   "pontuacao": 0.34,
    "base": 120.0,
-   "calculado": 26,
-   "erro": 0.7833,
-   "status": "sem casamento confiável",
-   "outros": [
-    {
-     "cnes": "3304553046281",
-     "fantasia": "CASA DE SAUDE NOSSA SENHORA DO CARMO",
-     "p": 0.34,
-     "leitos": 120
-    },
-    {
-     "cnes": "3304559945709",
-     "fantasia": "CSNSC FILIAL 02",
-     "p": 0.306,
-     "leitos": 57
-    }
-   ]
+   "calculado": 120,
+   "erro": 0.0,
+   "status": "casado"
   },
   {
    "unidade": "Hospital Brasília",
