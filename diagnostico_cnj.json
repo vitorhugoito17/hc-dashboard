@@ -1,0 +1,23 @@
+{
+ "competencia": "jun/26",
+ "base_all_instances": 28291.0,
+ "codigos_saude": [],
+ "por_tribunal_amostra": {},
+ "assuntos_por_tribunal": {
+  "tjsp": {
+   "total_mes": 0,
+   "assuntos": [],
+   "saude": []
+  },
+  "tjrj": {
+   "total_mes": 0,
+   "assuntos": [],
+   "saude": []
+  },
+  "tjmg": {
+   "total_mes": 0,
+   "assuntos": [],
+   "saude": []
+  }
+ }
+}
