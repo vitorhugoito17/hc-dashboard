@@ -12,13 +12,24 @@ USO
     python atualizador.py --ipca          # só a inflação (rápido, API do IBGE)
     python atualizador.py --conferir      # processa a ANS e mostra, sem gravar
     python atualizador.py --so-baixar     # só baixa os ZIPs da ANS
+    python atualizador.py --cnes          # só os leitos hospitalares (CNES)
+    python atualizador.py --cnes-descobrir  # refaz o mapa unidade -> código CNES
+    python atualizador.py --cnj           # sondagem do DataJud, sem gravar
 
 O QUE ELE FAZ
     1. IPCA/IBGE — API JSON pública, ciclo fechado, segundos.
     2. Beneficiários/ANS (PDA-024) — descobre a competência mais recente,
        baixa os 28 ZIPs (~390 MB), agrega e costura nas séries do dashboard.
-       Operadora que não reconcilia com a base anterior dentro de 1,5% fica
-       na competência antiga de propósito, em vez de gerar um degrau falso.
+       Operadora cujo escopo de grupo bate com o da base entra pelo número
+       absoluto da ANS; onde não bate, entra pela variação mês a mês medida
+       na mesma metodologia. Onde não dá para medir nem a variação, a série
+       não avança — melhor um mês a menos que um degrau falso.
+    3. Leitos/CNES — baixa a base mensal do DATASUS e atualiza os leitos por
+       hospital. O casamento entre as unidades do dashboard e os códigos CNES
+       é feito uma vez, validado contra os leitos que a base já traz, e
+       congelado em cnes_map.json.
+    4. Judicialização/CNJ — sondagem da API pública do DataJud. Ainda não
+       publica na série: primeiro precisa reproduzir os meses conhecidos.
 
 REQUISITOS
     Python 3.9+ e a biblioteca requests:   python -m pip install requests
@@ -181,7 +192,8 @@ def eh_odonto(cobertura):
     return bool(re.search(r'odonto', _norm(cobertura)))
 
 # ---------------------------------------------------------------- download
-def baixar(ym, destino, ufs=None, requests=None):
+def baixar_competencia(ym, destino, ufs=None, requests=None):
+    """Baixa os 28 ZIPs de uma competência do PDA-024 para `destino`."""
     import requests as rq
     requests = requests or rq
     os.makedirs(destino, exist_ok=True)
@@ -242,6 +254,7 @@ def agregar(arquivos, verboso=True):
       'modalidade':   defaultdict(float),
       'contratacao':  defaultdict(lambda: defaultdict(float)), # grupo -> tipo -> vidas
       'faixa':        defaultdict(lambda: defaultdict(float)), # grupo -> faixa -> vidas
+      'nao_classificadas': defaultdict(float),                 # razão social -> vidas (balde Others)
       'total': 0.0, 'total_odonto': 0.0,
     }
     mapa = None
@@ -263,6 +276,10 @@ def agregar(arquivos, verboso=True):
             try: nome = linha[mapa['operadora']]
             except IndexError: continue
             grupo = classificar(nome)
+            if grupo == 'Others':
+                # guarda quem caiu no balde residual, para conseguir auditar depois
+                # quais operadoras grandes ainda não têm grupo econômico mapeado
+                ag['nao_classificadas'][nome.strip()[:70]] += qt
             cob = linha[mapa['cobertura']] if 'cobertura' in mapa and mapa['cobertura'] < len(linha) else ''
             odonto = eh_odonto(cob)
             if odonto:
@@ -388,56 +405,175 @@ def _mil(v):
     return round(v/1000.0, 3) if v else (0.0 if v == 0 else None)
 
 
-def _reconcilia(D, ag, tol):
-    """Decide em quais operadoras podemos confiar nesta competência.
+# GRUPOS que particionam o mercado: o "Others" da base é exatamente
+# Market menos a soma destes dez. A identidade é conferida em conferir_identidade().
+GRUPOS_MERCADO = ['Hapvida + GNDI','Amil','Bradesco Saúde','SulAmérica','Athena Saúde',
+                  'Porto Seguro','Unimed Nacional','Unimed Seguros','Unimed BH','Unimed Rio/Ferj']
 
-    A base histórica vem da consolidação do BBI; o cálculo novo vem do PDA-024
-    agrupado por razão social. Onde as duas metodologias batem, o ponto novo
-    entra. Onde divergem além da tolerância, é diferença de escopo de grupo —
-    e gravar geraria um degrau falso. Nesse caso não gravamos nada.
+
+def _copia_ag(ag):
+    """Cópia profunda o suficiente para escalar sem mexer no agregado original."""
+    novo = {}
+    for k, v in ag.items():
+        if isinstance(v, dict):
+            if v and isinstance(next(iter(v.values())), dict):
+                novo[k] = {a: dict(b) for a, b in v.items()}
+            else:
+                novo[k] = dict(v)
+        else:
+            novo[k] = v
+    return novo
+
+
+def escalar(ag, fatores):
+    """Aplica o fator de calibragem de cada operadora a TODOS os recortes.
+
+    Escalar num lugar só (vidas) e não nos outros produziria um dashboard
+    incoerente: a soma por UF não fecharia com o total da operadora. Como o
+    fator corrige diferença de escopo de grupo — quais CNPJs entram no grupo —
+    ele vale igual para vidas, odonto, UF, contratação e faixa etária.
+    """
+    ag = _copia_ag(ag)
+    for op, f in fatores.items():
+        if not f or abs(f - 1.0) < 1e-12:
+            continue
+        for chave in ('vidas', 'vidas_odonto'):
+            if op in ag[chave]:
+                ag[chave][op] = ag[chave][op] * f
+        for uf in ag['uf_op']:
+            if op in ag['uf_op'][uf]:
+                ag['uf_op'][uf][op] = ag['uf_op'][uf][op] * f
+        for chave in ('contratacao', 'faixa'):
+            if op in ag[chave]:
+                ag[chave][op] = {k: v * f for k, v in ag[chave][op].items()}
+    return ag
+
+
+def _ultimos(D):
+    """Último valor não-nulo de cada operadora na série de vidas da base."""
+    ult = {}
+    for op, vals in D['ben']['lives_m']['series'].items():
+        for v in reversed(vals):
+            if v is not None:
+                ult[op] = v; break
+    return ult
+
+
+def calibrar(D, ag, ag_ant=None, tol=0.015, limite_var=0.06):
+    """Decide, operadora a operadora, COMO o ponto novo entra na série.
+
+    A base histórica vem da consolidação do BBI, que agrupa CNPJs por critério
+    societário próprio. O cálculo novo vem do PDA-024 agrupado por razão social.
+    Onde os dois escopos coincidem, o número absoluto da ANS entra direto. Onde
+    divergem, o nível não é comparável — mas a VARIAÇÃO é, desde que medida na
+    mesma metodologia nos dois meses. Daí a competência anterior.
+
+      nível     — escopos batem dentro da tolerância; grava o número da ANS.
+      encadeado — escopos divergem em nível; aplica a variação mês a mês medida
+                  no PDA-024 sobre o último nível da base. É o mesmo
+                  procedimento de emenda que o IBGE usa ao trocar de amostra.
+      retido    — não dá para medir a variação (operadora ausente do cadastro
+                  ou variação implausível); a série não avança, de propósito.
+
+    Devolve (fatores, diagnostico).
+    """
+    ult = _ultimos(D)
+    ant_ans = (ag_ant or {}).get('vidas') or {}
+    fatores, diag = {}, []
+    for op, v in ag['vidas'].items():
+        if op.startswith('_'):
+            continue
+        novo = v / 1000.0
+        if op == 'Market':
+            fatores[op] = 1.0
+            diag.append((op, 'nível', novo, novo, 0.0, 1.0)); continue
+        base = ult.get(op)
+        if base is None:
+            diag.append((op, 'fora da base', None, novo, None, None)); continue
+        if base == 0:
+            # ex.: Unimed Rio, que o BBI consolida dentro da Ferj
+            if novo <= 1.0:
+                fatores[op] = 1.0
+                diag.append((op, 'nível', base, novo, 0.0, 1.0))
+            else:
+                diag.append((op, 'retido', base, novo, None, None))
+            continue
+        d = novo / base - 1
+        if abs(d) <= tol:
+            fatores[op] = 1.0
+            diag.append((op, 'nível', base, novo, d, 1.0)); continue
+        anterior = ant_ans.get(op)
+        if not anterior:
+            diag.append((op, 'retido', base, novo, None, None)); continue
+        var = v / anterior - 1
+        if abs(var) > limite_var:
+            # carteira real não anda 6% num mês: isso é erro de mapeamento
+            diag.append((op, 'retido', base, novo, var, None)); continue
+        fatores[op] = (base * 1000.0) / anterior
+        diag.append((op, 'encadeado', base, base * (1 + var), var, fatores[op]))
+    return fatores, diag
+
+
+def _imprime_calibragem(diag, ym, ym_ant):
+    print(f'\n   Calibragem contra a base (nível quando os escopos batem,')
+    print(f'   variação {rotulo(ym_ant)}→{rotulo(ym)} quando não batem)')
+    print('   ' + '-' * 78)
+    print(f'   {"":10} {"operadora":30} {"base":>11} {"grava":>11} {"var":>8}')
+    ordem = {'nível': 0, 'encadeado': 1, 'retido': 2, 'fora da base': 3}
+    for op, st, base, grava, var, f in sorted(diag, key=lambda x: (ordem.get(x[1], 9), x[0])):
+        b = f'{base:11,.1f}' if base is not None else f'{"—":>11}'
+        g = f'{grava:11,.1f}' if grava is not None else f'{"—":>11}'
+        vv = f'{var*100:7.2f}%' if var is not None else f'{"—":>8}'
+        print(f'   {st:10} {op:30} {b} {g} {vv}')
+    n = {k: sum(1 for d in diag if d[1] == k) for k in ordem}
+    print(f'\n   {n["nível"]} por nível · {n["encadeado"]} encadeadas · '
+          f'{n["retido"]} retidas · {n["fora da base"]} fora da base')
+
+
+def conferir_identidade(D, p, limite=0.005):
+    """Others é, na base, exatamente Market menos a soma dos dez grupos.
+
+    Depois do encadeamento a identidade deixa de fechar na unha; o quanto ela
+    não fecha é a melhor medida de erro acumulado que temos. Acima de 0,5% do
+    mercado o encadeamento não é confiável e é melhor saber.
     """
     lv = D['ben']['lives_m']
-    ult = {}
-    for op, vals in lv['series'].items():
-        for v in reversed(vals):
-            if v is not None: ult[op] = v; break
-    aceitos, recusados = set(), []
-    for op, v in ag['vidas'].items():
-        if op.startswith('_'): continue
-        if op == 'Market': aceitos.add(op); continue
-        ant = ult.get(op)
-        novo = v/1000.0
-        if ant in (None, 0):
-            recusados.append((op, ant, novo, None)); continue
-        d = (novo-ant)/ant
-        if abs(d) <= tol: aceitos.add(op)
-        else: recusados.append((op, ant, novo, d))
-    return aceitos, recusados
+    if p not in lv['periods']: return None
+    i = lv['periods'].index(p)
+    def val(op):
+        s = lv['series'].get(op)
+        return s[i] if s and i < len(s) else None
+    mkt = val('Market'); outros = val('Others')
+    partes = [val(g) for g in GRUPOS_MERCADO]
+    if mkt is None or outros is None or any(x is None for x in partes):
+        faltando = [g for g in GRUPOS_MERCADO if val(g) is None]
+        print(f'\n   Identidade Others = Market − 10 grupos: não verificável em {p}'
+              + (f' (sem {", ".join(faltando)})' if faltando else ''))
+        return None
+    gap = mkt - outros - sum(partes)
+    rel = gap / mkt if mkt else 0
+    sinal = 'ok' if abs(rel) <= limite else 'ATENÇÃO'
+    print(f'\n   Identidade Others = Market − 10 grupos em {p}: '
+          f'diferença de {gap:,.1f} mil vidas ({rel:+.2%}) — {sinal}')
+    return rel
 
 
-def merge(D, ag, ym, verboso=True, tolerancia=0.015):
-    """Acrescenta a competência ym às séries de beneficiários. Devolve o log."""
+def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
+    """Acrescenta a competência ym às séries de beneficiários. Devolve o log.
+
+    Com `ag_ant` (o agregado da competência anterior, calculado com ESTA mesma
+    metodologia), as operadoras cujo escopo de grupo não bate com o do BBI
+    entram por variação mês a mês em vez de ficarem paradas. Sem ele, o
+    comportamento é o antigo: só entra quem reconcilia por nível.
+    """
     p = rotulo(ym)
     log = []
-    aceitos, recusados = _reconcilia(D, ag, tolerancia)
+    fatores, diag = calibrar(D, ag, ag_ant, tolerancia)
     if verboso:
-        print(f'\n   Reconciliação com a base anterior (tolerância {tolerancia:.1%})')
-        print('   ' + '-'*68)
-        print(f'   {"operadora":30} {"base":>11} {"ANS jun/26":>12} {"dif":>8}')
-        lv = D['ben']['lives_m']
-        for op in sorted(aceitos):
-            if op == 'Market': continue
-            ant = next((v for v in reversed(lv['series'].get(op, [])) if v is not None), None)
-            novo = ag['vidas'].get(op, 0)/1000
-            d = (novo-ant)/ant*100 if ant else 0
-            print(f'   OK   {op:25} {ant:11,.1f} {novo:12,.1f} {d:7.1f}%')
-        for op, ant, novo, d in sorted(recusados, key=lambda x: -(abs(x[3]) if x[3] else 9)):
-            a = f'{ant:11,.1f}' if ant else f'{"—":>11}'
-            dd = f'{d*100:7.1f}%' if d is not None else f'{"—":>8}'
-            print(f'   fora {op:25} {a} {novo:12,.1f} {dd}')
-        print(f'\n   {len(aceitos)-1} operadoras incorporadas, {len(recusados)} mantidas em mai/26.')
-    # filtra o agregado para o que foi aceito
-    ag = dict(ag)
+        _imprime_calibragem(diag, ym, ym_ant or ym)
+    aceitos = set(fatores)
+    ag = escalar(ag, fatores)
+    # filtra o agregado para o que foi calibrado
     ag['vidas'] = {k: v for k, v in ag['vidas'].items() if k in aceitos}
     ag['vidas_odonto'] = {k: v for k, v in ag['vidas_odonto'].items() if k in aceitos or k == 'Market'}
     ag['uf_op'] = {uf: {k: v for k, v in d.items() if k in aceitos} for uf, d in ag['uf_op'].items()}
@@ -445,8 +581,10 @@ def merge(D, ag, ym, verboso=True, tolerancia=0.015):
     ag['faixa'] = {k: v for k, v in ag['faixa'].items() if k in aceitos}
     D.setdefault('meta', {})['reconciliacao'] = {
         'competencia': p, 'tolerancia': tolerancia,
+        'competencia_anterior': rotulo(ym_ant) if ym_ant else None,
+        'metodo': {op: st for op, st, *_ in diag if st in ('nível', 'encadeado')},
         'incorporadas': sorted(x for x in aceitos if x != 'Market'),
-        'retidas': sorted(x[0] for x in recusados),
+        'retidas': sorted(op for op, st, *_ in diag if st == 'retido'),
     }
 
     # ---------- vidas e market share por operadora (médico) ----------
@@ -584,8 +722,14 @@ def merge(D, ag, ym, verboso=True, tolerancia=0.015):
             log.append('ben.age_detail')
 
     conferir_emenda(D, p)
+    rel = conferir_identidade(D, p)
     D.setdefault('meta', {})['vintage_beneficiarios'] = p
-    D['meta']['base'] = (f'beneficiários: {p} · DIOPS 1T26 · CNES jun/26 · NIP jun/26')
+    D['meta']['reconciliacao']['gap_identidade'] = rel
+    n_niv = sum(1 for _, st, *_ in diag if st == 'nível') - 1
+    n_enc = sum(1 for _, st, *_ in diag if st == 'encadeado')
+    n_ret = sum(1 for _, st, *_ in diag if st == 'retido')
+    D['meta']['base'] = (f'beneficiários: {p} ({n_niv} operadoras por nível, '
+                         f'{n_enc} encadeadas' + (f', {n_ret} retidas' if n_ret else '') + ')')
     if verboso:
         print(f'\n   Competência {p} incorporada em {len(log)} blocos:')
         for l in log: print(f'      · {l}')
@@ -750,7 +894,7 @@ este script e deixar o `dados.json` ao lado do HTML já atualiza tudo.
 Dependências: requests, pandas (opcional para o parse completo dos CSVs).
     pip install requests pandas
 """
-import argparse, json, os, re, sys, zipfile, io, datetime
+import argparse, json, os, re, sys, time, zipfile, io, datetime
 from urllib.parse import urljoin
 
 try:
@@ -847,16 +991,17 @@ FONTES = {
  },
  'cnes': {
    'nome': 'CNES/DATASUS · Leitos hospitalares',
-   'dir': 'https://datasus.saude.gov.br/transferencia-de-arquivos/',
-   'tipo': 'manual',
+   'dir': 'https://cnes.datasus.gov.br/pages/downloads/arquivosBaseDados.jsp',
+   'tipo': 'cnes',
    'alimenta': ['hosp.units','hosp.by_state','hosp.by_city','hosp.beds_share_city'],
-   'obs': 'Arquivos DBC mensais. Alternativa: TabNet de leitos ou a API de dados abertos do MS.',
+   'obs': 'BASE_DE_DADOS_CNES_AAAAMM.ZIP, mensal. Leitos em rlEstabComplementar.',
  },
  'cnj': {
    'nome': 'CNJ · Novas ações de saúde suplementar',
-   'dir': 'https://www.cnj.jus.br/sistemas/datajud/',
-   'tipo': 'manual', 'alimenta': ['legal.lawsuits','legal.topics'],
-   'obs': 'DataJud exige chave pública de acesso; os painéis publicam o agregado mensal.',
+   'dir': 'https://api-publica.datajud.cnj.jus.br/',
+   'tipo': 'cnj', 'alimenta': ['legal.lawsuits','legal.topics'],
+   'obs': 'API pública com chave divulgada na wiki do CNJ. Em sondagem: conta, '
+          'compara com a base e só publica quando reproduzir.',
  },
  'sindusfarma': {
    'nome': 'Sindusfarma · Vendas do mercado farmacêutico',
@@ -890,6 +1035,10 @@ def listar(url: str) -> list[str]:
 def competencia_mais_recente(fonte: dict) -> str | None:
     t = fonte['tipo']
     if t == 'manual':
+        return None
+    if t == 'cnes':
+        return cnes_competencia_mais_recente()
+    if t == 'cnj':
         return None
     itens = listar(fonte['dir'])
     if t == 'dir_ym':
@@ -950,6 +1099,52 @@ def carregar_base() -> dict:
             return json.loads(m.group(1))
     raise SystemExit('Não encontrei dados.json nem um HTML com a base embutida.')
 
+AGREGADO = os.path.join(HERE, 'agregado_ans.json')
+
+def _ym_menos(ym: str, n: int = 1) -> str:
+    a, m = int(ym[:4]), int(ym[4:6])
+    t = a * 12 + (m - 1) - n
+    return f'{t//12:04d}{t%12+1:02d}'
+
+def salvar_agregado(ag: dict, ym: str) -> None:
+    """Guarda o agregado desta competência para servir de referência no mês que vem.
+
+    É o que permite encadear por variação sem rebaixar 390 MB da competência
+    anterior toda vez: o mês passado já foi medido com esta mesma metodologia.
+    """
+    nc = sorted(ag.get('nao_classificadas', {}).items(), key=lambda x: -x[1])[:80]
+    magro = {'competencia': ym,
+             'vidas': {k: round(v, 1) for k, v in ag['vidas'].items()},
+             'total': ag['total'], 'total_odonto': ag['total_odonto'],
+             # as 80 maiores operadoras sem grupo econômico mapeado: é aqui que
+             # se descobre, por exemplo, sob que razão social a Athena aparece
+             'nao_classificadas': [{'nome': n, 'vidas': round(v)} for n, v in nc]}
+    json.dump(magro, open(AGREGADO, 'w', encoding='utf-8'),
+              ensure_ascii=False, separators=(',', ':'))
+    print(f'  agregado_ans.json gravado ({ym}) — referência para o encadeamento do mês que vem')
+
+def carregar_agregado(ym: str):
+    if not os.path.exists(AGREGADO):
+        return None
+    try:
+        d = json.load(open(AGREGADO, encoding='utf-8'))
+    except Exception:
+        return None
+    return d if d.get('competencia') == ym else None
+
+def obter_agregado(ym: str):
+    """Agregado de `ym`: do cache se existir, senão baixa e processa a competência."""
+    ag = carregar_agregado(ym)
+    if ag:
+        print(f'        referência {rotulo(ym)} veio do cache (agregado_ans.json)')
+        return ag
+    print(f'        referência {rotulo(ym)} não está em cache — baixando para medir a variação')
+    arqs = baixar_competencia(ym, os.path.join(CACHE, 'pda024', ym))
+    if not arqs:
+        print(f'        {rotulo(ym)} indisponível; sem referência não dá para encadear')
+        return None
+    return agregar(arqs, verboso=False)
+
 def gravar_base(d: dict) -> None:
     d.setdefault('meta', {})['atualizado_em'] = datetime.date.today().isoformat()
     json.dump(d, open(DADOS, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
@@ -1002,7 +1197,7 @@ def acao_auto():
     print(f"\n  Base atual: beneficiarios em {atual or '?'}")
 
     # ---------- 1) IPCA (API do IBGE, sem download) ----------
-    print('\n  [1/2] IPCA — API do IBGE')
+    print('\n  [1/3] IPCA — API do IBGE')
     try:
         ip = puxar()
         antes = (base.get('ipca') or {}).get('competencia')
@@ -1016,7 +1211,7 @@ def acao_auto():
         print('        (checar conexao; o resto da rotina continua)')
 
     # ---------- 2) Beneficiarios ANS ----------
-    print('\n  [2/2] Beneficiarios — PDA-024 da ANS')
+    print('\n  [2/3] Beneficiarios — PDA-024 da ANS')
     novo = None
     try:
         novo = competencia_mais_recente(FONTES['ans_beneficiarios'])
@@ -1029,17 +1224,29 @@ def acao_auto():
     elif novo:
         print(f'        baixando e processando {novo} (~390 MB, alguns minutos)')
         try:
-            
+            anterior = _ym_menos(novo)
+            ag_ant = obter_agregado(anterior)
             destino = os.path.join(CACHE, 'pda024', novo)
-            arquivos = baixar(novo, destino)
+            arquivos = baixar_competencia(novo, destino)
             if arquivos:
                 ag = agregar(arquivos)
                 conferir(ag)
-                merge(base, ag, novo)
+                merge(base, ag, novo, ag_ant, anterior)
+                salvar_agregado(ag, novo)
             else:
                 print('        nenhum arquivo baixado')
         except Exception as e:
             print(f'        falhou no processamento: {e}')
+
+    # ---------- 3) Leitos hospitalares (CNES) ----------
+    print('\n  [3/3] Leitos hospitalares — CNES/DATASUS')
+    try:
+        gravar_base(base)          # o coletor do CNES recarrega o dados.json do disco
+        acao_cnes()
+        base = carregar_base()
+    except Exception as e:
+        print(f'        falhou: {e}')
+        print('        (o resto da base ja foi gravado; o CNES tenta de novo no mes que vem)')
 
     gravar_base(base)
     print('\n  Pronto. Abra o dashboard — ele le o dados.json automaticamente.')
@@ -1058,7 +1265,7 @@ def acao_beneficiarios(ym, ufs, apenas_conferir, cache_dir=None):
         arquivos = [os.path.join(destino, f) for f in sorted(arquivos)]
     else:
         print('   baixando (são ~360 MB no total; o cache evita rebaixar)')
-        arquivos = baixar(ym, destino, ufs)
+        arquivos = baixar_competencia(ym, destino, ufs)
     if not arquivos:
         raise SystemExit('Nenhum arquivo baixado — verifique a conectividade e a competência.')
 
@@ -1073,7 +1280,9 @@ def acao_beneficiarios(ym, ufs, apenas_conferir, cache_dir=None):
         return
 
     base = carregar_base()
-    merge(base, ag, ym)
+    anterior = _ym_menos(ym)
+    merge(base, ag, ym, obter_agregado(anterior), anterior)
+    salvar_agregado(ag, ym)
     gravar_base(base)
 
 
@@ -1105,6 +1314,605 @@ def acao_atualizar(alvos, desde):
     gravar_base(base)
 
 
+# ======================================================================
+# LEITOS HOSPITALARES — CNES/DATASUS
+# ======================================================================
+
+"""
+Coletor do CNES. A base mensal completa (BASE_DE_DADOS_CNES_AAAAMM.ZIP) traz
+`rlEstabComplementar` — uma linha por estabelecimento × tipo de leito, com a
+quantidade existente e quanta dela é contratada pelo SUS.
+
+Duas coisas saem daqui:
+
+  * leitos por hospital, para as 197 unidades que o dashboard acompanha. Exige
+    casar o nome curto da base ("São Luiz Itaim") com o nome de fantasia do
+    CNES. O casamento é feito UMA vez, validado contra os leitos que a base já
+    tem em jun/26, e congelado em cnes_map.json.
+  * leitos privados por UF e por município, que são só agregação — não
+    dependem de casar nome nenhum.
+
+Como o formato exato dos CSVs do CNES não está documentado de forma estável,
+o parser casa coluna por padrão no cabeçalho e registra o que casou, igual ao
+da ANS. Se o DATASUS renomear um campo, o script avisa em vez de somar errado.
+"""
+
+CNES_PAGINA = 'https://cnes.datasus.gov.br/pages/downloads/arquivosBaseDados.jsp'
+CNES_ARQUIVO = 'https://cnes.datasus.gov.br/EstatisticasServlet?path=BASE_DE_DADOS_CNES_{ym}.ZIP'
+MAPA_CNES = os.path.join(HERE, 'cnes_map.json')
+DIAG_CNES = os.path.join(HERE, 'diagnostico_cnes.json')
+
+# palavras que não distinguem um hospital de outro e só atrapalham o casamento
+RUIDO = {'hospital','hosp','clinica','clínica','sa','s','a','ltda','de','da','do','dos','das',
+         'e','o','os','as','em','ltd','me','eireli','instituto','centro','medico','médico',
+         'unidade','und','filial','matriz','grupo','rede','h'}
+
+
+def cnes_competencia_mais_recente():
+    """Lê a página de downloads do CNES e devolve a competência mais nova."""
+    html = get(CNES_PAGINA).text
+    yms = sorted(set(re.findall(r'BASE_DE_DADOS_CNES_(\d{6})\.ZIP', html, re.I)))
+    return yms[-1] if yms else None
+
+
+def baixar_cnes(ym):
+    destino = os.path.join(CACHE, 'cnes', f'BASE_DE_DADOS_CNES_{ym}.ZIP')
+    return baixar(CNES_ARQUIVO.format(ym=ym), destino)
+
+
+def _membro(z, padrao):
+    for nome in z.namelist():
+        base = os.path.basename(nome)
+        if re.search(padrao, base, re.I) and base.lower().endswith(('.csv', '.txt')):
+            return nome
+    return None
+
+
+def _csv_cnes(z, nome):
+    """Gera (cabeçalho, linhas) de um CSV do CNES, detectando codificação e separador."""
+    with z.open(nome) as fh:
+        amostra = fh.read(1 << 16)
+    try:
+        amostra.decode('utf-8'); enc = 'utf-8'
+    except UnicodeDecodeError:
+        enc = 'latin-1'
+    primeira = amostra.decode(enc, 'replace').split('\n', 1)[0]
+    sep = ';' if primeira.count(';') >= primeira.count(',') else ','
+    with z.open(nome) as fh:
+        leitor = csv.reader(io.TextIOWrapper(fh, encoding=enc, errors='replace', newline=''),
+                            delimiter=sep)
+        cab = next(leitor, [])
+        cab = [c.strip().strip('"').upper() for c in cab]
+        yield cab
+        for linha in leitor:
+            yield linha
+
+
+def _coluna(cab, *padroes):
+    for p in padroes:
+        for i, c in enumerate(cab):
+            if re.fullmatch(p, c): return i
+    for p in padroes:
+        for i, c in enumerate(cab):
+            if re.search(p, c): return i
+    return None
+
+
+def ler_leitos(caminho, verboso=True):
+    """Soma os leitos do CNES por estabelecimento e por município.
+
+    Devolve dict com:
+      por_unidade  -> cod13 -> {'total':n, 'uti':n, 'nao_sus':n}
+      por_municipio-> cod6  -> {'total':n, 'uti':n, 'nao_sus':n}
+      por_uf       -> uf2   -> idem
+      tipos        -> descrição do leito -> total (diagnóstico)
+    """
+    with zipfile.ZipFile(caminho) as z:
+        alvo = _membro(z, r'rlEstabComplementar')
+        if not alvo:
+            raise RuntimeError('rlEstabComplementar não encontrado no ZIP do CNES; '
+                               f'membros: {z.namelist()[:12]}')
+        # tabela de tipos de leito, para separar UTI do resto
+        tipos = {}
+        tl = _membro(z, r'tbLeito')
+        if tl:
+            g = _csv_cnes(z, tl); cab = next(g)
+            i_cod = _coluna(cab, r'CO_LEITO')
+            i_tip = _coluna(cab, r'CO_TIPO_LEITO', r'TP_LEITO')
+            i_ds = _coluna(cab, r'DS_LEITO', r'NO_LEITO', r'DS_TIPO_LEITO')
+            for l in g:
+                if i_cod is None or i_cod >= len(l): continue
+                cod = l[i_cod].strip().strip('"')
+                tipos[cod] = {
+                  'tipo': l[i_tip].strip().strip('"') if i_tip is not None and i_tip < len(l) else '',
+                  'ds': l[i_ds].strip().strip('"') if i_ds is not None and i_ds < len(l) else '',
+                }
+            if verboso:
+                print(f'   tbLeito: {len(tipos)} códigos de leito')
+
+        g = _csv_cnes(z, alvo); cab = next(g)
+        i_un = _coluna(cab, r'CO_UNIDADE', r'CO_CNES')
+        i_le = _coluna(cab, r'CO_LEITO')
+        i_ex = _coluna(cab, r'QT_EXIST')
+        i_sus = _coluna(cab, r'QT_SUS', r'QT_CONTR')
+        if verboso:
+            print(f'   {os.path.basename(alvo)} — colunas: unidade={cab[i_un] if i_un is not None else "?"}, '
+                  f'leito={cab[i_le] if i_le is not None else "?"}, '
+                  f'existente={cab[i_ex] if i_ex is not None else "?"}, '
+                  f'sus={cab[i_sus] if i_sus is not None else "?"}')
+        if i_un is None or i_ex is None:
+            raise RuntimeError(f'não reconheci as colunas de rlEstabComplementar: {cab}')
+
+        def novo(): return {'total': 0, 'uti': 0, 'nao_sus': 0}
+        por_un, por_mun, por_uf, por_tipo = {}, {}, {}, {}
+        for l in g:
+            if i_un >= len(l) or i_ex >= len(l): continue
+            un = l[i_un].strip().strip('"')
+            if not un: continue
+            try: qt = int(float(l[i_ex].strip().strip('"') or 0))
+            except ValueError: continue
+            if qt <= 0: continue
+            sus = 0
+            if i_sus is not None and i_sus < len(l):
+                try: sus = int(float(l[i_sus].strip().strip('"') or 0))
+                except ValueError: sus = 0
+            cod = l[i_le].strip().strip('"') if i_le is not None and i_le < len(l) else ''
+            info = tipos.get(cod, {})
+            ds = info.get('ds', '') or cod
+            eh_uti = (str(info.get('tipo', '')).strip() == '3'
+                      or bool(re.search(r'\bUTI\b|INTENSIV', ds, re.I)))
+            por_tipo[ds] = por_tipo.get(ds, 0) + qt
+            mun, uf = un[:6], un[:2]
+            for chave, d in ((un, por_un), (mun, por_mun), (uf, por_uf)):
+                a = d.setdefault(chave, novo())
+                a['total'] += qt
+                a['nao_sus'] += max(qt - sus, 0)
+                if eh_uti: a['uti'] += qt
+
+        # nome dos municípios, para casar com as cidades da base
+        municipios = {}
+        tm = _membro(z, r'tbMunicipio')
+        if tm:
+            g2 = _csv_cnes(z, tm); c2 = next(g2)
+            i_c = _coluna(c2, r'CO_MUNICIPIO', r'CO_IBGE')
+            i_n = _coluna(c2, r'NO_MUNICIPIO', r'DS_MUNICIPIO', r'NO_.*MUNIC')
+            i_u = _coluna(c2, r'CO_SIGLA_ESTADO', r'SG_UF', r'CO_UF')
+            for l in g2:
+                if i_c is None or i_n is None or i_c >= len(l) or i_n >= len(l): continue
+                municipios[l[i_c].strip().strip('"')[:6]] = (
+                    l[i_n].strip().strip('"'),
+                    l[i_u].strip().strip('"') if i_u is not None and i_u < len(l) else '')
+            if verboso: print(f'   tbMunicipio: {len(municipios)} municípios')
+
+        # nome de fantasia dos estabelecimentos, para casar com as unidades da base
+        estab = {}
+        te = _membro(z, r'tbEstabelecimento')
+        if te:
+            g3 = _csv_cnes(z, te); c3 = next(g3)
+            i_u3 = _coluna(c3, r'CO_UNIDADE', r'CO_CNES')
+            i_f3 = _coluna(c3, r'NO_FANTASIA')
+            i_r3 = _coluna(c3, r'NO_RAZAO_SOCIAL', r'NO_EMPRESARIAL')
+            for l in g3:
+                if i_u3 is None or i_u3 >= len(l): continue
+                u = l[i_u3].strip().strip('"')
+                if u not in por_un: continue      # só interessa quem tem leito
+                estab[u] = (l[i_f3].strip().strip('"') if i_f3 is not None and i_f3 < len(l) else '',
+                            l[i_r3].strip().strip('"') if i_r3 is not None and i_r3 < len(l) else '')
+            if verboso: print(f'   tbEstabelecimento: {len(estab)} estabelecimentos com leito')
+
+    if verboso:
+        tot = sum(v['total'] for v in por_un.values())
+        print(f'   {len(por_un):,} estabelecimentos com leito · {tot:,} leitos existentes')
+    return {'por_unidade': por_un, 'por_municipio': por_mun, 'por_uf': por_uf,
+            'tipos': por_tipo, 'municipios': municipios, 'estabelecimentos': estab}
+
+
+# ------------------------------------------------- casamento nome -> CNES
+def _tokens(s):
+    s = _norm(s).replace('-', ' ')
+    return {t for t in re.split(r'[^a-z0-9]+', s) if t and t not in RUIDO and len(t) > 1}
+
+
+def _pontua(base_nome, candidato):
+    a, b = _tokens(base_nome), _tokens(candidato)
+    if not a or not b: return 0.0
+    inter = len(a & b)
+    return inter / len(a) * (0.6 + 0.4 * inter / len(b))
+
+
+def casar_unidades(D, leitos, tolerancia=0.10, verboso=True):
+    """Casa cada unidade do dashboard com um estabelecimento do CNES.
+
+    Só aceita o casamento quando os leitos calculados batem com os que a base
+    já traz na última competência — ou seja, quando conseguimos REPRODUZIR o
+    número que o BBI publicou. Casamento que não reproduz é casamento errado.
+    """
+    linhas = D['hosp']['units']['rows']
+    periodos = D['hosp']['units']['periods']
+    ref = periodos[-1]
+    munic = leitos['municipios']; estab = leitos['estabelecimentos']; por_un = leitos['por_unidade']
+
+    # cidade+UF -> códigos de município
+    por_cidade = {}
+    for cod, (nome, uf) in munic.items():
+        por_cidade.setdefault((_norm(nome), (uf or '').upper()), []).append(cod)
+
+    mapa, diag = {}, []
+    for k_linha, r in enumerate(linhas):
+        if r.get('is_group'): continue
+        alvo = (r.get('vals', {}).get('Total Beds') or {}).get(ref)
+        cidade, uf = _norm(r.get('city') or ''), (r.get('state') or '').upper()
+        codigos = por_cidade.get((cidade, uf)) or []
+        candidatos = []
+        for u, (fant, razao) in estab.items():
+            if codigos and u[:6] not in codigos: continue
+            if not codigos and uf and munic.get(u[:6], ('', ''))[1].upper() != uf: continue
+            p = max(_pontua(r['name'], fant), _pontua(r['name'], razao) * 0.9)
+            if p > 0: candidatos.append((p, u, fant))
+        candidatos.sort(reverse=True)
+        melhor = None
+        for p, u, fant in candidatos[:6]:
+            calc = por_un.get(u, {}).get('total', 0)
+            erro = abs(calc / alvo - 1) if alvo else None
+            if melhor is None: melhor = (p, u, fant, calc, erro)
+            if alvo and erro is not None and erro <= tolerancia and p >= 0.34:
+                mapa[u] = k_linha       # índice da linha: nomes se repetem, índices não
+                diag.append({'unidade': r['name'], 'cidade': r.get('city'), 'uf': uf,
+                             'cnes': u, 'fantasia': fant, 'pontuacao': round(p, 3),
+                             'base': alvo, 'calculado': calc, 'erro': round(erro, 4),
+                             'status': 'casado'})
+                melhor = None
+                break
+        if melhor is not None:
+            p, u, fant, calc, erro = melhor
+            diag.append({'unidade': r['name'], 'cidade': r.get('city'), 'uf': uf,
+                         'cnes': u, 'fantasia': fant, 'pontuacao': round(p, 3),
+                         'base': alvo, 'calculado': calc,
+                         'erro': round(erro, 4) if erro is not None else None,
+                         'status': 'sem casamento confiável',
+                         'outros': [{'cnes': c[1], 'fantasia': c[2], 'p': round(c[0], 3),
+                                     'leitos': por_un.get(c[1], {}).get('total', 0)}
+                                    for c in candidatos[1:4]]})
+    n_ok = sum(1 for d in diag if d['status'] == 'casado')
+    if verboso:
+        print(f'\n   Casamento CNES: {n_ok} de {len(diag)} unidades reproduzem os leitos de {ref} '
+              f'dentro de {tolerancia:.0%}')
+        ruins = [d for d in diag if d['status'] != 'casado'][:12]
+        if ruins:
+            print('   não casaram (as 12 primeiras):')
+            for d in ruins:
+                print(f"      {d['unidade'][:32]:32} {str(d['cidade'])[:14]:14} "
+                      f"base={d['base']} melhor={d['fantasia'][:34]!r} calc={d['calculado']}")
+    return mapa, diag
+
+
+def _slot_lista(periods, p):
+    if p in periods: return periods.index(p)
+    periods.append(p); return len(periods) - 1
+
+
+def merge_cnes(D, leitos, mapa, ym, limite=0.15, verboso=True):
+    """Grava a competência do CNES em hosp.units e recalcula os grupos.
+
+    `mapa` é cnes_map.json: código CNES -> nome da unidade no dashboard.
+    Unidade cujo salto de leitos passe de `limite` não é gravada: hospital não
+    dobra de tamanho num mês, então isso é troca de código CNES, fusão de
+    unidade ou erro de casamento — casos em que o certo é não escrever.
+    """
+    p = rotulo(ym)
+    u = D['hosp']['units']
+    periodos = u['periods']
+    anterior = periodos[-1] if periodos else None
+    i = _slot_lista(periodos, p)
+    por_un = leitos['por_unidade']
+
+    # o mapa aponta para o ÍNDICE da linha, não para o nome: há unidades
+    # homônimas em cidades diferentes ("São Lucas") e somá-las seria errado
+    linhas = {k: r for k, r in enumerate(u['rows']) if not r.get('is_group')}
+    por_nome = {}
+    for k, r in linhas.items():
+        por_nome.setdefault((r['name'], r.get('city'), r.get('state')), []).append(k)
+    soma = {}
+    for cod, ref_linha in mapa.items():
+        d = por_un.get(cod)
+        if not d: continue
+        if isinstance(ref_linha, int):
+            ks = [ref_linha]
+        else:
+            ks = por_nome.get(tuple(ref_linha) if isinstance(ref_linha, list) else
+                              (ref_linha, None, None), [])
+            if not ks:
+                ks = [k for k, r in linhas.items() if r['name'] == ref_linha]
+            ks = ks[:1]     # nome ambíguo: fica com a primeira, e só
+        for k in ks:
+            a = soma.setdefault(k, {'total': 0, 'uti': 0})
+            a['total'] += d['total']; a['uti'] += d['uti']
+
+    gravadas, recusadas, sem_dado = 0, [], 0
+    for k, r in linhas.items():
+        novo = soma.get(k)
+        vals = r.setdefault('vals', {})
+        if not novo:
+            sem_dado += 1
+            continue
+        ant = (vals.get('Total Beds') or {}).get(anterior)
+        if ant and abs(novo['total'] / ant - 1) > limite:
+            recusadas.append((r['name'], ant, novo['total']))
+            continue
+        vals.setdefault('Total Beds', {})[p] = float(novo['total'])
+        vals.setdefault('UTI Beds', {})[p] = float(novo['uti'])
+        gravadas += 1
+
+    # grupos = soma das unidades que vêm logo abaixo dele na lista
+    # Unidade sem número novo entra com o último conhecido: leito hospitalar é
+    # estoque, quase não anda de um mês para o outro, e zerar o grupo inteiro
+    # por causa de uma unidade seria pior. O grupo fica marcado como parcial.
+    idx = [k for k, r in enumerate(u['rows']) if r.get('is_group')]
+    parciais = []
+    for k, ini in enumerate(idx):
+        fim = idx[k + 1] if k + 1 < len(idx) else len(u['rows'])
+        membros = u['rows'][ini + 1:fim]
+        g = u['rows'][ini]
+        if not membros: continue
+        faltando = 0
+        for col in ('Total Beds', 'UTI Beds'):
+            total, ausentes = 0.0, 0
+            for mb in membros:
+                serie = mb.get('vals', {}).get(col) or {}
+                v = serie.get(p)
+                if v is None:
+                    v = serie.get(anterior)
+                    if v is None: continue
+                    ausentes += 1
+                total += v
+            if col == 'Total Beds': faltando = ausentes
+            if ausentes > len(membros) * 0.2:
+                continue      # mais de 20% carregado do mês anterior: não publica
+            g.setdefault('vals', {}).setdefault(col, {})[p] = float(total)
+        if faltando:
+            g['parcial'] = {p: faltando}
+            parciais.append((g['name'], faltando, len(membros)))
+
+    if verboso:
+        print(f'\n   CNES {p}: {gravadas} unidades gravadas · {sem_dado} sem casamento · '
+              f'{len(recusadas)} recusadas por salto acima de {limite:.0%}')
+        for nome, ant, novo in recusadas[:10]:
+            print(f'      recusada {nome[:34]:34} {ant:7.0f} -> {novo:7.0f}')
+        for nome, f, n in parciais:
+            print(f'      grupo {nome}: {f} de {n} unidades vieram do mês anterior')
+    D.setdefault('meta', {})['vintage_cnes'] = p
+    return {'periodo': p, 'gravadas': gravadas, 'sem_casamento': sem_dado,
+            'grupos_parciais': [{'grupo': n, 'carregadas': f, 'unidades': t}
+                                for n, f, t in parciais],
+            'recusadas': [{'unidade': n, 'anterior': a, 'novo': v} for n, a, v in recusadas]}
+
+
+def calibrar_uf(D, leitos):
+    """Descobre QUAL agregado do CNES reproduz os totais por UF da base.
+
+    A base traz, por exemplo, 23.251 leitos em São Paulo. Isso pode ser o total
+    de leitos, só os não-SUS, ou outro recorte. Em vez de adivinhar, calcula os
+    candidatos e mede qual chega mais perto — o resultado vai para o
+    diagnóstico e é lido antes de ligar essa parte.
+    """
+    UF_COD = {'11':'RO','12':'AC','13':'AM','14':'RR','15':'PA','16':'AP','17':'TO','21':'MA',
+              '22':'PI','23':'CE','24':'RN','25':'PB','26':'PE','27':'AL','28':'SE','29':'BA',
+              '31':'MG','32':'ES','33':'RJ','35':'SP','41':'PR','42':'SC','43':'RS','50':'MS',
+              '51':'MT','52':'GO','53':'DF'}
+    NOME_UF = {'São Paulo':'SP','Rio de Janeiro':'RJ','Minas Gerais':'MG','Brasília':'DF',
+               'Distrito Federal':'DF','Bahia':'BA','Pernambuco':'PE','Ceará':'CE','Paraná':'PR',
+               'Goiás':'GO','Amazonas':'AM','Rio Grande do Sul':'RS','Santa Catarina':'SC',
+               'Espírito Santo':'ES','Pará':'PA','Maranhão':'MA','Paraíba':'PB',
+               'Rio Grande do Norte':'RN','Alagoas':'AL','Sergipe':'SE','Piauí':'PI',
+               'Mato Grosso':'MT','Mato Grosso do Sul':'MS','Tocantins':'TO','Rondônia':'RO'}
+    por_uf = {}
+    for cod, d in leitos['por_uf'].items():
+        uf = UF_COD.get(cod)
+        if uf: por_uf[uf] = d
+    bs = D['hosp']['by_state']
+    ref = bs['periods'][-1]
+    saida = []
+    for r in bs['rows']:
+        if r.get('level') != 'state': continue
+        uf = NOME_UF.get(r['name'])
+        base = (r.get('beds') or {}).get(ref)
+        if not uf or not base or uf not in por_uf: continue
+        d = por_uf[uf]
+        saida.append({'uf': uf, 'base': base, 'total': d['total'], 'nao_sus': d['nao_sus'],
+                      'erro_total': round(d['total'] / base - 1, 4),
+                      'erro_nao_sus': round(d['nao_sus'] / base - 1, 4)})
+    if saida:
+        mt = sum(abs(x['erro_total']) for x in saida) / len(saida)
+        mn = sum(abs(x['erro_nao_sus']) for x in saida) / len(saida)
+        print(f'\n   Calibragem por UF ({len(saida)} estados, referência {ref}):')
+        print(f'      leitos totais   — erro médio {mt:.1%}')
+        print(f'      leitos não-SUS  — erro médio {mn:.1%}')
+        print(f'      melhor candidato: {"não-SUS" if mn < mt else "total"}')
+    return saida
+
+
+def acao_cnes(ym=None, descobrir=False, verboso=True):
+    """Atualiza os leitos hospitalares a partir da base mensal do CNES."""
+    print('\n  Leitos hospitalares — CNES/DATASUS')
+    ym = ym or cnes_competencia_mais_recente()
+    if not ym:
+        print('        não consegui identificar a competência mais recente'); return None
+    print(f'        competência mais recente: {rotulo(ym)}')
+    base = carregar_base()
+    if (base.get('meta') or {}).get('vintage_cnes') == rotulo(ym) and not descobrir:
+        print('        a base já está nessa competência'); return None
+    caminho = baixar_cnes(ym)
+    print(f'        {os.path.basename(caminho)} — {os.path.getsize(caminho)/1e6:.0f} MB')
+    leitos = ler_leitos(caminho, verboso)
+
+    mapa = {}
+    if os.path.exists(MAPA_CNES) and not descobrir:
+        mapa = {k: v for k, v in json.load(open(MAPA_CNES, encoding='utf-8')).items()
+                if not k.startswith('_')}
+        print(f'        cnes_map.json: {len(mapa)} unidades já mapeadas')
+    else:
+        print('        primeira rodada — casando as unidades do dashboard com o CNES')
+        mapa, diag_casamento = casar_unidades(base, leitos)
+        json.dump(mapa, open(MAPA_CNES, 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
+        uf = calibrar_uf(base, leitos)
+        json.dump({'competencia': ym,
+                   'tipos_de_leito': sorted(leitos['tipos'].items(), key=lambda x: -x[1])[:40],
+                   'casamento': diag_casamento, 'por_uf': uf},
+                  open(DIAG_CNES, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        print(f'        diagnostico_cnes.json gravado — é por ele que se conferem os casamentos')
+
+    if not mapa:
+        print('        nenhuma unidade mapeada; nada gravado'); return None
+    res = merge_cnes(base, leitos, mapa, ym, verboso=verboso)
+    gravar_base(base)
+    return res
+
+
+# ======================================================================
+# JUDICIALIZAÇÃO — CNJ / DataJud
+# ======================================================================
+
+"""
+Coletor do DataJud (Base Nacional de Dados do Poder Judiciário). A API pública
+usa uma chave divulgada na própria wiki do CNJ e responde a consultas no
+dialeto do Elasticsearch, um endpoint por tribunal.
+
+Esta primeira versão roda em modo SONDAGEM: conta processos novos por mês e
+descobre, pela própria base, quais assuntos da Tabela Processual Unificada
+correspondem a planos de saúde — em vez de eu chutar os códigos. O resultado
+vai para diagnostico_cnj.json e só entra na série `legal.lawsuits` depois de
+reproduzir os meses que a base já tem. Enquanto não reproduzir, não publica:
+um número de judicialização que não bate com a fonte é pior do que nenhum.
+"""
+
+CNJ_BASE = 'https://api-publica.datajud.cnj.jus.br/api_publica_{alias}/_search'
+CNJ_CHAVE = ('cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==')
+DIAG_CNJ = os.path.join(HERE, 'diagnostico_cnj.json')
+
+# Justiça Estadual: é onde tramita quase toda ação contra operadora de plano.
+TJS = ['tjac','tjal','tjam','tjap','tjba','tjce','tjdft','tjes','tjgo','tjma','tjmg','tjms',
+       'tjmt','tjpa','tjpb','tjpe','tjpi','tjpr','tjrj','tjrn','tjro','tjrr','tjrs','tjsc',
+       'tjse','tjsp','tjto']
+
+# Termos que identificam saúde suplementar no nome do assunto da TPU.
+PADRAO_SAUDE = r'plano de sa[úu]de|seguro sa[úu]de|sa[úu]de suplementar|assist[êe]ncia [àa] sa[úu]de'
+
+
+def _cnj_post(alias, corpo, tentativas=3):
+    url = CNJ_BASE.format(alias=alias)
+    cab = {'Authorization': f'APIKey {CNJ_CHAVE}', 'Content-Type': 'application/json'}
+    for k in range(tentativas):
+        try:
+            r = requests.post(url, headers=cab, json=corpo, timeout=TIMEOUT)
+            if r.status_code == 429:
+                time.sleep(2 * (k + 1)); continue
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            if k == tentativas - 1:
+                return {'_erro': str(e)}
+            time.sleep(1.5 * (k + 1))
+    return {'_erro': 'sem resposta'}
+
+
+def _janela(ym):
+    ini = f'{ym[:4]}-{ym[4:6]}-01'
+    prox = _ym_menos(ym, -1)
+    return ini, f'{prox[:4]}-{prox[4:6]}-01'
+
+
+def cnj_assuntos(ym, aliases=('tjsp', 'tjrj', 'tjmg'), topo=400):
+    """Descobre quais assuntos aparecem nos processos novos do mês.
+
+    Sem isso eu teria que adivinhar os códigos da TPU. Perguntando à base,
+    o próprio DataJud diz como os tribunais estão classificando.
+    """
+    ini, fim = _janela(ym)
+    achados = {}
+    for alias in aliases:
+        corpo = {
+          'size': 0,
+          'query': {'bool': {'filter': [
+              {'range': {'dataAjuizamento': {'gte': ini, 'lt': fim}}}]}},
+          'aggs': {'assuntos': {'terms': {'field': 'assuntos.codigo', 'size': topo},
+                                'aggs': {'nome': {'terms': {'field': 'assuntos.nome.keyword',
+                                                            'size': 1}}}}}
+        }
+        d = _cnj_post(alias, corpo)
+        if '_erro' in d:
+            achados[alias] = {'erro': d['_erro']}; continue
+        baldes = (((d.get('aggregations') or {}).get('assuntos') or {}).get('buckets') or [])
+        lista = []
+        for b in baldes:
+            nb = (((b.get('nome') or {}).get('buckets') or [{}])[0]).get('key', '')
+            lista.append({'codigo': b['key'], 'nome': nb, 'n': b['doc_count']})
+        achados[alias] = {
+          'total_mes': ((d.get('hits') or {}).get('total') or {}).get('value'),
+          'assuntos': lista,
+          'saude': [x for x in lista if re.search(PADRAO_SAUDE, x['nome'] or '', re.I)],
+        }
+        print(f"      {alias}: {len(lista)} assuntos, "
+              f"{len(achados[alias]['saude'])} batem com saúde suplementar")
+    return achados
+
+
+def cnj_contar(ym, codigos, aliases=None):
+    """Conta processos novos do mês cujo assunto está em `codigos`, por tribunal."""
+    ini, fim = _janela(ym)
+    aliases = aliases or TJS
+    total, por_tribunal = 0, {}
+    for alias in aliases:
+        corpo = {'size': 0, 'track_total_hits': True,
+                 'query': {'bool': {'filter': [
+                     {'range': {'dataAjuizamento': {'gte': ini, 'lt': fim}}},
+                     {'terms': {'assuntos.codigo': list(codigos)}}]}}}
+        d = _cnj_post(alias, corpo)
+        n = None if '_erro' in d else ((d.get('hits') or {}).get('total') or {}).get('value')
+        por_tribunal[alias] = n if n is not None else d.get('_erro')
+        if isinstance(n, int): total += n
+    return total, por_tribunal
+
+
+def acao_cnj(ym=None, verboso=True):
+    """Sondagem do DataJud: descobre os códigos e testa se reproduzem a base."""
+    print('\n  Judicialização — CNJ/DataJud (sondagem)')
+    base = carregar_base()
+    lw = base['legal']['lawsuits']
+    ref = ym or None
+    if not ref:
+        # último mês da série no formato AAAAMM
+        p = lw['periods'][-1]
+        mm = re.match(r'^([a-z]{3})/(\d{2})$', p)
+        ref = f'20{mm.group(2)}{MES_NUM[mm.group(1)]:02d}' if mm else None
+    if not ref:
+        print('        não identifiquei a competência de referência'); return None
+    alvo = None
+    p_ref = rotulo(ref)
+    if p_ref in lw['periods']:
+        alvo = lw['series']['All instances'][lw['periods'].index(p_ref)]
+    print(f'        referência: {p_ref} — a base traz {alvo} ações novas')
+
+    achados = cnj_assuntos(ref)
+    codigos = sorted({x['codigo'] for a in achados.values()
+                      if isinstance(a, dict) for x in a.get('saude', [])})
+    print(f'        {len(codigos)} códigos de assunto de saúde suplementar encontrados: {codigos[:12]}')
+    resultado = {'competencia': p_ref, 'base_all_instances': alvo,
+                 'codigos_saude': codigos, 'por_tribunal_amostra': {}}
+    if codigos:
+        total, por_trib = cnj_contar(ref, codigos)
+        erro = (total / alvo - 1) if alvo else None
+        print(f'        DataJud soma {total:,} ações novas na Justiça Estadual '
+              + (f'({erro:+.1%} vs a base)' if erro is not None else ''))
+        print('        NÃO gravei na série: só entra depois de reproduzir a base.')
+        resultado['total_datajud'] = total
+        resultado['erro_vs_base'] = round(erro, 4) if erro is not None else None
+        resultado['por_tribunal'] = por_trib
+    resultado['assuntos_por_tribunal'] = achados
+    json.dump(resultado, open(DIAG_CNJ, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(f'        diagnostico_cnj.json gravado')
+    return resultado
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description='Atualiza a base do Healthcare Database Dashboard.')
     ap.add_argument('--verificar', action='store_true', help='apenas lista o que há de novo')
@@ -1120,6 +1928,12 @@ def main() -> None:
     ap.add_argument('--cache', help='pasta com os ZIPs já baixados (pula o download)')
     ap.add_argument('--auto', action='store_true',
                     help='faz tudo sozinho: descobre a competência nova, baixa, processa e atualiza o IPCA')
+    ap.add_argument('--cnes', nargs='?', const=True, metavar='AAAAMM',
+                    help='atualiza os leitos hospitalares pela base do CNES')
+    ap.add_argument('--cnes-descobrir', action='store_true',
+                    help='refaz o casamento unidade->CNES e regrava cnes_map.json')
+    ap.add_argument('--cnj', nargs='?', const=True, metavar='AAAAMM',
+                    help='sondagem do DataJud: descobre os assuntos e testa contra a base')
     a = ap.parse_args()
 
     if a.listar_fontes:
@@ -1136,6 +1950,10 @@ def main() -> None:
 
     if a.auto:
         acao_auto(); return
+    if a.cnes or a.cnes_descobrir:
+        acao_cnes(a.cnes if isinstance(a.cnes, str) else None, descobrir=a.cnes_descobrir); return
+    if a.cnj:
+        acao_cnj(a.cnj if isinstance(a.cnj, str) else None); return
     if a.beneficiarios:
         if not re.fullmatch(r'\d{6}', a.beneficiarios):
             raise SystemExit('Use o formato AAAAMM, por exemplo: --beneficiarios 202606')
@@ -1156,7 +1974,19 @@ def _cli():
     ap.add_argument('--so-baixar', action='store_true', help='só baixa os ZIPs da ANS')
     ap.add_argument('--competencia', help='força uma competência AAAAMM')
     ap.add_argument('--cache', help='pasta com ZIPs já baixados')
+    ap.add_argument('--cnes', nargs='?', const=True, metavar='AAAAMM',
+                    help='só os leitos hospitalares (CNES/DATASUS)')
+    ap.add_argument('--cnes-descobrir', action='store_true',
+                    help='refaz o casamento unidade->CNES e regrava cnes_map.json')
+    ap.add_argument('--cnj', nargs='?', const=True, metavar='AAAAMM',
+                    help='sondagem do DataJud (não grava na série)')
     a = ap.parse_args()
+
+    if a.cnes or a.cnes_descobrir:
+        acao_cnes(a.cnes if isinstance(a.cnes, str) else None,
+                  descobrir=a.cnes_descobrir); return
+    if a.cnj:
+        acao_cnj(a.cnj if isinstance(a.cnj, str) else None); return
 
     if a.ipca:
         base = carregar_base(); ip = puxar()
@@ -1174,7 +2004,7 @@ def _cli():
 
     if a.so_baixar:
         destino = a.cache or os.path.join(CACHE, 'pda024', ym)
-        baixar(ym, destino)
+        baixar_competencia(ym, destino)
         print(f'\nZIPs em {destino}'); return
 
     if a.conferir:
