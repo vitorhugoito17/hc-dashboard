@@ -2581,14 +2581,27 @@ def baixar_nip(ano):
 
 
 def contar_nip(caminho, verboso=True):
-    """Conta demandas por mês e operadora, com e sem reembolso."""
+    """Conta demandas por mês e operadora, em vários recortes ao mesmo tempo.
+
+    A primeira versão contava tudo e saía 14% acima do relatório em Bradesco e
+    SulAmérica — porque a base do NIP mistura planos médicos e odontológicos, e
+    a aba do dashboard é médico-hospitalar. Em vez de eu escolher o filtro no
+    escuro, aqui saem todos os recortes plausíveis de uma passada só; quem
+    decide é a conferência contra a base.
+    """
     enc = 'utf-8'
     with open(caminho, 'rb') as fh:
         amostra = fh.read(1 << 16)
     try: amostra.decode('utf-8')
     except UnicodeDecodeError: enc = 'latin-1'
-    total = defaultdict(lambda: defaultdict(float))
-    sem_reemb = defaultdict(lambda: defaultdict(float))
+
+    recortes = ['tudo', 'sem_odonto', 'so_medico',
+                'sem_odonto+assist', 'so_medico+assist']
+    total = {r: defaultdict(lambda: defaultdict(float)) for r in recortes}
+    sem_reemb = {r: defaultdict(lambda: defaultdict(float)) for r in recortes}
+    valores = {'cobertura': defaultdict(int), 'classificacao': defaultdict(int),
+               'natureza': defaultdict(int)}
+
     with open(caminho, encoding=enc, errors='replace', newline='') as fh:
         leitor = csv.reader(fh, delimiter=';')
         cab = [c.strip().strip('"').upper() for c in next(leitor, [])]
@@ -2599,11 +2612,14 @@ def contar_nip(caminho, verboso=True):
             return None
         i_ano = col(r'ANO_DE_REFERENCIA'); i_mes = col(r'MES_DE_REFERENCIA')
         i_op = col(r'NOME_OPERADORA'); i_as = col(r'ASSUNTO')
+        i_cob = col(r'TIPOS_DE_COBER_CONTRATADAS', r'.*COBER.*')
+        i_cla = col(r'CLASSIFICACAO_DA_NIP'); i_nat = col(r'NATUREZA_DA_NIP')
         if verboso:
             print(f'   colunas: ano={cab[i_ano] if i_ano is not None else "?"}, '
                   f'mes={cab[i_mes] if i_mes is not None else "?"}, '
                   f'operadora={cab[i_op] if i_op is not None else "?"}, '
-                  f'assunto={cab[i_as] if i_as is not None else "?"}')
+                  f'cobertura={cab[i_cob] if i_cob is not None else "?"}, '
+                  f'classificacao={cab[i_cla] if i_cla is not None else "?"}')
         if None in (i_ano, i_mes, i_op):
             raise RuntimeError(f'não reconheci as colunas do NIP: {cab[:12]}')
         n = 0
@@ -2613,51 +2629,95 @@ def contar_nip(caminho, verboso=True):
             if not a.isdigit() or not mm.isdigit(): continue
             ym = f'{int(a)}{int(mm):02d}'
             g = classificar_nip(l[i_op])
-            total[ym][g] += 1; total[ym]['Market'] += 1
-            assunto = l[i_as] if i_as is not None and i_as < len(l) else ''
-            if not re.search(NIP_REEMBOLSO, _norm(assunto)):
-                sem_reemb[ym][g] += 1; sem_reemb[ym]['Market'] += 1
+            cob = _norm(l[i_cob]) if i_cob is not None and i_cob < len(l) else ''
+            cla = _norm(l[i_cla]) if i_cla is not None and i_cla < len(l) else ''
+            nat = _norm(l[i_nat]) if i_nat is not None and i_nat < len(l) else ''
+            if n < 400000:
+                valores['cobertura'][cob[:40]] += 1
+                valores['classificacao'][cla[:40]] += 1
+                valores['natureza'][nat[:40]] += 1
+            odonto = 'odonto' in cob
+            medico = bool(re.search(r'medic|ambulator|hospital|referencia', cob))
+            assist = cla.startswith('assist')
+            quais = ['tudo']
+            if not odonto: quais.append('sem_odonto')
+            if medico and not odonto: quais.append('so_medico')
+            if not odonto and assist: quais.append('sem_odonto+assist')
+            if medico and not odonto and assist: quais.append('so_medico+assist')
+            assunto = _norm(l[i_as]) if i_as is not None and i_as < len(l) else ''
+            reembolso = bool(re.search(NIP_REEMBOLSO, assunto))
+            for r in quais:
+                total[r][ym][g] += 1; total[r][ym]['Market'] += 1
+                if not reembolso:
+                    sem_reemb[r][ym][g] += 1; sem_reemb[r][ym]['Market'] += 1
             n += 1
     if verboso:
-        print(f'   {n:,} demandas em {len(total)} meses')
-    for d in (total, sem_reemb):
+        print(f'   {n:,} demandas em {len(total["tudo"])} meses')
+        for campo, d in valores.items():
+            topo = sorted(d.items(), key=lambda x: -x[1])[:4]
+            print(f'   {campo}: ' + ' · '.join(f'{k or "(vazio)"}={v:,}' for k, v in topo))
+
+    def fecha(d):
         for ym, g in d.items():
             g['HAPV'] = sum(g.get(p, 0) for p in HAPV_PARTES)
             nomeados = sum(v for k, v in g.items()
                            if k not in ('Market', 'Others', 'HAPV'))
             g['Others'] = g.get('Market', 0) - nomeados
-    return {k: dict(v) for k, v in total.items()}, {k: dict(v) for k, v in sem_reemb.items()}
+        return {k: dict(v) for k, v in d.items()}
+
+    return ({r: fecha(total[r]) for r in recortes},
+            {r: fecha(sem_reemb[r]) for r in recortes},
+            {k: dict(sorted(v.items(), key=lambda x: -x[1])[:10]) for k, v in valores.items()})
 
 
-def baixar_igr():
-    return baixar(IGR_DIR + 'igr_anual.zip', os.path.join(CACHE, 'igr', 'igr_anual.zip'))
+def _igr_arquivos():
+    """Lista o diretório do IGR e devolve {ano: url}.
+
+    O igr_anual.zip é um arquivo histórico e para em 2022; os anos recentes
+    vêm em arquivos próprios. Varro o diretório inteiro em vez de assumir.
+    """
+    r = requests.get(IGR_DIR, headers=CAB_ANS, timeout=(30, 120))
+    r.raise_for_status()
+    itens = re.findall(r'href="([^"?][^"]*)"', r.text)
+    fora = {}
+    for i in itens:
+        if i.endswith('/'): continue
+        m = re.search(r'(20\d{2})', i)
+        if m and i.lower().endswith(('.csv', '.zip', '.xlsx')):
+            fora.setdefault(int(m.group(1)), urljoin(IGR_DIR, i))
+    return fora, itens
 
 
-def ler_igr(caminho, ano, verboso=True):
-    """{'AAAAMM': {operadora: igr}} a partir do CSV anual do IGR."""
-    fora = defaultdict(dict)
-    with zipfile.ZipFile(caminho) as z:
-        alvo = next((n for n in z.namelist() if re.search(rf'IGR_{ano}\.csv$', n, re.I)), None)
-        if not alvo:
-            disponiveis = sorted(re.findall(r'IGR_(\d{4})', ' '.join(z.namelist())))
-            raise RuntimeError(f'IGR de {ano} não está no zip (há {disponiveis[-3:]})')
-        bruto = z.read(alvo)
+def baixar_igr(ano=None):
+    arqs, itens = _igr_arquivos()
+    if ano and ano in arqs:
+        url = arqs[ano]
+    else:
+        url = urljoin(IGR_DIR, 'igr_anual.zip')
+    nome = url.rsplit('/', 1)[-1]
+    return baixar(url, os.path.join(CACHE, 'igr', nome)), arqs, itens
+
+
+def _igr_de_tabela(bruto, verboso=True, rotulo_arquivo=''):
+    """Lê uma tabela do IGR: uma linha por operadora, uma coluna por mês."""
     try:
         bruto.decode('utf-8'); enc = 'utf-8'
     except UnicodeDecodeError:
         enc = 'latin-1'
     leitor = csv.reader(io.StringIO(bruto.decode(enc, 'replace')), delimiter=';')
     cab = [c.strip().strip('"') for c in next(leitor, [])]
-    i_op = next((i for i, c in enumerate(cab) if re.search(r'raz[aã]o social', c, re.I)), 0)
+    i_op = next((i for i, c in enumerate(cab) if re.search(r'raz[aã]o social|operadora', c, re.I)), 0)
     MES3 = {'jan':1,'fev':2,'mar':3,'abr':4,'mai':5,'jun':6,
             'jul':7,'ago':8,'set':9,'out':10,'nov':11,'dez':12}
     meses = {}
     for i, c in enumerate(cab):
-        mm = re.fullmatch(r'([A-Za-z]{3})/(\d{2})', c.strip())
+        mm = re.fullmatch(r'([A-Za-z]{3})[/\-](\d{2,4})', c.strip())
         if mm and mm.group(1).lower() in MES3:
-            meses[i] = f'20{mm.group(2)}{MES3[mm.group(1).lower()]:02d}'
+            ano = mm.group(2)
+            ano = ano if len(ano) == 4 else '20' + ano
+            meses[i] = f'{ano}{MES3[mm.group(1).lower()]:02d}'
     if verboso:
-        print(f'   IGR {ano}: {len(meses)} colunas de mês')
+        print(f'   {rotulo_arquivo}: {len(meses)} colunas de mês, coluna de operadora "{cab[i_op][:34]}"')
     acum = defaultdict(lambda: defaultdict(list))
     for l in leitor:
         if i_op >= len(l): continue
@@ -2669,11 +2729,27 @@ def ler_igr(caminho, ano, verboso=True):
             try: x = float(v)
             except ValueError: continue
             if x > 0: acum[ym][g].append(x)
+    fora = {}
     for ym, d in acum.items():
-        for g, vs in d.items():
-            fora[ym][g] = round(sum(vs) / len(vs), 6)
-    return {k: dict(v) for k, v in fora.items()}
+        fora[ym] = {g: round(sum(vs) / len(vs), 6) for g, vs in d.items()}
+    return fora
 
+
+def ler_igr(caminho, verboso=True):
+    """IGR por mês e operadora, seja o arquivo um CSV solto ou um ZIP anual."""
+    fora = {}
+    if caminho.lower().endswith('.zip'):
+        with zipfile.ZipFile(caminho) as z:
+            for nome in z.namelist():
+                if not nome.lower().endswith('.csv'): continue
+                try:
+                    fora.update(_igr_de_tabela(z.read(nome), verboso, os.path.basename(nome)))
+                except Exception as e:
+                    print(f'   {nome}: {e}')
+    else:
+        with open(caminho, 'rb') as fh:
+            fora.update(_igr_de_tabela(fh.read(), verboso, os.path.basename(caminho)))
+    return fora
 
 
 def conferir_nip(D, total, sem_reemb, igr, ultimo, tolerancia=0.02):
@@ -2766,6 +2842,39 @@ def merge_nip(D, total, sem_reemb, igr, verboso=True, tolerancia=0.02):
             'meses': [_ym_para_rotulo(y) for y in novos]}
 
 
+def escolher_recorte(D, totais, verboso=True, tolerancia=0.02):
+    """Qual recorte do NIP reproduz melhor o último mês que a base já tem."""
+    bloco = D['nip']['NIPs']
+    placar = []
+    for nome, dados in totais.items():
+        comuns = [p for p in bloco['periods'] if _rotulo_para_ym(p) in dados]
+        if not comuns:
+            placar.append({'recorte': nome, 'sem_mes_comum': True}); continue
+        p = comuns[-1]; ym = _rotulo_para_ym(p); i = bloco['periods'].index(p)
+        ok = n = 0; pior = None
+        for op, vals in bloco['series'].items():
+            b = vals[i] if i < len(vals) else None
+            c = dados[ym].get(op)
+            if b is None or c is None or not b: continue
+            d = (c - b) / b; n += 1
+            if abs(d) <= tolerancia: ok += 1
+            if pior is None or abs(d) > abs(pior[1]): pior = (op, d)
+        placar.append({'recorte': nome, 'periodo': p, 'operadoras': n, 'dentro': ok,
+                       'acerto': round(ok / n, 3) if n else 0,
+                       'pior': {'operadora': pior[0], 'dif': round(pior[1], 4)} if pior else None})
+    placar.sort(key=lambda x: -x.get('acerto', 0))
+    if verboso:
+        print('\n   Recortes testados contra a base')
+        print('   ' + '-' * 62)
+        for r in placar:
+            if r.get('sem_mes_comum'):
+                print(f'   {r["recorte"]:20} sem mês em comum'); continue
+            pr = r.get('pior') or {}
+            print(f'   {r["recorte"]:20} {r["dentro"]:>3}/{r["operadoras"]} operadoras '
+                  f'({r["acerto"]:.0%})   pior: {pr.get("operadora","-"):16} {pr.get("dif",0):+.1%}')
+    return placar
+
+
 def acao_nip(ano=None, verboso=True):
     """Atualiza NIP e IGR a partir dos microdados e do índice publicados pela ANS."""
     print('\n  Reclamações — NIP e IGR da ANS')
@@ -2774,28 +2883,56 @@ def acao_nip(ano=None, verboso=True):
     ano = int(ano or (2000 + int(ref[-2:])))
     hoje_ano = datetime.date.today().year
     anos = sorted({ano, hoje_ano})
-    total, sem_reemb, igr = {}, {}, {}
+
+    totais, sem_reembs, valores = {}, {}, {}
     for a in anos:
         try:
             print(f'        microdados de {a}')
-            t, s = contar_nip(baixar_nip(a), verboso)
-            total.update(t); sem_reemb.update(s)
+            t, s_, v = contar_nip(baixar_nip(a), verboso)
+            for r in t:
+                totais.setdefault(r, {}).update(t[r])
+                sem_reembs.setdefault(r, {}).update(s_[r])
+            valores = v
         except Exception as e:
             print(f'        NIP {a}: {e}')
+    if not totais:
+        print('        nada foi lido; a série fica onde está'); return None
+
+    placar = escolher_recorte(base, totais, verboso)
+    melhor = placar[0] if placar else None
+    diag = {'placar': placar, 'valores_das_colunas': valores}
+    if not melhor or melhor.get('acerto', 0) < 0.75:
+        print('\n   Nenhum recorte reproduz a base o bastante. Não gravei nada.')
+        print('   O diagnóstico traz os valores reais das colunas de cobertura e')
+        print('   classificação — é por eles que se descobre o filtro que falta.')
+        json.dump(diag, open(os.path.join(HERE, 'diagnostico_nip.json'), 'w',
+                             encoding='utf-8'), ensure_ascii=False, indent=1)
+        return {'gravado': False, 'placar': placar}
+    r = melhor['recorte']
+    print(f'\n   Recorte escolhido: {r} ({melhor["acerto"]:.0%} de acerto)')
+    total, sem_reemb = totais[r], sem_reembs[r]
+
+    igr = {}
     try:
-        z = baixar_igr()
-        for a in sorted({anos[-1], anos[-1] - 1}):
-            try: igr.update(ler_igr(z, a, verboso))
-            except Exception as e: print(f'        IGR {a}: {e}')
+        alvo_ano = int(max(total)[:4])
+        for a in sorted({alvo_ano, alvo_ano - 1}):
+            try:
+                caminho, arqs, itens = baixar_igr(a)
+                igr.update(ler_igr(caminho, verboso))
+            except Exception as e:
+                print(f'        IGR {a}: {e}')
+        if igr:
+            print(f'        IGR: {len(igr)} meses, até {_ym_para_rotulo(max(igr))}')
     except Exception as e:
         print(f'        IGR: {e}')
-    if not total:
-        print('        nada foi lido; a série fica onde está'); return None
+
     res = merge_nip(base, total, sem_reemb, igr, verboso)
-    json.dump({'ultimo_mes': _ym_para_rotulo(max(total)),
-               'conferencia': res.get('relatorio')},
-              open(os.path.join(HERE, 'diagnostico_nip.json'), 'w', encoding='utf-8'),
-              ensure_ascii=False, indent=1)
+    diag['recorte_usado'] = r
+    diag['conferencia'] = res.get('relatorio')
+    diag['ultimo_mes_nip'] = _ym_para_rotulo(max(total))
+    diag['ultimo_mes_igr'] = _ym_para_rotulo(max(igr)) if igr else None
+    json.dump(diag, open(os.path.join(HERE, 'diagnostico_nip.json'), 'w',
+                         encoding='utf-8'), ensure_ascii=False, indent=1)
     if res.get('gravado'):
         gravar_base(base)
     return res
