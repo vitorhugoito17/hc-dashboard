@@ -1,643 +1,399 @@
 {
+ "painel": "https://justica-em-numeros.cnj.jus.br/painel-saude/",
  "competencia": "jun/26",
- "base_all_instances": 28291.0,
- "codigos_saude": [
-  10244
- ],
- "por_tribunal_amostra": {},
- "total_datajud": 0,
- "erro_vs_base": -1.0,
- "por_tribunal": {
-  "tjac": 0,
-  "tjal": 0,
-  "tjam": 0,
-  "tjap": 0,
-  "tjba": 0,
-  "tjce": 0,
-  "tjdft": 0,
-  "tjes": 0,
-  "tjgo": 0,
-  "tjma": 0,
-  "tjmg": 0,
-  "tjms": 0,
-  "tjmt": 0,
-  "tjpa": 0,
-  "tjpb": 0,
-  "tjpe": 0,
-  "tjpi": 0,
-  "tjpr": 0,
-  "tjrj": 0,
-  "tjrn": 0,
-  "tjro": 0,
-  "tjrr": 0,
-  "tjrs": 0,
-  "tjsc": 0,
-  "tjse": 0,
-  "tjsp": 0,
-  "tjto": 0
- },
- "assuntos_por_tribunal": {
-  "tjsp": {
-   "documentos_no_indice": 74492169,
-   "meses": [
-    {
-     "mes": "2025-01",
-     "n": 94680
-    },
-    {
-     "mes": "2024-12",
-     "n": 151197
-    },
-    {
-     "mes": "2024-11",
-     "n": 108096
-    },
-    {
-     "mes": "2024-10",
-     "n": 142155
-    },
-    {
-     "mes": "2024-09",
-     "n": 140987
-    },
-    {
-     "mes": "2024-08",
-     "n": 138949
-    },
-    {
-     "mes": "2024-07",
-     "n": 147592
-    },
-    {
-     "mes": "2024-06",
-     "n": 143829
-    },
-    {
-     "mes": "2024-05",
-     "n": 149005
-    },
-    {
-     "mes": "2024-04",
-     "n": 159024
-    },
-    {
-     "mes": "2024-03",
-     "n": 142791
-    },
-    {
-     "mes": "2024-02",
-     "n": 145604
-    },
-    {
-     "mes": "2024-01",
-     "n": 128603
-    },
-    {
-     "mes": "2023-12",
-     "n": 197000
-    },
-    {
-     "mes": "2023-11",
-     "n": 181923
-    },
-    {
-     "mes": "2023-10",
-     "n": 172028
-    },
-    {
-     "mes": "2023-09",
-     "n": 150066
-    },
-    {
-     "mes": "2023-08",
-     "n": 175306
-    }
-   ],
-   "substituiu_mes": {
-    "pedido": "2026-06",
-    "usado": "2025-01",
-    "motivo": "o mês pedido ainda não aparece no índice"
-   },
-   "mes_analisado": "jan/25",
-   "total_mes": 94680,
-   "assuntos_top": [
-    {
-     "codigo": 6017,
-     "nome": "Dívida Ativa (Execução Fiscal)",
-     "n": 9679
-    },
-    {
-     "codigo": 7681,
-     "nome": "Obrigações",
-     "n": 6003
-    },
-    {
-     "codigo": 9582,
-     "nome": "Alienação Fiduciária",
-     "n": 3317
-    },
-    {
-     "codigo": 11811,
-     "nome": "Práticas Abusivas",
-     "n": 2968
-    },
-    {
-     "codigo": 7779,
-     "nome": "Indenização por Dano Moral",
-     "n": 2371
-    },
-    {
-     "codigo": 7780,
-     "nome": "Indenização por Dano Material",
-     "n": 2329
-    },
-    {
-     "codigo": 11781,
-     "nome": "Objetos de cartas precatórias cíveis/de ordem",
-     "n": 2282
-    },
-    {
-     "codigo": 7792,
-     "nome": "Pena de Multa",
-     "n": 1673
-    },
-    {
-     "codigo": 1209,
-     "nome": "DIREITO PROCESSUAL PENAL",
-     "n": 1649
-    },
-    {
-     "codigo": 3402,
-     "nome": "Ameaça ",
-     "n": 1639
-    },
-    {
-     "codigo": 7752,
-     "nome": "Bancários",
-     "n": 1499
-    },
-    {
-     "codigo": 7768,
-     "nome": "Rescisão do contrato e devolução do dinheiro",
-     "n": 1476
-    },
-    {
-     "codigo": 7698,
-     "nome": "Perdas e Danos",
-     "n": 1469
-    },
-    {
-     "codigo": 15035,
-     "nome": "Intimação",
-     "n": 1406
-    },
-    {
-     "codigo": 9596,
-     "nome": "Prestação de Serviços",
-     "n": 1336
-    },
-    {
-     "codigo": 4703,
-     "nome": "Defeito, nulidade ou anulação",
-     "n": 1329
-    },
-    {
-     "codigo": 9607,
-     "nome": "Contratos Bancários",
-     "n": 1261
-    },
-    {
-     "codigo": 6220,
-     "nome": "Responsabilidade do Fornecedor",
-     "n": 1084
-    },
-    {
-     "codigo": 3608,
-     "nome": "Tráfico de Drogas e Condutas Afins",
-     "n": 1020
-    },
-    {
-     "codigo": 14925,
-     "nome": "Repetição do Indébito",
-     "n": 981
-    },
-    {
-     "codigo": 4830,
-     "nome": "Cancelamento de vôo",
-     "n": 930
-    },
-    {
-     "codigo": 10467,
-     "nome": "Despesas Condominiais",
-     "n": 918
-    },
-    {
-     "codigo": 9580,
-     "nome": "Espécies de Contratos",
-     "n": 901
-    },
-    {
-     "codigo": 3386,
-     "nome": "Leve",
-     "n": 881
-    },
-    {
-     "codigo": 4980,
-     "nome": "Nota Promissória",
-     "n": 845
-    },
-    {
-     "codigo": 7703,
-     "nome": "Pagamento",
-     "n": 838
-    },
-    {
-     "codigo": 9593,
-     "nome": "Locação de Imóvel",
-     "n": 764
-    },
-    {
-     "codigo": 7791,
-     "nome": "Pena Privativa de Liberdade",
-     "n": 712
-    },
-    {
-     "codigo": 5952,
-     "nome": "IPTU/ Imposto Predial e Territorial Urbano",
-     "n": 700
-    },
-    {
-     "codigo": 7687,
-     "nome": "Inventário e Partilha",
-     "n": 695
-    },
-    {
-     "codigo": 6107,
-     "nome": "Auxílio-Acidente (Art. 86)",
-     "n": 693
-    },
-    {
-     "codigo": 3632,
-     "nome": "Crimes de Trânsito",
-     "n": 689
-    },
-    {
-     "codigo": 6226,
-     "nome": "Inclusão Indevida em Cadastro de Inadimplentes",
-     "n": 684
-    },
-    {
-     "codigo": 15034,
-     "nome": "Citação",
-     "n": 672
-    },
-    {
-     "codigo": 4829,
-     "nome": "Atraso de vôo",
-     "n": 667
-    },
-    {
-     "codigo": 10441,
-     "nome": "Acidente de Trânsito",
-     "n": 662
-    },
-    {
-     "codigo": 9587,
-     "nome": "Compra e Venda",
-     "n": 659
-    },
-    {
-     "codigo": 10439,
-     "nome": "Indenização por Dano Material",
-     "n": 653
-    },
-    {
-     "codigo": 14915,
-     "nome": "Despejo por Inadimplemento",
-     "n": 650
-    },
-    {
-     "codigo": 10433,
-     "nome": "Indenização por Dano Moral",
-     "n": 639
-    },
-    {
-     "codigo": 9160,
-     "nome": "Levantamento de Valor",
-     "n": 547
-    },
-    {
-     "codigo": 3416,
-     "nome": "Furto ",
-     "n": 532
-    },
-    {
-     "codigo": 10952,
-     "nome": "Fato Atípico",
-     "n": 526
-    },
-    {
-     "codigo": 3431,
-     "nome": "Estelionato",
-     "n": 525
-    },
-    {
-     "codigo": 10338,
-     "nome": "Gratificações e Adicionais",
-     "n": 508
-    },
-    {
-     "codigo": 4960,
-     "nome": "Cédula de Crédito Bancário",
-     "n": 503
-    },
-    {
-     "codigo": 9149,
-     "nome": "Valor da Execução / Cálculo / Atualização",
-     "n": 499
-    },
-    {
-     "codigo": 4972,
-     "nome": "Duplicata",
-     "n": 489
-    },
-    {
-     "codigo": 11806,
-     "nome": "Empréstimo consignado",
-     "n": 474
-    },
-    {
-     "codigo": 12489,
-     "nome": "Tratamento médico-hospitalar",
-     "n": 471
-    },
-    {
-     "codigo": 3692,
-     "nome": "Contravenções Penais",
-     "n": 469
-    },
-    {
-     "codigo": 10671,
-     "nome": "Obrigação de Fazer / Não Fazer",
-     "n": 447
-    },
-    {
-     "codigo": 12931,
-     "nome": "Cobrança",
-     "n": 440
-    },
-    {
-     "codigo": 5951,
-     "nome": "ISS/ Imposto sobre Serviços",
-     "n": 427
-    },
-    {
-     "codigo": 6007,
-     "nome": "Repetição de indébito",
-     "n": 427
-    },
-    {
-     "codigo": 3417,
-     "nome": "Furto Qualificado ",
-     "n": 421
-    },
-    {
-     "codigo": 9163,
-     "nome": "Penhora / Depósito/ Avaliação ",
-     "n": 386
-    },
-    {
-     "codigo": 10418,
-     "nome": "CNH - Carteira Nacional de Habilitação",
-     "n": 378
-    },
-    {
-     "codigo": 11974,
-     "nome": "Cláusulas Abusivas",
-     "n": 377
-    },
-    {
-     "codigo": 9196,
-     "nome": "Liminar ",
-     "n": 374
-    }
-   ],
-   "saude": [
-    {
-     "codigo": 10244,
-     "nome": "Assistência à Saúde",
-     "n": 19
-    }
-   ]
+ "series": {
+  "All instances": {
+   "jan/20": 10244.0,
+   "fev/20": 11620.0,
+   "mar/20": 12798.0,
+   "abr/20": 8998.0,
+   "mai/20": 10260.0,
+   "jun/20": 13645.0,
+   "jul/20": 13958.0,
+   "ago/20": 12745.0,
+   "set/20": 12620.0,
+   "out/20": 12597.0,
+   "nov/20": 11601.0,
+   "dez/20": 10005.0,
+   "jan/21": 8917.0,
+   "fev/21": 11686.0,
+   "mar/21": 13657.0,
+   "abr/21": 12119.0,
+   "mai/21": 12895.0,
+   "jun/21": 12809.0,
+   "jul/21": 13438.0,
+   "ago/21": 14127.0,
+   "set/21": 13252.0,
+   "out/21": 12273.0,
+   "nov/21": 12837.0,
+   "dez/21": 10182.0,
+   "jan/22": 9360.0,
+   "fev/22": 12926.0,
+   "mar/22": 14672.0,
+   "abr/22": 12367.0,
+   "mai/22": 15821.0,
+   "jun/22": 13976.0,
+   "jul/22": 14974.0,
+   "ago/22": 16892.0,
+   "set/22": 16993.0,
+   "out/22": 15410.0,
+   "nov/22": 15947.0,
+   "dez/22": 12498.0,
+   "jan/23": 13131.0,
+   "fev/23": 15215.0,
+   "mar/23": 20383.0,
+   "abr/23": 16064.0,
+   "mai/23": 20840.0,
+   "jun/23": 18891.0,
+   "jul/23": 20918.0,
+   "ago/23": 23496.0,
+   "set/23": 20390.0,
+   "out/23": 22535.0,
+   "nov/23": 20640.0,
+   "dez/23": 16879.0,
+   "jan/24": 16212.0,
+   "fev/24": 21691.0,
+   "mar/24": 23367.0,
+   "abr/24": 27472.0,
+   "mai/24": 26735.0,
+   "jun/24": 26223.0,
+   "jul/24": 28664.0,
+   "ago/24": 27153.0,
+   "set/24": 26794.0,
+   "out/24": 29357.0,
+   "nov/24": 24955.0,
+   "dez/24": 21447.0,
+   "jan/25": 20201.0,
+   "fev/25": 27398.0,
+   "mar/25": 26038.0,
+   "abr/25": 27414.0,
+   "mai/25": 28653.0,
+   "jun/25": 26372.0,
+   "jul/25": 32813.0,
+   "ago/25": 31231.0,
+   "set/25": 33680.0,
+   "out/25": 34303.0,
+   "nov/25": 28977.0,
+   "dez/25": 26159.0,
+   "jan/26": 23608.0,
+   "fev/26": 28486.0,
+   "mar/26": 36313.0,
+   "abr/26": 31556.0,
+   "mai/26": 33389.0,
+   "jun/26": 28291.0
   },
-  "tjrj": {
-   "documentos_no_indice": 23117604,
-   "meses": [
-    {
-     "mes": "2025-05",
-     "n": 3
-    },
-    {
-     "mes": "2025-04",
-     "n": 3212
-    },
-    {
-     "mes": "2025-03",
-     "n": 5603
-    },
-    {
-     "mes": "2025-02",
-     "n": 10161
-    },
-    {
-     "mes": "2025-01",
-     "n": 27236
-    },
-    {
-     "mes": "2024-12",
-     "n": 43431
-    },
-    {
-     "mes": "2024-11",
-     "n": 32366
-    },
-    {
-     "mes": "2024-10",
-     "n": 30666
-    },
-    {
-     "mes": "2024-09",
-     "n": 53696
-    },
-    {
-     "mes": "2024-08",
-     "n": 79186
-    },
-    {
-     "mes": "2024-07",
-     "n": 40603
-    },
-    {
-     "mes": "2024-06",
-     "n": 40248
-    },
-    {
-     "mes": "2024-05",
-     "n": 47515
-    },
-    {
-     "mes": "2024-04",
-     "n": 55821
-    },
-    {
-     "mes": "2024-03",
-     "n": 61575
-    },
-    {
-     "mes": "2024-02",
-     "n": 56713
-    },
-    {
-     "mes": "2024-01",
-     "n": 56294
-    },
-    {
-     "mes": "2023-12",
-     "n": 20717
-    }
-   ],
-   "substituiu_mes": {
-    "pedido": "2026-06",
-    "usado": "2025-05",
-    "motivo": "o mês pedido ainda não aparece no índice"
-   },
-   "mes_analisado": "mai/25",
-   "total_mes": 3,
-   "assuntos_top": [
-    {
-     "codigo": 3692,
-     "nome": "Contravenções Penais",
-     "n": 1
-    },
-    {
-     "codigo": 6104,
-     "nome": "Abuso de Poder",
-     "n": 1
-    },
-    {
-     "codigo": 10894,
-     "nome": "Abuso de Poder",
-     "n": 1
-    },
-    {
-     "codigo": 11806,
-     "nome": "Empréstimo consignado",
-     "n": 1
-    }
-   ],
-   "saude": []
+  "1st instance": {
+   "jan/20": 3946.0,
+   "fev/20": 4333.0,
+   "mar/20": 5195.0,
+   "abr/20": 3526.0,
+   "mai/20": 3778.0,
+   "jun/20": 4769.0,
+   "jul/20": 5231.0,
+   "ago/20": 5236.0,
+   "set/20": 5194.0,
+   "out/20": 5138.0,
+   "nov/20": 4828.0,
+   "dez/20": 4752.0,
+   "jan/21": 3878.0,
+   "fev/21": 4441.0,
+   "mar/21": 5709.0,
+   "abr/21": 4850.0,
+   "mai/21": 5211.0,
+   "jun/21": 5317.0,
+   "jul/21": 5330.0,
+   "ago/21": 5640.0,
+   "set/21": 5592.0,
+   "out/21": 5142.0,
+   "nov/21": 5383.0,
+   "dez/21": 5013.0,
+   "jan/22": 3906.0,
+   "fev/22": 4985.0,
+   "mar/22": 5932.0,
+   "abr/22": 5242.0,
+   "mai/22": 6406.0,
+   "jun/22": 6039.0,
+   "jul/22": 6667.0,
+   "ago/22": 7557.0,
+   "set/22": 7143.0,
+   "out/22": 7226.0,
+   "nov/22": 7314.0,
+   "dez/22": 6171.0,
+   "jan/23": 6151.0,
+   "fev/23": 6437.0,
+   "mar/23": 8864.0,
+   "abr/23": 7033.0,
+   "mai/23": 8941.0,
+   "jun/23": 8437.0,
+   "jul/23": 8873.0,
+   "ago/23": 10139.0,
+   "set/23": 8326.0,
+   "out/23": 9370.0,
+   "nov/23": 8716.0,
+   "dez/23": 8081.0,
+   "jan/24": 6984.0,
+   "fev/24": 7987.0,
+   "mar/24": 9286.0,
+   "abr/24": 10714.0,
+   "mai/24": 11365.0,
+   "jun/24": 9893.0,
+   "jul/24": 10802.0,
+   "ago/24": 10461.0,
+   "set/24": 10331.0,
+   "out/24": 11014.0,
+   "nov/24": 9630.0,
+   "dez/24": 8908.0,
+   "jan/25": 8296.0,
+   "fev/25": 10070.0,
+   "mar/25": 9816.0,
+   "abr/25": 10355.0,
+   "mai/25": 10865.0,
+   "jun/25": 10100.0,
+   "jul/25": 12172.0,
+   "ago/25": 12142.0,
+   "set/25": 13132.0,
+   "out/25": 13881.0,
+   "nov/25": 11810.0,
+   "dez/25": 11596.0,
+   "jan/26": 10587.0,
+   "fev/26": 11109.0,
+   "mar/26": 15022.0,
+   "abr/26": 13768.0,
+   "mai/26": 14550.0,
+   "jun/26": 12991.0
   },
-  "tjmg": {
-   "documentos_no_indice": 36595940,
-   "meses": [
-    {
-     "mes": "2020-01",
-     "n": 1
-    },
-    {
-     "mes": "2019-12",
-     "n": 14
-    },
-    {
-     "mes": "2019-11",
-     "n": 283
-    },
-    {
-     "mes": "2019-10",
-     "n": 678
-    },
-    {
-     "mes": "2019-09",
-     "n": 741
-    },
-    {
-     "mes": "2019-08",
-     "n": 675
-    },
-    {
-     "mes": "2019-07",
-     "n": 710
-    },
-    {
-     "mes": "2019-06",
-     "n": 573
-    },
-    {
-     "mes": "2019-05",
-     "n": 678
-    },
-    {
-     "mes": "2019-04",
-     "n": 624
-    },
-    {
-     "mes": "2019-03",
-     "n": 601
-    },
-    {
-     "mes": "2019-02",
-     "n": 604
-    },
-    {
-     "mes": "2019-01",
-     "n": 518
-    },
-    {
-     "mes": "2018-12",
-     "n": 267
-    },
-    {
-     "mes": "2018-11",
-     "n": 222
-    },
-    {
-     "mes": "2018-10",
-     "n": 240
-    },
-    {
-     "mes": "2018-09",
-     "n": 212
-    },
-    {
-     "mes": "2018-08",
-     "n": 215
-    }
-   ],
-   "substituiu_mes": {
-    "pedido": "2026-06",
-    "usado": "2020-01",
-    "motivo": "o mês pedido ainda não aparece no índice"
-   },
-   "mes_analisado": "jan/20",
-   "total_mes": 1,
-   "assuntos_top": [
-    {
-     "codigo": 10239,
-     "nome": "Classificação e/ou Preterição",
-     "n": 1
-    },
-    {
-     "codigo": 10240,
-     "nome": "Classificação e/ou Preterição",
-     "n": 1
-    },
-    {
-     "codigo": 10381,
-     "nome": "Classificação e/ou Preterição",
-     "n": 1
-    }
-   ],
-   "saude": []
+  "Special Civil Courts": {
+   "jan/20": 2322.0,
+   "fev/20": 2720.0,
+   "mar/20": 2690.0,
+   "abr/20": 1592.0,
+   "mai/20": 1920.0,
+   "jun/20": 2631.0,
+   "jul/20": 2466.0,
+   "ago/20": 2106.0,
+   "set/20": 2145.0,
+   "out/20": 2178.0,
+   "nov/20": 1954.0,
+   "dez/20": 1488.0,
+   "jan/21": 1319.0,
+   "fev/21": 1795.0,
+   "mar/21": 1909.0,
+   "abr/21": 1793.0,
+   "mai/21": 1890.0,
+   "jun/21": 1716.0,
+   "jul/21": 2015.0,
+   "ago/21": 2027.0,
+   "set/21": 1908.0,
+   "out/21": 1831.0,
+   "nov/21": 1849.0,
+   "dez/21": 1539.0,
+   "jan/22": 1490.0,
+   "fev/22": 1982.0,
+   "mar/22": 2287.0,
+   "abr/22": 1933.0,
+   "mai/22": 2276.0,
+   "jun/22": 2078.0,
+   "jul/22": 2306.0,
+   "ago/22": 2613.0,
+   "set/22": 2406.0,
+   "out/22": 2476.0,
+   "nov/22": 2460.0,
+   "dez/22": 2091.0,
+   "jan/23": 2008.0,
+   "fev/23": 2453.0,
+   "mar/23": 3501.0,
+   "abr/23": 2749.0,
+   "mai/23": 3377.0,
+   "jun/23": 3190.0,
+   "jul/23": 3661.0,
+   "ago/23": 4165.0,
+   "set/23": 3700.0,
+   "out/23": 3866.0,
+   "nov/23": 3664.0,
+   "dez/23": 2979.0,
+   "jan/24": 3119.0,
+   "fev/24": 3833.0,
+   "mar/24": 4346.0,
+   "abr/24": 4971.0,
+   "mai/24": 4722.0,
+   "jun/24": 4169.0,
+   "jul/24": 5119.0,
+   "ago/24": 4790.0,
+   "set/24": 4704.0,
+   "out/24": 5498.0,
+   "nov/24": 4467.0,
+   "dez/24": 3803.0,
+   "jan/25": 3388.0,
+   "fev/25": 4677.0,
+   "mar/25": 4611.0,
+   "abr/25": 4465.0,
+   "mai/25": 4415.0,
+   "jun/25": 4167.0,
+   "jul/25": 5563.0,
+   "ago/25": 5340.0,
+   "set/25": 5700.0,
+   "out/25": 5517.0,
+   "nov/25": 4893.0,
+   "dez/25": 4193.0,
+   "jan/26": 3711.0,
+   "fev/26": 4295.0,
+   "mar/26": 5560.0,
+   "abr/26": 4961.0,
+   "mai/26": 4709.0,
+   "jun/26": 3957.0
   }
- }
+ },
+ "conferencia": {
+  "All instances": {
+   "meses_comparados": 78,
+   "iguais_na_ponta": 6,
+   "exigido": 5,
+   "aprovado": true,
+   "ponta": [
+    {
+     "periodo": "jan/26",
+     "base": 23608.0,
+     "painel": 23608.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "fev/26",
+     "base": 28486.0,
+     "painel": 28486.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "mar/26",
+     "base": 36313.0,
+     "painel": 36313.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "abr/26",
+     "base": 31556.0,
+     "painel": 31556.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "mai/26",
+     "base": 33389.0,
+     "painel": 33389.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "jun/26",
+     "base": 28291.0,
+     "painel": 28291.0,
+     "dif": 0.0
+    }
+   ],
+   "maior_desvio_historico": {
+    "periodo": "set/22",
+    "base": 16052.0,
+    "painel": 16993.0,
+    "dif": 0.05862
+   }
+  },
+  "1st instance": {
+   "meses_comparados": 78,
+   "iguais_na_ponta": 6,
+   "exigido": 5,
+   "aprovado": true,
+   "ponta": [
+    {
+     "periodo": "jan/26",
+     "base": 10587.0,
+     "painel": 10587.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "fev/26",
+     "base": 11109.0,
+     "painel": 11109.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "mar/26",
+     "base": 15022.0,
+     "painel": 15022.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "abr/26",
+     "base": 13768.0,
+     "painel": 13768.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "mai/26",
+     "base": 14550.0,
+     "painel": 14550.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "jun/26",
+     "base": 12991.0,
+     "painel": 12991.0,
+     "dif": 0.0
+    }
+   ],
+   "maior_desvio_historico": {
+    "periodo": "abr/20",
+    "base": 3475.0,
+    "painel": 3526.0,
+    "dif": 0.01468
+   }
+  },
+  "Special Civil Courts": {
+   "meses_comparados": 30,
+   "iguais_na_ponta": 6,
+   "exigido": 5,
+   "aprovado": true,
+   "ponta": [
+    {
+     "periodo": "jan/26",
+     "base": 3711.0,
+     "painel": 3711.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "fev/26",
+     "base": 4295.0,
+     "painel": 4295.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "mar/26",
+     "base": 5560.0,
+     "painel": 5560.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "abr/26",
+     "base": 4961.0,
+     "painel": 4961.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "mai/26",
+     "base": 4709.0,
+     "painel": 4709.0,
+     "dif": 0.0
+    },
+    {
+     "periodo": "jun/26",
+     "base": 3957.0,
+     "painel": 3957.0,
+     "dif": 0.0
+    }
+   ],
+   "maior_desvio_historico": {
+    "periodo": "dez/24",
+    "base": 3827.0,
+    "painel": 3803.0,
+    "dif": -0.00627
+   }
+  }
+ },
+ "diagnostico": {}
 }
