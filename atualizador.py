@@ -2278,6 +2278,233 @@ def acao_cnj(verboso=True):
     return res
 
 
+
+# ======================================================================
+# DESCOBERTA DE SCHEMA — o que existe em cada base da ANS
+# ======================================================================
+
+"""
+Antes de escrever um parser, é preciso saber o nome real das colunas. A ANS
+publica cada base com um layout próprio, muda nome de campo sem avisar e mistura
+CSV solto com ZIP. Esta rodada baixa o arquivo mais recente de cada diretório,
+detecta codificação e separador, e grava cabeçalho, amostra e contagem em
+diagnostico_fontes.json. É barato, roda uma vez, e evita três rodadas de
+tentativa e erro por base.
+"""
+
+DIAG_FONTES = os.path.join(HERE, 'diagnostico_fontes.json')
+
+# diretórios que ainda não têm coletor, na ordem em que pretendo atacá-los
+EXPLORAR = ['ans_nip', 'ans_igr', 'ans_rpc', 'ans_reajuste_agrup',
+            'ans_diops', 'ans_resus_cobranca', 'ans_resus_hc', 'ans_sip']
+
+CAB_ANS = {'User-Agent': 'Healthcare-Dashboard-Updater/2.0',
+           'Accept-Encoding': 'identity'}
+
+
+def _listar(url):
+    r = requests.get(url, headers=CAB_ANS, timeout=(30, 120))
+    r.raise_for_status()
+    itens = re.findall(r'href="([^"?][^"]*)"', r.text)
+    return [i for i in itens if i not in ('../', '/')]
+
+
+def _mais_novo(itens, sufixos=('.csv', '.zip', '.CSV', '.ZIP')):
+    arqs = [i for i in itens if i.endswith(sufixos)]
+    if not arqs: return None
+    # ordena por qualquer AAAAMM/AAAA que apareça no nome; senão, alfabético
+    def chave(n):
+        m = re.findall(r'(20\d{4})', n) or re.findall(r'(20\d{2})', n)
+        return (m[-1] if m else '', n)
+    return sorted(arqs, key=chave)[-1]
+
+
+def _amostra_csv(bruto, nome, linhas=3):
+    """Cabeçalho, separador, codificação e primeiras linhas de um CSV cru."""
+    try:
+        bruto.decode('utf-8'); enc = 'utf-8'
+    except UnicodeDecodeError:
+        enc = 'latin-1'
+    txt = bruto.decode(enc, 'replace')
+    primeiras = txt.splitlines()[:linhas + 1]
+    if not primeiras: return {'arquivo': nome, 'vazio': True}
+    cab = primeiras[0]
+    sep = max([';', ',', '\t', '|'], key=lambda s: cab.count(s))
+    return {'arquivo': nome, 'codificacao': enc, 'separador': sep,
+            'colunas': [c.strip().strip('"') for c in cab.split(sep)],
+            'amostra': [l.split(sep)[:14] for l in primeiras[1:]]}
+
+
+def explorar_fonte(fid, limite_mb=60):
+    f = FONTES[fid]
+    saida = {'id': fid, 'nome': f['nome'], 'dir': f['dir'], 'alimenta': f.get('alimenta')}
+    try:
+        itens = _listar(f['dir'])
+    except Exception as e:
+        saida['erro'] = f'não consegui listar o diretório: {e}'; return saida
+    saida['itens_no_diretorio'] = len(itens)
+    # alguns diretórios têm um nível de pasta (por ano ou competência)
+    pastas = [i for i in itens if i.endswith('/')]
+    alvo_dir = f['dir']
+    if pastas and not _mais_novo(itens):
+        pasta = sorted(pastas)[-1]
+        alvo_dir = urljoin(f['dir'], pasta)
+        saida['subpasta'] = pasta
+        try:
+            itens = _listar(alvo_dir)
+        except Exception as e:
+            saida['erro'] = f'não consegui listar {pasta}: {e}'; return saida
+    nome = _mais_novo(itens)
+    if not nome:
+        saida['erro'] = 'nenhum csv/zip no diretório'
+        saida['exemplos'] = itens[:10]; return saida
+    saida['arquivo_mais_recente'] = nome
+    url = urljoin(alvo_dir, nome)
+    try:
+        r = requests.get(url, headers=CAB_ANS, timeout=(30, 300), stream=True)
+        r.raise_for_status()
+        pedacos, total = [], 0
+        for c in r.iter_content(1 << 20):
+            pedacos.append(c); total += len(c)
+            if total > limite_mb * (1 << 20): break
+        bruto = b''.join(pedacos)
+        saida['bytes_lidos'] = total
+        saida['completo'] = total < limite_mb * (1 << 20)
+    except Exception as e:
+        saida['erro'] = f'falha ao baixar: {e}'; return saida
+    if nome.lower().endswith('.zip'):
+        try:
+            with zipfile.ZipFile(io.BytesIO(bruto)) as z:
+                membros = z.namelist()
+                saida['membros_do_zip'] = membros[:20]
+                alvos = [n for n in membros if n.lower().endswith(('.csv', '.txt'))][:3]
+                saida['tabelas'] = [_amostra_csv(z.open(n).read(1 << 18), n) for n in alvos]
+        except Exception as e:
+            saida['erro'] = f'ZIP ilegível (pode ser o corte de {limite_mb} MB): {e}'
+    else:
+        saida['tabelas'] = [_amostra_csv(bruto[:1 << 18], nome)]
+    return saida
+
+
+def acao_explorar(alvos=None, verboso=True):
+    """Mapeia o schema das bases da ANS que ainda não têm coletor."""
+    print('\n  Descoberta de schema — bases da ANS sem coletor')
+    print('  ' + '=' * 70)
+    rel = []
+    for fid in (alvos or EXPLORAR):
+        if fid not in FONTES:
+            print(f'  {fid}: fonte desconhecida'); continue
+        print(f'\n  {FONTES[fid]["nome"]}')
+        d = explorar_fonte(fid)
+        rel.append(d)
+        if d.get('erro'):
+            print(f'      ERRO: {d["erro"]}')
+            continue
+        print(f'      arquivo: {d.get("arquivo_mais_recente")} '
+              f'({d.get("bytes_lidos",0)/1e6:.1f} MB lidos'
+              f'{"" if d.get("completo") else ", truncado"})')
+        for t in d.get('tabelas', []):
+            cols = t.get('colunas') or []
+            print(f'      {t.get("arquivo")}: {len(cols)} colunas '
+                  f'[{t.get("codificacao")}, sep "{t.get("separador")}"]')
+            print(f'         {", ".join(cols[:16])}')
+    json.dump(rel, open(DIAG_FONTES, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(f'\n  diagnostico_fontes.json gravado com {len(rel)} bases')
+    return rel
+
+
+def calibrar_leitos_cnes(ym=None, verboso=True):
+    """Descobre qual recorte do CNES reproduz os leitos por UF da base.
+
+    A base traz 23.251 leitos em São Paulo. Nem o total nem só os não-SUS
+    chegam perto. Aqui eu calculo vários recortes candidatos de uma vez e meço
+    qual erra menos — em vez de adivinhar um por rodada.
+    """
+    base = carregar_base()
+    ym = ym or cnes_competencia_mais_recente()
+    caminho = baixar_cnes(ym)
+    UF_COD = {'11':'RO','12':'AC','13':'AM','14':'RR','15':'PA','16':'AP','17':'TO','21':'MA',
+              '22':'PI','23':'CE','24':'RN','25':'PB','26':'PE','27':'AL','28':'SE','29':'BA',
+              '31':'MG','32':'ES','33':'RJ','35':'SP','41':'PR','42':'SC','43':'RS','50':'MS',
+              '51':'MT','52':'GO','53':'DF'}
+    NOME_UF = {'São Paulo':'SP','Rio de Janeiro':'RJ','Minas Gerais':'MG','Brasília':'DF',
+               'Distrito Federal':'DF','Bahia':'BA','Pernambuco':'PE','Ceará':'CE','Paraná':'PR',
+               'Goiás':'GO','Amazonas':'AM','Rio Grande do Sul':'RS','Santa Catarina':'SC',
+               'Espírito Santo':'ES','Pará':'PA','Maranhão':'MA','Paraíba':'PB',
+               'Rio Grande do Norte':'RN','Alagoas':'AL','Sergipe':'SE','Piauí':'PI',
+               'Mato Grosso':'MT','Mato Grosso do Sul':'MS','Tocantins':'TO','Rondônia':'RO'}
+
+    # natureza jurídica: 1xxx e 2xxx = privado (2 = empresas, 3 = sem fins lucrativos)
+    with zipfile.ZipFile(caminho) as z:
+        te = _membro(z, r'tbEstabelecimento')
+        g = _csv_cnes(z, te); cab = next(g)
+        i_un = _coluna(cab, r'CO_UNIDADE', r'CO_CNES')
+        i_tp = _coluna(cab, r'TP_UNIDADE', r'CO_TIPO_UNIDADE')
+        i_nat = _coluna(cab, r'CO_NATUREZA_JUR', r'NATUREZA_JURIDICA', r'CO_NATUREZA_ORGANIZACAO')
+        i_esf = _coluna(cab, r'CO_ESFERA_ADMIN', r'TP_GESTAO')
+        atrib = {}
+        for l in g:
+            if i_un is None or i_un >= len(l): continue
+            u = l[i_un].strip().strip('"')
+            atrib[u] = {
+              'tp': (l[i_tp].strip().strip('"') if i_tp is not None and i_tp < len(l) else ''),
+              'nat': (l[i_nat].strip().strip('"') if i_nat is not None and i_nat < len(l) else ''),
+              'esf': (l[i_esf].strip().strip('"') if i_esf is not None and i_esf < len(l) else ''),
+            }
+        if verboso:
+            print(f'   tbEstabelecimento: {len(atrib)} unidades · colunas usadas: '
+                  f'tipo={cab[i_tp] if i_tp is not None else "?"}, '
+                  f'natureza={cab[i_nat] if i_nat is not None else "?"}, '
+                  f'esfera={cab[i_esf] if i_esf is not None else "?"}')
+
+    leitos = ler_leitos(caminho, verboso=False)
+    por_un = leitos['por_unidade']
+    # tipos de unidade que são hospital (05 geral, 07 especializado, 62 dia, 36 clínica)
+    HOSP = {'05', '07', '62', '36', '5', '7'}
+    recortes = {
+      'total':            lambda u, d: d['total'],
+      'nao_sus':          lambda u, d: d['nao_sus'],
+      'hospital_total':   lambda u, d: d['total'] if atrib.get(u, {}).get('tp') in HOSP else 0,
+      'hospital_nao_sus': lambda u, d: d['nao_sus'] if atrib.get(u, {}).get('tp') in HOSP else 0,
+      'privado_nao_sus':  lambda u, d: d['nao_sus'] if atrib.get(u, {}).get('nat', '').startswith(('2', '3')) else 0,
+      'hosp_priv_nao_sus':lambda u, d: d['nao_sus'] if (atrib.get(u, {}).get('tp') in HOSP and
+                                                        atrib.get(u, {}).get('nat', '').startswith(('2', '3'))) else 0,
+    }
+    por_uf = {nome: {uf: 0 for uf in UF_COD.values()} for nome in recortes}
+    for u, d in por_un.items():
+        uf = UF_COD.get(u[:2])
+        if not uf: continue
+        for nome, fn in recortes.items():
+            por_uf[nome][uf] += fn(u, d)
+
+    bs = base['hosp']['by_state']; ref = bs['periods'][-1]
+    alvo = {}
+    for r in bs['rows']:
+        if r.get('level') != 'state': continue
+        uf = NOME_UF.get(r['name']); v = (r.get('beds') or {}).get(ref)
+        if uf and v: alvo[uf] = v
+    resumo = []
+    for nome in recortes:
+        erros = [abs(por_uf[nome][uf] / v - 1) for uf, v in alvo.items() if por_uf[nome].get(uf)]
+        if not erros: continue
+        resumo.append({'recorte': nome, 'erro_medio': round(sum(erros)/len(erros), 4),
+                       'sp_calculado': por_uf[nome].get('SP'), 'sp_base': alvo.get('SP')})
+    resumo.sort(key=lambda x: x['erro_medio'])
+    if verboso:
+        print(f'\n   Recortes candidatos contra {len(alvo)} UFs da base ({ref})')
+        print('   ' + '-' * 62)
+        for r in resumo:
+            print(f'   {r["recorte"]:20} erro médio {r["erro_medio"]:7.1%}   '
+                  f'SP {r["sp_calculado"]:>8,} vs {r["sp_base"]:,}')
+        print('   (procuro o recorte com erro perto de zero; sem isso não ligo a aba)')
+    saida = {'competencia': rotulo(ym), 'referencia': ref, 'resumo': resumo,
+             'por_uf': {n: por_uf[n] for n in list(recortes)}, 'alvo': alvo}
+    json.dump(saida, open(os.path.join(HERE, 'diagnostico_leitos_uf.json'), 'w',
+                          encoding='utf-8'), ensure_ascii=False, indent=1)
+    print('   diagnostico_leitos_uf.json gravado')
+    return saida
+
+
 def embutir_base(caminho_html=None):
     """Reescreve a base embutida no HTML com o dados.json atual.
 
@@ -2382,6 +2609,10 @@ def _cli():
                          'judicialização do CNJ (é também o padrão, sem nenhuma opção)')
     ap.add_argument('--embutir', action='store_true',
                     help='reescreve a cópia da base dentro do HTML a partir do dados.json')
+    ap.add_argument('--explorar', action='store_true',
+                    help='mapeia o schema das bases da ANS que ainda não têm coletor')
+    ap.add_argument('--leitos-uf', action='store_true',
+                    help='testa recortes do CNES contra os leitos por UF da base')
     ap.add_argument('--refazer', metavar='AAAAMM',
                     help='reprocessa uma competência da ANS mesmo que a base já esteja nela '
                          '(usado para reescrever por encadeamento o que entrou só por nível)')
@@ -2407,6 +2638,11 @@ def _cli():
 
     if a.embutir:
         embutir_base(); return
+
+    if a.explorar:
+        acao_explorar(); return
+    if a.leitos_uf:
+        calibrar_leitos_cnes(); return
 
     if a.auto:
         acao_auto(); return
