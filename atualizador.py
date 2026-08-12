@@ -14,7 +14,7 @@ USO
     python atualizador.py --so-baixar     # só baixa os ZIPs da ANS
     python atualizador.py --cnes          # só os leitos hospitalares (CNES)
     python atualizador.py --cnes-descobrir  # refaz o mapa unidade -> código CNES
-    python atualizador.py --cnj           # sondagem do DataJud, sem gravar
+    python atualizador.py --cnj           # só a judicialização (painel do CNJ)
 
 O QUE ELE FAZ
     1. IPCA/IBGE — API JSON pública, ciclo fechado, segundos.
@@ -28,8 +28,9 @@ O QUE ELE FAZ
        hospital. O casamento entre as unidades do dashboard e os códigos CNES
        é feito uma vez, validado contra os leitos que a base já traz, e
        congelado em cnes_map.json.
-    4. Judicialização/CNJ — sondagem da API pública do DataJud. Ainda não
-       publica na série: primeiro precisa reproduzir os meses conhecidos.
+    4. Judicialização/CNJ — painel de Direito à Saúde, consultado direto no
+       modelo do Power BI. Reproduz a série do relatório mês a mês; acrescenta
+       os meses novos e não reescreve o histórico.
 
 REQUISITOS
     Python 3.9+ e a biblioteca requests:   python -m pip install requests
@@ -1090,11 +1091,11 @@ FONTES = {
  },
  'cnj': {
    'nome': 'CNJ · Novas ações de saúde suplementar',
-   'dir': 'https://api-publica.datajud.cnj.jus.br/',
-   'tipo': 'cnj', 'alimenta': ['legal.lawsuits','legal.topics'],
-   'obs': 'API pública funciona, mas o índice está ~18 meses atrasado: em ago/26 o mês '
-          'mais recente do TJSP era jan/25. Não serve para uma série que já está em '
-          'jun/26. A sondagem continua rodando todo mês para avisar quando alcançar.',
+   'dir': 'https://justica-em-numeros.cnj.jus.br/painel-saude/',
+   'tipo': 'cnj', 'alimenta': ['legal.lawsuits'],
+   'obs': 'Painel "Estatísticas Processuais de Direito à Saúde", atualizado mensalmente. '
+          'Consultado direto no modelo do Power BI publicado. Reproduz a série do BBI '
+          'mês a mês. A API pública do DataJud, por outro lado, está ~18 meses atrasada.',
  },
  'sindusfarma': {
    'nome': 'Sindusfarma · Vendas do mercado farmacêutico',
@@ -1294,7 +1295,7 @@ def acao_auto():
     print(f"\n  Base atual: beneficiarios em {atual or '?'}")
 
     # ---------- 1) IPCA (API do IBGE, sem download) ----------
-    print('\n  [1/3] IPCA — API do IBGE')
+    print('\n  [1/4] IPCA — API do IBGE')
     try:
         ip = puxar()
         antes = (base.get('ipca') or {}).get('competencia')
@@ -1308,7 +1309,7 @@ def acao_auto():
         print('        (checar conexao; o resto da rotina continua)')
 
     # ---------- 2) Beneficiarios ANS ----------
-    print('\n  [2/3] Beneficiarios — PDA-024 da ANS')
+    print('\n  [2/4] Beneficiarios — PDA-024 da ANS')
     novo = None
     try:
         novo = competencia_mais_recente(FONTES['ans_beneficiarios'])
@@ -1337,7 +1338,7 @@ def acao_auto():
             print(f'        falhou no processamento: {e}')
 
     # ---------- 3) Leitos hospitalares (CNES) ----------
-    print('\n  [3/3] Leitos hospitalares — CNES/DATASUS')
+    print('\n  [3/4] Leitos hospitalares — CNES/DATASUS')
     try:
         gravar_base(base)          # o coletor do CNES recarrega o dados.json do disco
         acao_cnes()
@@ -1345,6 +1346,16 @@ def acao_auto():
     except Exception as e:
         print(f'        falhou: {e}')
         print('        (o resto da base ja foi gravado; o CNES tenta de novo no mes que vem)')
+
+    # ---------- 4) Judicializacao (painel do CNJ) ----------
+    print('\n  [4/4] Judicializacao — painel de Direito a Saude do CNJ')
+    try:
+        gravar_base(base)
+        acao_cnj()
+        base = carregar_base()
+    except Exception as e:
+        print(f'        falhou: {e}')
+        print('        (a serie de acoes fica onde estava; tenta de novo na proxima rodada)')
 
     gravar_base(base)
     print('\n  Pronto. Abra o dashboard — ele le o dados.json automaticamente.')
@@ -1918,195 +1929,353 @@ def acao_cnes(ym=None, descobrir=False, verboso=True):
 
 
 # ======================================================================
-# JUDICIALIZAÇÃO — CNJ / DataJud
+# JUDICIALIZAÇÃO — CNJ / Painel de Estatísticas de Direito à Saúde
 # ======================================================================
 
 """
-Coletor do DataJud (Base Nacional de Dados do Poder Judiciário). A API pública
-usa uma chave divulgada na própria wiki do CNJ e responde a consultas no
-dialeto do Elasticsearch, um endpoint por tribunal.
+Coletor do painel "Estatísticas Processuais de Direito à Saúde" do CNJ
+(justica-em-numeros.cnj.jus.br/painel-saude/).
 
-Esta primeira versão roda em modo SONDAGEM: conta processos novos por mês e
-descobre, pela própria base, quais assuntos da Tabela Processual Unificada
-correspondem a planos de saúde — em vez de eu chutar os códigos. O resultado
-vai para diagnostico_cnj.json e só entra na série `legal.lawsuits` depois de
-reproduzir os meses que a base já tem. Enquanto não reproduzir, não publica:
-um número de judicialização que não bate com a fonte é pior do que nenhum.
+Por que este painel e não a API pública do DataJud: a API está cerca de 18
+meses atrasada, enquanto o painel é atualizado mensalmente e já traz
+"Dados até 30/06/2026". Mais importante: os números batem. A série
+`legal.lawsuits` do relatório do BBI, somada de jan a jun/26, dá 181.643 —
+exatamente o "Entradas em 2026 · Novos" que o painel mostra para Saúde
+Suplementar. Mês a mês também: jan/26 = 23.608 nos dois. O BBI é consumidor
+desta mesma fonte.
+
+O painel é um Power BI publicado na web. Publicação desse tipo aceita consulta
+direta ao endpoint /public/reports/querydata com a chave do relatório — não é
+raspagem de tela, é a mesma consulta semântica que o painel faz, com o mesmo
+resultado. O modelo tem:
+
+    tbl_fato_materias_R   ano · mes · sigla_grau · materia · Proc_cn · ramo_justica
+    medidas_matéria       "dd Novos_temas"  (casos novos)
+
+e sigla_grau separa exatamente as três séries do dashboard:
+    sem filtro -> All instances · G1 -> 1st instance · JE -> Special Civil Courts
+
+Duas armadilhas descobertas na prática, ambas tratadas abaixo:
+  * reaproveitar o QueryId da consulta capturada faz o serviço devolver um
+    resultado em cache, com outro formato e ignorando o filtro. Cada requisição
+    leva um QueryId novo.
+  * sem DataReduction, a resposta é truncada em 100 linhas.
 """
 
-CNJ_BASE = 'https://api-publica.datajud.cnj.jus.br/api_publica_{alias}/_search'
-CNJ_CHAVE = ('cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==')
+CNJ_PAINEL = 'https://justica-em-numeros.cnj.jus.br/painel-saude/'
+CNJ_CHAVE = 'cc26e866-9709-48a9-93af-0c4e5d0bc99e'
+CNJ_DATASET = '65185df1-393e-4827-9e0e-3ddf0ff2c619'
+CNJ_RELATORIO = '6f49513b-2b93-4c9e-8db8-bc2b5ede6d8f'
+CNJ_VISUAL = '124a03566950da4bfca9'
+CNJ_MODELO = 3223105
+# O cluster é regional. O primeiro é o que responde hoje; os outros são rede de
+# segurança para o dia em que a Microsoft mudar o relatório de região.
+CNJ_HOSTS = [
+ 'https://wabi-us-east-a-primary-api.analysis.windows.net',
+ 'https://wabi-brazil-south-b-primary-api.analysis.windows.net',
+ 'https://wabi-south-central-us-a-primary-api.analysis.windows.net',
+ 'https://wabi-west-europe-d-primary-api.analysis.windows.net',
+]
+CNJ_MATERIA = ' Saúde Suplementar'      # o espaço à esquerda é do próprio modelo
+CNJ_RAMOS = ['Justiça Estadual', 'Justiça Federal', 'Tribunais Superiores']
+CNJ_GRAUS = ['G1', 'G2', 'JE', 'SUP', 'TR', 'TRU', 'TNU']
+CNJ_SERIES = {None: 'All instances', 'G1': '1st instance', 'JE': 'Special Civil Courts'}
 DIAG_CNJ = os.path.join(HERE, 'diagnostico_cnj.json')
 
-# Justiça Estadual: é onde tramita quase toda ação contra operadora de plano.
-TJS = ['tjac','tjal','tjam','tjap','tjba','tjce','tjdft','tjes','tjgo','tjma','tjmg','tjms',
-       'tjmt','tjpa','tjpb','tjpe','tjpi','tjpr','tjrj','tjrn','tjro','tjrr','tjrs','tjsc',
-       'tjse','tjsp','tjto']
-
-# Termos que identificam saúde suplementar no nome do assunto da TPU.
-PADRAO_SAUDE = r'plano de sa[úu]de|seguro sa[úu]de|sa[úu]de suplementar|assist[êe]ncia [àa] sa[úu]de'
+_cnj_host_ok = None
 
 
-def _cnj_post(alias, corpo, tentativas=3):
-    url = CNJ_BASE.format(alias=alias)
-    cab = {'Authorization': f'APIKey {CNJ_CHAVE}', 'Content-Type': 'application/json'}
-    for k in range(tentativas):
-        try:
-            r = requests.post(url, headers=cab, json=corpo, timeout=TIMEOUT)
-            if r.status_code == 429:
-                time.sleep(2 * (k + 1)); continue
-            r.raise_for_status()
-            return r.json()
-        except Exception as e:
-            if k == tentativas - 1:
-                return {'_erro': str(e)}
-            time.sleep(1.5 * (k + 1))
-    return {'_erro': 'sem resposta'}
+def _lit(v):
+    return {'Literal': {'Value': f"'{v}'"}}
 
 
-def _janela(ym):
-    ini = f'{ym[:4]}-{ym[4:6]}-01'
-    prox = _ym_menos(ym, -1)
-    return ini, f'{prox[:4]}-{prox[4:6]}-01'
+def _col(prop, fonte='t'):
+    return {'Column': {'Expression': {'SourceRef': {'Source': fonte}}, 'Property': prop}}
 
 
-def cnj_sondar(alias, ym, topo=400):
-    """Sondagem em três degraus, do genérico ao específico.
+def _cnj_corpo(grau=None, indice=0):
+    """Monta a consulta semântica: casos novos de Saúde Suplementar por ano e mês."""
+    onde = [
+      {'Condition': {'In': {'Expressions': [_col('Proc_cn')],
+                            'Values': [[_lit('Processo (casos novos)')]]}}},
+      {'Condition': {'In': {'Expressions': [_col('materia')],
+                            'Values': [[_lit(CNJ_MATERIA)]]}}},
+      {'Condition': {'In': {'Expressions': [_col('ramo_justica')],
+                            'Values': [[_lit(r)] for r in CNJ_RAMOS]}}},
+    ]
+    if grau:
+        onde.append({'Condition': {'In': {'Expressions': [_col('sigla_grau')],
+                                          'Values': [[_lit(grau)]]}}})
+    return {
+      'version': '1.0.0',
+      'queries': [{
+        'Query': {'Commands': [{'SemanticQueryDataShapeCommand': {
+          'Query': {
+            'Version': 2,
+            'From': [{'Name': 'm', 'Entity': 'medidas_matéria', 'Type': 0},
+                     {'Name': 't', 'Entity': 'tbl_fato_materias_R', 'Type': 0}],
+            'Select': [
+              dict(_col('ano'), Name='t.ano'),
+              dict(_col('mes'), Name='t.mes'),
+              {'Measure': {'Expression': {'SourceRef': {'Source': 'm'}},
+                           'Property': 'dd Novos_temas'},
+               'Name': 'medidas_matéria.dd Novos_temas'},
+            ],
+            'Where': onde,
+          },
+          'Binding': {'Primary': {'Groupings': [{'Projections': [0, 1, 2]}]},
+                      'DataReduction': {'DataVolume': 4,
+                                        'Primary': {'Window': {'Count': 30000}}},
+                      'Version': 1},
+        }}]},
+        # QueryId novo a cada chamada: reaproveitar traz resposta em cache
+        'QueryId': f'hc{indice}{int(time.time()*1000) % 1000000}',
+        'ApplicationContext': {'DatasetId': CNJ_DATASET,
+                               'Sources': [{'ReportId': CNJ_RELATORIO,
+                                            'VisualId': CNJ_VISUAL}]},
+      }],
+      'cancelQueries': [],
+      'modelId': CNJ_MODELO,
+    }
 
-    Na primeira tentativa a consulta por mês devolveu zero em todos os
-    tribunais, e zero não diz se o campo de data tem outro nome, se o índice
-    ainda não recebeu a competência ou se realmente não há processo. Então
-    pergunto por partes: quantos documentos existem, como eles se distribuem
-    no tempo, e só então o detalhe do mês. Cada degrau elimina uma hipótese.
+
+def _cnj_consulta(corpo, tentativas=3):
+    """POST na consulta pública, testando os clusters até um responder."""
+    global _cnj_host_ok
+    hosts = ([_cnj_host_ok] if _cnj_host_ok else []) + \
+            [h for h in CNJ_HOSTS if h != _cnj_host_ok]
+    ultimo = None
+    for host in hosts:
+        for k in range(tentativas):
+            try:
+                r = requests.post(host + '/public/reports/querydata?synchronous=true',
+                                  json=corpo, timeout=(30, 180),
+                                  headers={'X-PowerBI-ResourceKey': CNJ_CHAVE,
+                                           'Content-Type': 'application/json;charset=UTF-8',
+                                           'User-Agent': CAB_CNES['User-Agent']})
+                if r.status_code >= 500 or r.status_code == 429:
+                    ultimo = f'{r.status_code}'; time.sleep(4 * (k + 1)); continue
+                r.raise_for_status()
+                _cnj_host_ok = host
+                return r.json()
+            except Exception as e:
+                ultimo = str(e)[:120]
+                time.sleep(3 * (k + 1))
+    raise RuntimeError(f'nenhum cluster do Power BI respondeu ({ultimo})')
+
+
+def _dsr_linhas(js, n_col):
+    """Reconstrói as linhas do formato compacto do Power BI.
+
+    O serviço omite valor repetido (bitmask R) e valor nulo (bitmask Ø),
+    então uma linha só traz o que mudou em relação à anterior.
     """
+    res = (((js.get('results') or [{}])[0].get('result') or {}).get('data') or {})
+    ds = ((res.get('dsr') or {}).get('DS') or [{}])[0]
+    ph = (ds.get('PH') or [{}])[0]
+    dm = ph.get('DM0') or []
+    linhas, ant = [], [None] * n_col
+    for r in dm:
+        c = r.get('C') or []
+        rep, nul = r.get('R', 0), r.get('Ø', 0)
+        v, k = [], 0
+        for i in range(n_col):
+            if nul >> i & 1:      v.append(None)
+            elif rep >> i & 1:    v.append(ant[i])
+            else:
+                v.append(c[k] if k < len(c) else None); k += 1
+        ant = v
+        linhas.append(v)
+    return linhas
+
+
+def _cnj_mensal(grau=None, indice=0):
+    """{'AAAAMM': casos novos} para um grau (ou todos, se grau=None)."""
+    linhas = _dsr_linhas(_cnj_consulta(_cnj_corpo(grau, indice)), 3)
     fora = {}
-    # 1) o índice tem documentos?
-    d = _cnj_post(alias, {'size': 0, 'track_total_hits': True, 'query': {'match_all': {}}})
-    if '_erro' in d:
-        return {'erro': d['_erro']}
-    fora['documentos_no_indice'] = ((d.get('hits') or {}).get('total') or {}).get('value')
-
-    # 2) como se distribuem por mês de ajuizamento? (também testa o nome do campo)
-    #
-    # A base tem datas corrompidas — anos 2611, 4507, 9010 aparecem com milhões
-    # de processos, provavelmente erro de digitação ou de carga nos tribunais.
-    # Sem recortar a janela plausível, o mês "mais recente" do índice vira o ano
-    # 9010 e a sondagem inteira olha para o lugar errado.
-    limite = f'{ym[:4]}-{ym[4:6]}-28'
-    d = _cnj_post(alias, {
-        'size': 0,
-        'query': {'bool': {'filter': [
-            {'range': {'dataAjuizamento': {'gte': '2015-01-01', 'lte': limite}}}]}},
-        'aggs': {'meses': {'date_histogram': {'field': 'dataAjuizamento',
-                                              'calendar_interval': 'month',
-                                              'min_doc_count': 1,
-                                              'order': {'_key': 'desc'}}}}})
-    baldes = (((d.get('aggregations') or {}).get('meses') or {}).get('buckets') or [])
-    fora['meses'] = [{'mes': (b.get('key_as_string') or '')[:7], 'n': b['doc_count']}
-                     for b in baldes[:18]]
-    if not baldes:
-        fora['aviso'] = ('nenhum balde por dataAjuizamento na janela 2015→hoje — ou o campo '
-                         'tem outro nome neste tribunal, ou o índice não expõe a data')
-
-    # 3) assuntos do mês pedido; se ele estiver vazio, usa o mês plausível mais recente
-    alvo = ym
-    disponiveis = [b['mes'] for b in fora['meses']]
-    pedido = f'{ym[:4]}-{ym[4:6]}'
-    if pedido not in disponiveis and disponiveis:
-        alvo = disponiveis[0].replace('-', '')
-        fora['substituiu_mes'] = {'pedido': pedido, 'usado': disponiveis[0],
-                                  'motivo': 'o mês pedido ainda não aparece no índice'}
-    ini, fim = _janela(alvo)
-    d = _cnj_post(alias, {
-        'size': 0, 'track_total_hits': True,
-        'query': {'bool': {'filter': [{'range': {'dataAjuizamento': {'gte': ini, 'lt': fim}}}]}},
-        'aggs': {'assuntos': {'terms': {'field': 'assuntos.codigo', 'size': topo},
-                              'aggs': {'nome': {'terms': {'field': 'assuntos.nome.keyword',
-                                                          'size': 1}}}}}})
-    baldes = (((d.get('aggregations') or {}).get('assuntos') or {}).get('buckets') or [])
-    lista = [{'codigo': b['key'],
-              'nome': (((b.get('nome') or {}).get('buckets') or [{}])[0]).get('key', ''),
-              'n': b['doc_count']} for b in baldes]
-    fora['mes_analisado'] = rotulo(alvo)
-    fora['total_mes'] = ((d.get('hits') or {}).get('total') or {}).get('value')
-    fora['assuntos_top'] = lista[:60]
-    fora['saude'] = [x for x in lista if re.search(PADRAO_SAUDE, x['nome'] or '', re.I)]
+    for ano, mes, valor in linhas:
+        if not (isinstance(ano, (int, float)) and isinstance(mes, (int, float))):
+            continue
+        if not (1 <= int(mes) <= 12) or not (2000 <= int(ano) <= 2100):
+            continue
+        fora[f'{int(ano)}{int(mes):02d}'] = float(valor or 0)
     return fora
 
 
-def cnj_assuntos(ym, aliases=('tjsp', 'tjrj', 'tjmg'), topo=400):
-    achados = {}
-    for alias in aliases:
-        a = cnj_sondar(alias, ym, topo)
-        achados[alias] = a
-        if 'erro' in a:
-            print(f'      {alias}: {a["erro"][:90]}'); continue
-        print(f"      {alias}: {a.get('documentos_no_indice')} documentos no índice · "
-              f"{len(a.get('meses') or [])} meses com dado · "
-              f"{a.get('mes_analisado')}: {a.get('total_mes')} processos, "
-              f"{len(a.get('saude') or [])} assuntos de saúde suplementar")
-        if a.get('substituiu_mes'):
-            print(f"         (o mês pedido não existe no índice; usei {a['substituiu_mes']['usado']})")
-        if a.get('aviso'):
-            print(f"         {a['aviso']}")
-    return achados
+def cnj_painel(verboso=True):
+    """Puxa as três séries mensais de novas ações de saúde suplementar.
+
+    A consulta sem filtro de grau às vezes volta agregada por ano — resposta em
+    cache do serviço. Quando isso acontece, o total é reconstruído somando os
+    sete graus, que é a mesma coisa por definição.
+    """
+    if verboso: print('        consultando o painel do CNJ')
+    series, diag = {}, {}
+    total = _cnj_mensal(None, 0)
+    if len(total) < 24:
+        if verboso:
+            print(f'        a consulta geral voltou com {len(total)} meses; '
+                  'somando os graus um a um')
+        total, por_grau = {}, {}
+        for i, g in enumerate(CNJ_GRAUS, start=1):
+            d = _cnj_mensal(g, i)
+            por_grau[g] = d
+            for ym, v in d.items():
+                total[ym] = total.get(ym, 0) + v
+        diag['reconstruido_por_grau'] = True
+        series['1st instance'] = por_grau.get('G1', {})
+        series['Special Civil Courts'] = por_grau.get('JE', {})
+    series['All instances'] = total
+    for i, (g, nome) in enumerate(((g, n) for g, n in CNJ_SERIES.items() if g), start=8):
+        if nome not in series:
+            series[nome] = _cnj_mensal(g, i)
+    ult = max(total) if total else None
+    if verboso:
+        print(f'        {len(total)} meses, até {rotulo(ult) if ult else "?"}')
+        for n, d in series.items():
+            print(f'           {n:24} {len(d):3} meses · último {d.get(ult, 0):,.0f}')
+    # conferência de identidade: a soma dos graus tem de fechar com o total
+    if 'Special Civil Courts' in series and ult:
+        soma = sum(_cnj_mensal(g, 20 + i).get(ult, 0) for i, g in enumerate(CNJ_GRAUS)) \
+               if diag.get('conferir_soma') else None
+        if soma: diag['soma_graus_ultimo_mes'] = soma
+    return series, ult, diag
 
 
-def cnj_contar(ym, codigos, aliases=None):
-    """Conta processos novos do mês cujo assunto está em `codigos`, por tribunal."""
-    ini, fim = _janela(ym)
-    aliases = aliases or TJS
-    total, por_tribunal = 0, {}
-    for alias in aliases:
-        corpo = {'size': 0, 'track_total_hits': True,
-                 'query': {'bool': {'filter': [
-                     {'range': {'dataAjuizamento': {'gte': ini, 'lt': fim}}},
-                     {'terms': {'assuntos.codigo': list(codigos)}}]}}}
-        d = _cnj_post(alias, corpo)
-        n = None if '_erro' in d else ((d.get('hits') or {}).get('total') or {}).get('value')
-        por_tribunal[alias] = n if n is not None else d.get('_erro')
-        if isinstance(n, int): total += n
-    return total, por_tribunal
+
+def _ym_para_rotulo(ym):
+    return f'{MESES[int(ym[4:6])-1]}/{ym[2:4]}'
 
 
-def acao_cnj(ym=None, verboso=True):
-    """Sondagem do DataJud: descobre os códigos e testa se reproduzem a base."""
-    print('\n  Judicialização — CNJ/DataJud (sondagem)')
+def _rotulo_para_ym(p):
+    m = re.match(r'^([a-z]{3})/(\d{2})$', p or '')
+    return f'20{m.group(2)}{MES_NUM[m.group(1)]:02d}' if m else None
+
+
+def conferir_cnj(D, series, tolerancia=0.005, ultimos=6):
+    """O painel reproduz os meses que a base já tem?
+
+    O CNJ reprocessa o histórico à medida que os tribunais reenviam dados, então
+    meses antigos saem um pouco diferentes do que o BBI publicou na época. O que
+    precisa bater é a ponta: se os últimos meses coincidem, é a mesma
+    metodologia e o mês novo pode entrar na mesma série.
+    """
+    lw = D['legal']['lawsuits']
+    rel = {}
+    for nome, dados in series.items():
+        base = lw['series'].get(nome)
+        if not base: continue
+        pares = []
+        for i, p in enumerate(lw['periods']):
+            ym = _rotulo_para_ym(p)
+            if not ym: continue
+            b, c = base[i] if i < len(base) else None, dados.get(ym)
+            if b is None or c is None or b == 0: continue
+            pares.append((p, b, c, (c - b) / b))
+        recentes = pares[-ultimos:]
+        ok = sum(1 for _, _, _, d in recentes if abs(d) <= tolerancia)
+        pior = max(pares, key=lambda x: abs(x[3])) if pares else None
+        rel[nome] = {
+          'meses_comparados': len(pares),
+          'iguais_na_ponta': ok, 'exigido': max(1, len(recentes) - 1),
+          'aprovado': ok >= max(1, len(recentes) - 1),
+          'ponta': [{'periodo': p, 'base': b, 'painel': c, 'dif': round(d, 5)}
+                    for p, b, c, d in recentes],
+          'maior_desvio_historico': ({'periodo': pior[0], 'base': pior[1],
+                                      'painel': pior[2], 'dif': round(pior[3], 5)}
+                                     if pior else None),
+        }
+    return rel
+
+
+def merge_cnj(D, series, ultimo, verboso=True, tolerancia=0.005):
+    """Acrescenta à série de novas ações os meses que o painel já tem e a base não.
+
+    Não reescreve o histórico. O que o BBI publicou fica como está — o painel
+    revisa meses antigos, e trocar número que você já citou em relatório é pior
+    do que conviver com a revisão. O tamanho da revisão vai para o diagnóstico.
+    """
+    lw = D['legal']['lawsuits']
+    rel = conferir_cnj(D, series, tolerancia)
+    if verboso:
+        print('\n   Conferência contra a base (novas ações de saúde suplementar)')
+        print('   ' + '-' * 72)
+        for nome, r in rel.items():
+            print(f'   {nome:24} {r["iguais_na_ponta"]}/{len(r["ponta"])} meses recentes '
+                  f'idênticos — {"OK" if r["aprovado"] else "NÃO CONFERE"}')
+            md = r['maior_desvio_historico']
+            if md:
+                print(f'   {"":24} maior revisão no histórico: {md["periodo"]} '
+                      f'{md["base"]:,.0f} -> {md["painel"]:,.0f} ({md["dif"]:+.2%})')
+    reprovadas = [n for n, r in rel.items() if not r['aprovado']]
+    if reprovadas:
+        print(f'\n   NÃO gravei nada: {", ".join(reprovadas)} não reproduz a base na ponta.')
+        print('   Isso normalmente significa que o CNJ mudou o recorte do painel.')
+        return {'gravado': False, 'relatorio': rel}
+
+    # último mês que a base já tem
+    mensais = [p for p in lw['periods'] if _rotulo_para_ym(p)]
+    ultimo_base = _rotulo_para_ym(mensais[-1]) if mensais else None
+    novos = sorted(ym for ym in series['All instances'] if not ultimo_base or ym > ultimo_base)
+    if not novos:
+        if verboso:
+            print(f'\n   O painel está em {rotulo(ultimo)}, mesma competência da base. '
+                  'Nada a acrescentar.')
+        return {'gravado': False, 'relatorio': rel, 'em_dia': True}
+
+    def escreve(periodo, valores):
+        i = len(lw['periods'])
+        lw['periods'].append(periodo)
+        for nome, vals in lw['series'].items():
+            while len(vals) < i: vals.append(None)
+            vals.append(valores.get(nome))
+
+    for ym in novos:
+        valores = {}
+        for nome, dados in series.items():
+            v = dados.get(ym)
+            if v is None: continue
+            valores[nome] = round(v, 0)
+            ant = dados.get(f'{int(ym[:4])-1}{ym[4:]}')
+            if ant:
+                valores[nome + ' YoY'] = round(v / ant - 1, 6)
+        escreve(_ym_para_rotulo(ym), valores)
+        if ym[4:6] == '12':      # fecha o ano logo depois de dezembro
+            ano = ym[:4]
+            anuais = {}
+            for nome, dados in series.items():
+                meses = [v for k, v in dados.items() if k.startswith(ano)]
+                if len(meses) == 12: anuais[nome] = round(sum(meses), 0)
+            if anuais: escreve(ano, anuais)
+
+    if verboso:
+        print(f'\n   {len(novos)} mês(es) acrescentado(s): '
+              f'{", ".join(_ym_para_rotulo(y) for y in novos)}')
+        for ym in novos:
+            v = series['All instances'].get(ym)
+            print(f'      {_ym_para_rotulo(ym)}: {v:,.0f} novas ações')
+    D.setdefault('meta', {})['vintage_cnj'] = _ym_para_rotulo(ultimo)
+    return {'gravado': True, 'relatorio': rel,
+            'meses': [_ym_para_rotulo(y) for y in novos]}
+
+
+def acao_cnj(verboso=True):
+    """Atualiza a judicialização pelo painel do CNJ."""
+    print('\n  Judicialização — painel de Direito à Saúde do CNJ')
     base = carregar_base()
-    lw = base['legal']['lawsuits']
-    ref = ym or None
-    if not ref:
-        # último mês da série no formato AAAAMM
-        p = lw['periods'][-1]
-        mm = re.match(r'^([a-z]{3})/(\d{2})$', p)
-        ref = f'20{mm.group(2)}{MES_NUM[mm.group(1)]:02d}' if mm else None
-    if not ref:
-        print('        não identifiquei a competência de referência'); return None
-    alvo = None
-    p_ref = rotulo(ref)
-    if p_ref in lw['periods']:
-        alvo = lw['series']['All instances'][lw['periods'].index(p_ref)]
-    print(f'        referência: {p_ref} — a base traz {alvo} ações novas')
-
-    achados = cnj_assuntos(ref)
-    codigos = sorted({x['codigo'] for a in achados.values()
-                      if isinstance(a, dict) for x in (a.get('saude') or [])})
-    print(f'        {len(codigos)} códigos de assunto de saúde suplementar encontrados: {codigos[:12]}')
-    resultado = {'competencia': p_ref, 'base_all_instances': alvo,
-                 'codigos_saude': codigos, 'por_tribunal_amostra': {}}
-    if codigos:
-        total, por_trib = cnj_contar(ref, codigos)
-        erro = (total / alvo - 1) if alvo else None
-        print(f'        DataJud soma {total:,} ações novas na Justiça Estadual '
-              + (f'({erro:+.1%} vs a base)' if erro is not None else ''))
-        print('        NÃO gravei na série: só entra depois de reproduzir a base.')
-        resultado['total_datajud'] = total
-        resultado['erro_vs_base'] = round(erro, 4) if erro is not None else None
-        resultado['por_tribunal'] = por_trib
-    resultado['assuntos_por_tribunal'] = achados
-    json.dump(resultado, open(DIAG_CNJ, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    print(f'        diagnostico_cnj.json gravado')
-    return resultado
+    series, ultimo, diag = cnj_painel(verboso)
+    if not series.get('All instances'):
+        print('        o painel não devolveu dados; nada foi gravado'); return None
+    res = merge_cnj(base, series, ultimo, verboso)
+    json.dump({'painel': CNJ_PAINEL, 'competencia': _ym_para_rotulo(ultimo),
+               'series': {n: {_ym_para_rotulo(k): v for k, v in sorted(d.items())}
+                          for n, d in series.items()},
+               'conferencia': res.get('relatorio'), 'diagnostico': diag},
+              open(DIAG_CNJ, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print('        diagnostico_cnj.json gravado com a série completa e a conferência')
+    if res.get('gravado'):
+        gravar_base(base)
+    return res
 
 
 def embutir_base(caminho_html=None):
@@ -2160,8 +2329,8 @@ def main() -> None:
                     help='atualiza os leitos hospitalares pela base do CNES')
     ap.add_argument('--cnes-descobrir', action='store_true',
                     help='refaz o casamento unidade->CNES e regrava cnes_map.json')
-    ap.add_argument('--cnj', nargs='?', const=True, metavar='AAAAMM',
-                    help='sondagem do DataJud: descobre os assuntos e testa contra a base')
+    ap.add_argument('--cnj', action='store_true',
+                    help='atualiza a judicialização pelo painel de saúde do CNJ')
     a = ap.parse_args()
 
     if a.listar_fontes:
@@ -2181,7 +2350,7 @@ def main() -> None:
     if a.cnes or a.cnes_descobrir:
         acao_cnes(a.cnes if isinstance(a.cnes, str) else None, descobrir=a.cnes_descobrir); return
     if a.cnj:
-        acao_cnj(a.cnj if isinstance(a.cnj, str) else None); return
+        acao_cnj(); return
     if a.beneficiarios:
         if not re.fullmatch(r'\d{6}', a.beneficiarios):
             raise SystemExit('Use o formato AAAAMM, por exemplo: --beneficiarios 202606')
@@ -2206,11 +2375,11 @@ def _cli():
                     help='só os leitos hospitalares (CNES/DATASUS)')
     ap.add_argument('--cnes-descobrir', action='store_true',
                     help='refaz o casamento unidade->CNES e regrava cnes_map.json')
-    ap.add_argument('--cnj', nargs='?', const=True, metavar='AAAAMM',
-                    help='sondagem do DataJud (não grava na série)')
+    ap.add_argument('--cnj', action='store_true',
+                    help='atualiza a judicialização pelo painel de saúde do CNJ')
     ap.add_argument('--auto', action='store_true',
-                    help='rodada completa: IPCA + beneficiários da ANS + leitos do CNES '
-                         '(é também o comportamento padrão, sem nenhuma opção)')
+                    help='rodada completa: IPCA, beneficiários da ANS, leitos do CNES e '
+                         'judicialização do CNJ (é também o padrão, sem nenhuma opção)')
     ap.add_argument('--embutir', action='store_true',
                     help='reescreve a cópia da base dentro do HTML a partir do dados.json')
     ap.add_argument('--refazer', metavar='AAAAMM',
@@ -2227,7 +2396,7 @@ def _cli():
         acao_cnes(a.cnes if isinstance(a.cnes, str) else None,
                   descobrir=a.cnes_descobrir); return
     if a.cnj:
-        acao_cnj(a.cnj if isinstance(a.cnj, str) else None); return
+        acao_cnj(); return
 
     if a.ipca:
         base = carregar_base(); ip = puxar()
