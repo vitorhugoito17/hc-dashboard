@@ -1,121 +1,73 @@
 {
- "ultimo_mes": "jul/26",
- "conferencia": {
-  "NIPs": {
+ "placar": [
+  {
+   "recorte": "tudo",
    "periodo": "jun/26",
    "operadoras": 16,
-   "dentro_da_tolerancia": 6,
-   "aprovado": false,
-   "detalhe": [
-    {
-     "operadora": "Unimed Rio",
-     "base": 10.0,
-     "calculado": 14.0,
-     "dif": 0.4
-    },
-    {
-     "operadora": "Bradesco Saúde",
-     "base": 2469.0,
-     "calculado": 2829.0,
-     "dif": 0.1458
-    },
-    {
-     "operadora": "SulAmérica",
-     "base": 2219.0,
-     "calculado": 2508.0,
-     "dif": 0.1302
-    },
-    {
-     "operadora": "NDI",
-     "base": 2358.0,
-     "calculado": 2559.0,
-     "dif": 0.0852
-    },
-    {
-     "operadora": "Porto Seguro",
-     "base": 533.0,
-     "calculado": 560.0,
-     "dif": 0.0507
-    },
-    {
-     "operadora": "Unimed Nacional",
-     "base": 1048.0,
-     "calculado": 1015.0,
-     "dif": -0.0315
-    },
-    {
-     "operadora": "Others",
-     "base": 13771.0,
-     "calculado": 13415.0,
-     "dif": -0.0259
-    },
-    {
-     "operadora": "Clinipam",
-     "base": 159.0,
-     "calculado": 155.0,
-     "dif": -0.0252
-    }
-   ]
+   "dentro": 6,
+   "acerto": 0.375,
+   "pior": {
+    "operadora": "Unimed Rio",
+    "dif": 0.4
+   }
   },
-  "NIPs (ex. Reimbursement)": {
+  {
+   "recorte": "sem_odonto",
    "periodo": "jun/26",
    "operadoras": 16,
-   "dentro_da_tolerancia": 7,
-   "aprovado": false,
-   "detalhe": [
-    {
-     "operadora": "Unimed Rio",
-     "base": 9.0,
-     "calculado": 12.0,
-     "dif": 0.3333
-    },
-    {
-     "operadora": "Bradesco Saúde",
-     "base": 1639.0,
-     "calculado": 1922.0,
-     "dif": 0.1727
-    },
-    {
-     "operadora": "SulAmérica",
-     "base": 1819.0,
-     "calculado": 2072.0,
-     "dif": 0.1391
-    },
-    {
-     "operadora": "NDI",
-     "base": 2258.0,
-     "calculado": 2447.0,
-     "dif": 0.0837
-    },
-    {
-     "operadora": "Porto Seguro",
-     "base": 481.0,
-     "calculado": 507.0,
-     "dif": 0.0541
-    },
-    {
-     "operadora": "Unimed Nacional",
-     "base": 959.0,
-     "calculado": 932.0,
-     "dif": -0.0282
-    },
-    {
-     "operadora": "Clinipam",
-     "base": 151.0,
-     "calculado": 147.0,
-     "dif": -0.0265
-    },
-    {
-     "operadora": "Unimed BH",
-     "base": 668.0,
-     "calculado": 651.0,
-     "dif": -0.0254
-    }
-   ]
+   "dentro": 1,
+   "acerto": 0.062,
+   "pior": {
+    "operadora": "Unimed Rio",
+    "dif": 0.3
+   }
   },
-  "IGR": {
-   "aprovado": false,
-   "motivo": "nenhum mês em comum"
+  {
+   "recorte": "so_medico",
+   "periodo": "jun/26",
+   "operadoras": 16,
+   "dentro": 1,
+   "acerto": 0.062,
+   "pior": {
+    "operadora": "Unimed Rio",
+    "dif": 0.3
+   }
+  },
+  {
+   "recorte": "sem_odonto+assist",
+   "sem_mes_comum": true
+  },
+  {
+   "recorte": "so_medico+assist",
+   "sem_mes_comum": true
+  }
+ ],
+ "valores_das_colunas": {
+  "cobertura": {
+   "ambulatorial___hospitalar_c__obstetricia": 192717,
+   "ambulatorial___hospitalar_s__obstetricia": 4113,
+   "": 3473,
+   "ambulatorial__a": 2766,
+   "odontologico__o": 2765,
+   "referencia": 1815,
+   "segmentacao_pode_variar": 1188,
+   "hospitalar_com_obstetricia__h_____ob": 941,
+   "ambulatorial___odontologico__a_____o": 281,
+   "hospitalar_sem_obstetricia__h": 56
+  },
+  "classificacao": {
+   "inativa": 143500,
+   "em_andamento": 51344,
+   "nucleo": 7045,
+   "np": 3964,
+   "excecao": 2051,
+   "na": 1689,
+   "rve": 545
+  },
+  "natureza": {
+   "": 104724,
+   "assistencial": 83526,
+   "nao_assistencial": 21888
   }
  }
 }
