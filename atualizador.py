@@ -1050,6 +1050,7 @@ FONTES = {
    'nome': 'ANS · Demandas dos consumidores (NIP)',
    'dir': 'https://dadosabertos.ans.gov.br/FTP/PDA/demandas_dos_consumidores_nip/',
    'tipo': 'dir_files',
+   'tipo_coletor': 'nip',
    'alimenta': ['nip.NIPs','nip.IGR','nip.IGR Growth YoY',
                 'nip.NIPs (ex. Reimbursement)','nip.IGR (ex. Reimbursement)'],
  },
@@ -1295,7 +1296,7 @@ def acao_auto():
     print(f"\n  Base atual: beneficiarios em {atual or '?'}")
 
     # ---------- 1) IPCA (API do IBGE, sem download) ----------
-    print('\n  [1/4] IPCA — API do IBGE')
+    print('\n  [1/5] IPCA — API do IBGE')
     try:
         ip = puxar()
         antes = (base.get('ipca') or {}).get('competencia')
@@ -1309,7 +1310,7 @@ def acao_auto():
         print('        (checar conexao; o resto da rotina continua)')
 
     # ---------- 2) Beneficiarios ANS ----------
-    print('\n  [2/4] Beneficiarios — PDA-024 da ANS')
+    print('\n  [2/5] Beneficiarios — PDA-024 da ANS')
     novo = None
     try:
         novo = competencia_mais_recente(FONTES['ans_beneficiarios'])
@@ -1338,7 +1339,7 @@ def acao_auto():
             print(f'        falhou no processamento: {e}')
 
     # ---------- 3) Leitos hospitalares (CNES) ----------
-    print('\n  [3/4] Leitos hospitalares — CNES/DATASUS')
+    print('\n  [3/5] Leitos hospitalares — CNES/DATASUS')
     try:
         gravar_base(base)          # o coletor do CNES recarrega o dados.json do disco
         acao_cnes()
@@ -1347,8 +1348,18 @@ def acao_auto():
         print(f'        falhou: {e}')
         print('        (o resto da base ja foi gravado; o CNES tenta de novo no mes que vem)')
 
-    # ---------- 4) Judicializacao (painel do CNJ) ----------
-    print('\n  [4/4] Judicializacao — painel de Direito a Saude do CNJ')
+    # ---------- 4) Reclamacoes (NIP e IGR) ----------
+    print('\n  [4/5] Reclamacoes — NIP e IGR da ANS')
+    try:
+        gravar_base(base)
+        acao_nip()
+        base = carregar_base()
+    except Exception as e:
+        print(f'        falhou: {e}')
+        print('        (a serie de reclamacoes fica onde estava)')
+
+    # ---------- 5) Judicializacao (painel do CNJ) ----------
+    print('\n  [5/5] Judicializacao — painel de Direito a Saude do CNJ')
     try:
         gravar_base(base)
         acao_cnj()
@@ -2505,6 +2516,291 @@ def calibrar_leitos_cnes(ym=None, verboso=True):
     return saida
 
 
+
+# ======================================================================
+# NIP e IGR — demandas dos consumidores na ANS
+# ======================================================================
+
+"""
+Duas bases distintas alimentam a aba de reclamações:
+
+  NIP  — microdados: uma linha por demanda aberta, com ano e mês de referência,
+         nome da operadora e assunto. As séries do dashboard são contagens
+         dessas linhas. O recorte "ex. Reimbursement" exclui as demandas cujo
+         assunto é reembolso.
+  IGR  — Índice Geral de Reclamações, já calculado pela ANS: um CSV por ano,
+         uma linha por operadora e uma coluna por mês.
+
+O agrupamento aqui é diferente do usado em beneficiários: nesta aba o BBI abre
+Clinipam, São Lucas, Medisanitas e CCG como linhas próprias, e "HAPV" é a soma
+de todas as empresas do grupo Hapvida. Conferi a definição na própria base:
+em jun/26, HAPV = 5.005 = Hapvida 2.153 + NDI 2.358 + Clinipam 159 + São Lucas
+41 + Medisanitas 197 + CCG 84 + H.B. Saúde 13 + Bio Saúde 0.
+"""
+
+NIP_DIR = 'https://dadosabertos.ans.gov.br/FTP/PDA/demandas_dos_consumidores_nip/'
+IGR_DIR = 'https://dadosabertos.ans.gov.br/FTP/PDA/IGR/'
+
+# Ordem importa: o primeiro padrão que casar define a operadora.
+GRUPOS_NIP = [
+ ('Clinipam',        r'clinipam'),
+ ('São Lucas',       r'sao lucas saude|hospital sao lucas'),
+ ('Medisanitas',     r'medisanitas|sanitas'),
+ ('CCG',             r'\bccg\b|ccg saude'),
+ ('Bio Saúde',       r'bio ?saude'),
+ ('H.B. Saúde',      r'h\.? ?b\.? saude|hb saude'),
+ ('NDI',             r'notre ?dame|interm[e_]dica|\bgndi\b|\bndi\b'),
+ ('Hapvida',         r'\bhapvida\b'),
+ ('Amil',            r'\bamil\b|medial|next saude|esho'),
+ ('Bradesco Saúde',  r'\bbradesco\b|mediservice'),
+ ('SulAmérica',      r'sul ?america'),
+ ('Athena Saúde',    r'\bathena\b'),
+ ('Porto Seguro',    r'porto ?seguro|portomed'),
+ ('Unimed Nacional', r'unimed cnu|central nacional unimed|unimed (do brasil|nacional)'),
+ ('Unimed Seguros',  r'unimed seguros'),
+ ('Unimed BH',       r'unimed b\.?h\b|unimed belo horizonte'),
+ ('Unimed Ferj',     r'unimed do est.*\brj\b.*federacao|federacao.*coop.*medicas?.*\brj\b'),
+ ('Unimed Rio',      r'unimed[- ]rio\b(?!\s*(branco|verde|preto|claro|grande|negro|doce|pardo))'),
+]
+# HAPV é a soma de todo o grupo Hapvida, incluindo as adquiridas
+HAPV_PARTES = ['Hapvida', 'NDI', 'Clinipam', 'São Lucas', 'Medisanitas',
+               'CCG', 'H.B. Saúde', 'Bio Saúde']
+NIP_REEMBOLSO = r'reembolso'
+
+
+def classificar_nip(nome):
+    n = _norm(nome).replace('_', ' ')
+    for rot, pad in GRUPOS_NIP:
+        if re.search(pad, n): return rot
+    return 'Others'
+
+
+def baixar_nip(ano):
+    nome = f'pda-013-demandas_dos_consumidores_nip-{ano}.csv'
+    return baixar(NIP_DIR + nome, os.path.join(CACHE, 'nip', nome))
+
+
+def contar_nip(caminho, verboso=True):
+    """Conta demandas por mês e operadora, com e sem reembolso."""
+    enc = 'utf-8'
+    with open(caminho, 'rb') as fh:
+        amostra = fh.read(1 << 16)
+    try: amostra.decode('utf-8')
+    except UnicodeDecodeError: enc = 'latin-1'
+    total = defaultdict(lambda: defaultdict(float))
+    sem_reemb = defaultdict(lambda: defaultdict(float))
+    with open(caminho, encoding=enc, errors='replace', newline='') as fh:
+        leitor = csv.reader(fh, delimiter=';')
+        cab = [c.strip().strip('"').upper() for c in next(leitor, [])]
+        def col(*p):
+            for x in p:
+                for i, c in enumerate(cab):
+                    if re.fullmatch(x, c): return i
+            return None
+        i_ano = col(r'ANO_DE_REFERENCIA'); i_mes = col(r'MES_DE_REFERENCIA')
+        i_op = col(r'NOME_OPERADORA'); i_as = col(r'ASSUNTO')
+        if verboso:
+            print(f'   colunas: ano={cab[i_ano] if i_ano is not None else "?"}, '
+                  f'mes={cab[i_mes] if i_mes is not None else "?"}, '
+                  f'operadora={cab[i_op] if i_op is not None else "?"}, '
+                  f'assunto={cab[i_as] if i_as is not None else "?"}')
+        if None in (i_ano, i_mes, i_op):
+            raise RuntimeError(f'não reconheci as colunas do NIP: {cab[:12]}')
+        n = 0
+        for l in leitor:
+            if max(i_ano, i_mes, i_op) >= len(l): continue
+            a = l[i_ano].strip().strip('"'); mm = l[i_mes].strip().strip('"')
+            if not a.isdigit() or not mm.isdigit(): continue
+            ym = f'{int(a)}{int(mm):02d}'
+            g = classificar_nip(l[i_op])
+            total[ym][g] += 1; total[ym]['Market'] += 1
+            assunto = l[i_as] if i_as is not None and i_as < len(l) else ''
+            if not re.search(NIP_REEMBOLSO, _norm(assunto)):
+                sem_reemb[ym][g] += 1; sem_reemb[ym]['Market'] += 1
+            n += 1
+    if verboso:
+        print(f'   {n:,} demandas em {len(total)} meses')
+    for d in (total, sem_reemb):
+        for ym, g in d.items():
+            g['HAPV'] = sum(g.get(p, 0) for p in HAPV_PARTES)
+            nomeados = sum(v for k, v in g.items()
+                           if k not in ('Market', 'Others', 'HAPV'))
+            g['Others'] = g.get('Market', 0) - nomeados
+    return {k: dict(v) for k, v in total.items()}, {k: dict(v) for k, v in sem_reemb.items()}
+
+
+def baixar_igr():
+    return baixar(IGR_DIR + 'igr_anual.zip', os.path.join(CACHE, 'igr', 'igr_anual.zip'))
+
+
+def ler_igr(caminho, ano, verboso=True):
+    """{'AAAAMM': {operadora: igr}} a partir do CSV anual do IGR."""
+    fora = defaultdict(dict)
+    with zipfile.ZipFile(caminho) as z:
+        alvo = next((n for n in z.namelist() if re.search(rf'IGR_{ano}\.csv$', n, re.I)), None)
+        if not alvo:
+            disponiveis = sorted(re.findall(r'IGR_(\d{4})', ' '.join(z.namelist())))
+            raise RuntimeError(f'IGR de {ano} não está no zip (há {disponiveis[-3:]})')
+        bruto = z.read(alvo)
+    try:
+        bruto.decode('utf-8'); enc = 'utf-8'
+    except UnicodeDecodeError:
+        enc = 'latin-1'
+    leitor = csv.reader(io.StringIO(bruto.decode(enc, 'replace')), delimiter=';')
+    cab = [c.strip().strip('"') for c in next(leitor, [])]
+    i_op = next((i for i, c in enumerate(cab) if re.search(r'raz[aã]o social', c, re.I)), 0)
+    MES3 = {'jan':1,'fev':2,'mar':3,'abr':4,'mai':5,'jun':6,
+            'jul':7,'ago':8,'set':9,'out':10,'nov':11,'dez':12}
+    meses = {}
+    for i, c in enumerate(cab):
+        mm = re.fullmatch(r'([A-Za-z]{3})/(\d{2})', c.strip())
+        if mm and mm.group(1).lower() in MES3:
+            meses[i] = f'20{mm.group(2)}{MES3[mm.group(1).lower()]:02d}'
+    if verboso:
+        print(f'   IGR {ano}: {len(meses)} colunas de mês')
+    acum = defaultdict(lambda: defaultdict(list))
+    for l in leitor:
+        if i_op >= len(l): continue
+        g = classificar_nip(l[i_op])
+        if g == 'Others': continue
+        for i, ym in meses.items():
+            if i >= len(l): continue
+            v = l[i].strip().strip('"').replace('.', '').replace(',', '.')
+            try: x = float(v)
+            except ValueError: continue
+            if x > 0: acum[ym][g].append(x)
+    for ym, d in acum.items():
+        for g, vs in d.items():
+            fora[ym][g] = round(sum(vs) / len(vs), 6)
+    return {k: dict(v) for k, v in fora.items()}
+
+
+
+def conferir_nip(D, total, sem_reemb, igr, ultimo, tolerancia=0.02):
+    """O que eu contei reproduz o mês que a base já tem?"""
+    rel = {}
+    pares = (('NIPs', total), ('NIPs (ex. Reimbursement)', sem_reemb), ('IGR', igr))
+    for nome, dados in pares:
+        bloco = D['nip'].get(nome)
+        if not bloco: continue
+        comuns = [p for p in bloco['periods'] if _rotulo_para_ym(p) in dados]
+        if not comuns:
+            rel[nome] = {'aprovado': False, 'motivo': 'nenhum mês em comum'}; continue
+        p = comuns[-1]; ym = _rotulo_para_ym(p); i = bloco['periods'].index(p)
+        linhas, ok = [], 0
+        for op, vals in bloco['series'].items():
+            b = vals[i] if i < len(vals) else None
+            c = dados[ym].get(op)
+            if b is None or c is None: continue
+            d = (c - b) / b if b else (0 if not c else 1)
+            if abs(d) <= tolerancia: ok += 1
+            linhas.append({'operadora': op, 'base': b, 'calculado': round(c, 4),
+                           'dif': round(d, 4)})
+        rel[nome] = {'periodo': p, 'operadoras': len(linhas), 'dentro_da_tolerancia': ok,
+                     'aprovado': bool(linhas) and ok >= max(1, int(len(linhas) * 0.75)),
+                     'detalhe': sorted(linhas, key=lambda x: -abs(x['dif']))[:8]}
+    return rel
+
+
+def merge_nip(D, total, sem_reemb, igr, verboso=True, tolerancia=0.02):
+    """Acrescenta os meses novos de NIP e IGR. Não reescreve o que já existe."""
+    ultimo = max(total) if total else None
+    rel = conferir_nip(D, total, sem_reemb, igr, ultimo, tolerancia)
+    if verboso:
+        print('\n   Conferência contra a base')
+        print('   ' + '-' * 66)
+        for nome, r in rel.items():
+            if 'motivo' in r:
+                print(f'   {nome:26} {r["motivo"]}'); continue
+            print(f'   {nome:26} {r["dentro_da_tolerancia"]}/{r["operadoras"]} operadoras '
+                  f'em {r["periodo"]} — {"OK" if r["aprovado"] else "NÃO CONFERE"}')
+            for l in r['detalhe'][:3]:
+                if abs(l['dif']) > tolerancia:
+                    print(f'   {"":26}   {l["operadora"]:18} base {l["base"]:>9,.1f} '
+                          f'calc {l["calculado"]:>9,.1f} ({l["dif"]:+.1%})')
+    ruins = [n for n, r in rel.items() if not r.get('aprovado')]
+    if ruins:
+        print(f'\n   NÃO gravei: {", ".join(ruins)} não reproduz a base.')
+        return {'gravado': False, 'relatorio': rel}
+
+    blocos = {'NIPs': total, 'NIPs (ex. Reimbursement)': sem_reemb, 'IGR': igr}
+    ref = D['nip']['NIPs']
+    ja = {_rotulo_para_ym(p) for p in ref['periods'] if _rotulo_para_ym(p)}
+    novos = sorted(ym for ym in total if ym not in ja)
+    if not novos:
+        if verboso: print(f'\n   Nada novo: a base já vai até {ref["periods"][-1]}.')
+        return {'gravado': False, 'relatorio': rel, 'em_dia': True}
+
+    def escreve(bloco, periodo, valores):
+        i = len(bloco['periods']); bloco['periods'].append(periodo)
+        for nome, vals in bloco['series'].items():
+            while len(vals) < i: vals.append(None)
+            vals.append(valores.get(nome))
+
+    for ym in novos:
+        p = _ym_para_rotulo(ym)
+        for nome, dados in blocos.items():
+            if nome not in D['nip']: continue
+            escreve(D['nip'][nome], p, {k: round(v, 6) for k, v in dados.get(ym, {}).items()})
+        # IGR ex-reembolso = IGR escalado pela fração de demandas que não são reembolso
+        if 'IGR (ex. Reimbursement)' in D['nip']:
+            v = {}
+            for op, x in igr.get(ym, {}).items():
+                t, sr = total.get(ym, {}).get(op), sem_reemb.get(ym, {}).get(op)
+                if t: v[op] = round(x * sr / t, 6)
+            escreve(D['nip']['IGR (ex. Reimbursement)'], p, v)
+        # crescimento do IGR contra o mesmo mês do ano anterior
+        if 'IGR Growth YoY' in D['nip']:
+            ant = igr.get(f'{int(ym[:4])-1}{ym[4:]}', {})
+            v = {op: round(x / ant[op] - 1, 6) for op, x in igr.get(ym, {}).items()
+                 if ant.get(op)}
+            escreve(D['nip']['IGR Growth YoY'], p, v)
+
+    if verboso:
+        print(f'\n   {len(novos)} mês(es) acrescentado(s): '
+              f'{", ".join(_ym_para_rotulo(y) for y in novos)}')
+        for ym in novos:
+            print(f'      {_ym_para_rotulo(ym)}: {total[ym].get("Market", 0):,.0f} demandas no mercado')
+    D.setdefault('meta', {})['vintage_nip'] = _ym_para_rotulo(max(novos))
+    return {'gravado': True, 'relatorio': rel,
+            'meses': [_ym_para_rotulo(y) for y in novos]}
+
+
+def acao_nip(ano=None, verboso=True):
+    """Atualiza NIP e IGR a partir dos microdados e do índice publicados pela ANS."""
+    print('\n  Reclamações — NIP e IGR da ANS')
+    base = carregar_base()
+    ref = base['nip']['NIPs']['periods'][-1]
+    ano = int(ano or (2000 + int(ref[-2:])))
+    hoje_ano = datetime.date.today().year
+    anos = sorted({ano, hoje_ano})
+    total, sem_reemb, igr = {}, {}, {}
+    for a in anos:
+        try:
+            print(f'        microdados de {a}')
+            t, s = contar_nip(baixar_nip(a), verboso)
+            total.update(t); sem_reemb.update(s)
+        except Exception as e:
+            print(f'        NIP {a}: {e}')
+    try:
+        z = baixar_igr()
+        for a in sorted({anos[-1], anos[-1] - 1}):
+            try: igr.update(ler_igr(z, a, verboso))
+            except Exception as e: print(f'        IGR {a}: {e}')
+    except Exception as e:
+        print(f'        IGR: {e}')
+    if not total:
+        print('        nada foi lido; a série fica onde está'); return None
+    res = merge_nip(base, total, sem_reemb, igr, verboso)
+    json.dump({'ultimo_mes': _ym_para_rotulo(max(total)),
+               'conferencia': res.get('relatorio')},
+              open(os.path.join(HERE, 'diagnostico_nip.json'), 'w', encoding='utf-8'),
+              ensure_ascii=False, indent=1)
+    if res.get('gravado'):
+        gravar_base(base)
+    return res
+
+
 def embutir_base(caminho_html=None):
     """Reescreve a base embutida no HTML com o dados.json atual.
 
@@ -2609,6 +2905,8 @@ def _cli():
                          'judicialização do CNJ (é também o padrão, sem nenhuma opção)')
     ap.add_argument('--embutir', action='store_true',
                     help='reescreve a cópia da base dentro do HTML a partir do dados.json')
+    ap.add_argument('--nip', action='store_true',
+                    help='atualiza reclamações (NIP) e IGR')
     ap.add_argument('--explorar', action='store_true',
                     help='mapeia o schema das bases da ANS que ainda não têm coletor')
     ap.add_argument('--leitos-uf', action='store_true',
@@ -2639,6 +2937,8 @@ def _cli():
     if a.embutir:
         embutir_base(); return
 
+    if a.nip:
+        acao_nip(); return
     if a.explorar:
         acao_explorar(); return
     if a.leitos_uf:
