@@ -2541,27 +2541,35 @@ em jun/26, HAPV = 5.005 = Hapvida 2.153 + NDI 2.358 + Clinipam 159 + São Lucas
 NIP_DIR = 'https://dadosabertos.ans.gov.br/FTP/PDA/demandas_dos_consumidores_nip/'
 IGR_DIR = 'https://dadosabertos.ans.gov.br/FTP/PDA/IGR/'
 
-# Ordem importa: o primeiro padrão que casar define a operadora.
+# Nesta aba o BBI conta a operadora principal de cada grupo, não o grupo
+# econômico inteiro. Descobri isso auditando quais razões sociais caíam em cada
+# balde: somando "Bradesco Saúde - Operadora de Planos" e a Mediservice à
+# Bradesco Saúde S.A., o mês de jun/26 dava 2.829 contra 2.469 do relatório;
+# só com a S.A. bate. Mesmo padrão em SulAmérica (fora a Paraná Clínicas),
+# NDI (fora a Minas Gerais) e Unimed Nacional (fora a Unimed do Brasil).
+# Por isso aqui o casamento é por razão social exata, não por regex frouxo.
 GRUPOS_NIP = [
- ('Clinipam',        r'clinipam'),
- ('São Lucas',       r'sao lucas saude|hospital sao lucas'),
- ('Medisanitas',     r'medisanitas|sanitas'),
- ('CCG',             r'\bccg\b|ccg saude'),
- ('Bio Saúde',       r'bio ?saude'),
- ('H.B. Saúde',      r'h\.? ?b\.? saude|hb saude'),
- ('NDI',             r'notre ?dame|interm[e_]dica|\bgndi\b|\bndi\b'),
- ('Hapvida',         r'\bhapvida\b'),
- ('Amil',            r'\bamil\b|medial|next saude|esho'),
- ('Bradesco Saúde',  r'\bbradesco\b|mediservice'),
- ('SulAmérica',      r'sul ?america'),
+ ('Amil',            r'^amil assistencia medica internacional'),
+ ('Bradesco Saúde',  r'^bradesco saude s a\b'),
+ ('SulAmérica',      r'^sul america companhia de seguro saude\b'),
+ ('NDI',             r'^notre dame intermedica saude s a\b'),
+ ('Hapvida',         r'^hapvida assistencia medica'),
+ ('Clinipam',        r'^clinipam'),
+ ('São Lucas',       r'^sao lucas saude'),
+ ('Medisanitas',     r'medisanitas'),
+ ('CCG',             r'^ccg\b'),
+ ('Bio Saúde',       r'^bio saude'),
+ ('H.B. Saúde',      r'^h b saude\b'),
  ('Athena Saúde',    r'\bathena\b'),
- ('Porto Seguro',    r'porto ?seguro|portomed'),
- ('Unimed Nacional', r'unimed cnu|central nacional unimed|unimed (do brasil|nacional)'),
- ('Unimed Seguros',  r'unimed seguros'),
- ('Unimed BH',       r'unimed b\.?h\b|unimed belo horizonte'),
- ('Unimed Ferj',     r'unimed do est.*\brj\b.*federacao|federacao.*coop.*medicas?.*\brj\b'),
- ('Unimed Rio',      r'unimed[- ]rio\b(?!\s*(branco|verde|preto|claro|grande|negro|doce|pardo))'),
+ ('Porto Seguro',    r'^porto seguro +seguro saude\b'),
+ ('Unimed Nacional', r'^unimed cnu\b'),
+ ('Unimed Seguros',  r'^unimed seguros saude'),
+ ('Unimed BH',       r'^unimed belo horizonte'),
+ ('Unimed Ferj',     r'^unimed do est +do rj federacao|federacao est +das cooperativas medicas'),
+ ('Unimed Rio',      r'^unimed rio cooperativa'),
 ]
+
+
 # HAPV é a soma de todo o grupo Hapvida, incluindo as adquiridas
 HAPV_PARTES = ['Hapvida', 'NDI', 'Clinipam', 'São Lucas', 'Medisanitas',
                'CCG', 'H.B. Saúde', 'Bio Saúde']
@@ -2569,7 +2577,9 @@ NIP_REEMBOLSO = r'reembolso'
 
 
 def classificar_nip(nome):
-    n = _norm(nome).replace('_', ' ')
+    # _norm troca pontuação por "_"; aqui viram espaços e runs colapsam, para
+    # que "PORTO SEGURO - SEGURO SAÚDE S/A" case com um padrão legível
+    n = re.sub(r'\s+', ' ', _norm(nome).replace('_', ' ')).strip()
     for rot, pad in GRUPOS_NIP:
         if re.search(pad, n): return rot
     return 'Others'
@@ -2607,6 +2617,7 @@ def contar_nip(caminho, verboso=True):
     # quem exatamente está sendo somado em cada operadora do dashboard: é aqui
     # que se vê que "Bradesco Saúde" está engolindo a Mediservice e a Dental
     quem = defaultdict(lambda: defaultdict(int))
+    todas = defaultdict(int)   # ranking geral, para achar quem ainda não tem balde
 
     with open(caminho, encoding=enc, errors='replace', newline='') as fh:
         leitor = csv.reader(fh, delimiter=';')
@@ -2635,8 +2646,10 @@ def contar_nip(caminho, verboso=True):
             if not a.isdigit() or not mm.isdigit(): continue
             ym = f'{int(a)}{int(mm):02d}'
             g = classificar_nip(l[i_op])
+            razao = l[i_op].strip().strip('"')[:60]
+            todas[razao] += 1
             if g != 'Others':
-                quem[g][l[i_op].strip().strip('"')[:60]] += 1
+                quem[g][razao] += 1
             cob = _norm(l[i_cob]) if i_cob is not None and i_cob < len(l) else ''
             cla = _norm(l[i_cla]) if i_cla is not None and i_cla < len(l) else ''
             nat = _norm(l[i_nat]) if i_nat is not None and i_nat < len(l) else ''
@@ -2676,6 +2689,9 @@ def contar_nip(caminho, verboso=True):
     diag = {k: dict(sorted(v.items(), key=lambda x: -x[1])[:10]) for k, v in valores.items()}
     diag['razoes_sociais_por_operadora'] = {
         g: dict(sorted(d.items(), key=lambda x: -x[1])[:8]) for g, d in sorted(quem.items())}
+    fora_balde = [(k, v) for k, v in sorted(todas.items(), key=lambda x: -x[1])
+                  if classificar_nip(k) == 'Others']
+    diag['maiores_sem_balde'] = dict(fora_balde[:60])
     if verboso:
         print('   razões sociais somadas em cada operadora:')
         for g, d in sorted(quem.items()):
@@ -2784,7 +2800,7 @@ def conferir_nip(D, total, sem_reemb, igr, ultimo, tolerancia=0.02):
             c = dados[ym].get(op)
             if b is None or c is None: continue
             d = (c - b) / b if b else (0 if not c else 1)
-            if abs(d) <= tolerancia: ok += 1
+            if abs(c - b) <= max(5.0, abs(b) * tolerancia): ok += 1
             linhas.append({'operadora': op, 'base': b, 'calculado': round(c, 4),
                            'dif': round(d, 4)})
         rel[nome] = {'periodo': p, 'operadoras': len(linhas), 'dentro_da_tolerancia': ok,
@@ -2872,7 +2888,9 @@ def escolher_recorte(D, totais, verboso=True, tolerancia=0.02):
             c = dados[ym].get(op)
             if b is None or c is None or not b: continue
             d = (c - b) / b; n += 1
-            if abs(d) <= tolerancia: ok += 1
+            # piso absoluto: Unimed Rio tem 10 demandas no mês, e uma a mais
+            # já estoura 2% sem que isso signifique erro de agrupamento
+            if abs(c - b) <= max(5.0, abs(b) * tolerancia): ok += 1
             if pior is None or abs(d) > abs(pior[1]): pior = (op, d)
         placar.append({'recorte': nome, 'periodo': p, 'operadoras': n, 'dentro': ok,
                        'acerto': round(ok / n, 3) if n else 0,
