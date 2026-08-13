@@ -1244,8 +1244,34 @@ def obter_agregado(ym: str):
         return None
     return agregar(arqs, verboso=False)
 
+def _selo_da_base(d):
+    """Monta o texto do selo do topo a partir das competências realmente gravadas.
+
+    Antes era uma frase fixa, escrita no merge da ANS. Quando só o CNES ou só o
+    NIP andavam, o selo continuava anunciando a competência velha — o cabeçalho
+    mentia. Agora ele é derivado do que está no arquivo.
+    """
+    m = d.get('meta', {})
+    partes = []
+    r = m.get('reconciliacao') or {}
+    met = r.get('metodo') or {}
+    niv = sum(1 for v in met.values() if v == 'nível') - (1 if 'Market' in met else 0)
+    enc = sum(1 for v in met.values() if v == 'encadeado')
+    if m.get('vintage_beneficiarios'):
+        detalhe = f' ({niv} operadoras por nível, {enc} encadeadas)' if met else ''
+        partes.append(f"beneficiários: {m['vintage_beneficiarios']}{detalhe}")
+    for chave, nome in (('vintage_cnes', 'CNES'), ('vintage_nip', 'NIP'),
+                        ('vintage_cnj', 'judicialização')):
+        if m.get(chave): partes.append(f'{nome} {m[chave]}')
+    ip = (d.get('ipca') or {}).get('competencia')
+    if ip: partes.append(f'IPCA {ip}')
+    return ' · '.join(partes) if partes else m.get('base', '')
+
+
 def gravar_base(d: dict) -> None:
     d.setdefault('meta', {})['atualizado_em'] = datetime.date.today().isoformat()
+    selo = _selo_da_base(d)
+    if selo: d['meta']['base'] = selo
     json.dump(d, open(DADOS, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print(f'\n  dados.json regravado — {os.path.getsize(DADOS)/1024:.0f} KB')
     print('  deixe o arquivo na mesma pasta do HTML; o dashboard passa a ler dele no próximo carregamento.')
