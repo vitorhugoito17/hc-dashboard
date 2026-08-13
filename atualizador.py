@@ -2783,6 +2783,68 @@ def ler_igr(caminho, verboso=True):
     return fora
 
 
+
+# O IGR não precisa dos arquivos do IGR: a ANS o define como demandas por 100
+# mil beneficiários, e conferi na base que o BBI usa a carteira do mês ANTERIOR
+# como denominador. Em jun/26 isso reproduz Amil 63,81, Bradesco 72,79,
+# SulAmérica 93,34, Unimed Ferj 348,65 e o mercado 55,39 — todos exatos.
+# Como já coleto NIP e beneficiários, o índice sai de graça e sem depender de
+# um diretório que só tem arquivo até 2022.
+IGR_VIDAS = {
+ 'Amil': 'Amil Assistência Médica', 'Bradesco Saúde': 'Bradesco Saúde S.A.',
+ 'SulAmérica': 'Sul América Cia Seguro Saúde', 'Hapvida': 'Hapvida', 'NDI': 'GNDI',
+ 'HAPV': 'Hapvida + GNDI', 'Porto Seguro': 'Porto Seguro',
+ 'Unimed Nacional': 'Unimed Nacional', 'Unimed Seguros': 'Unimed Seguros',
+ 'Unimed BH': 'Unimed BH', 'Unimed Ferj': 'Unimed Ferj', 'Unimed Rio': 'Unimed Rio',
+ 'Athena Saúde': 'Athena Saúde', 'Market': 'Market',
+}
+
+
+def calcular_igr(D, total, tolerancia=0.01, verboso=True):
+    """IGR = demandas do mês / beneficiários do mês anterior x 100.000.
+
+    Nem toda operadora do NIP tem uma série de vidas com o mesmo escopo: a NDI
+    do relatório exclui as adquiridas, a Athena é um roll-up. Onde a fórmula
+    não reproduz o mês que a base já tem, a operadora simplesmente não entra —
+    é o mesmo critério usado em todo o resto.
+    """
+    lv = D['ben']['lives_m']
+    idx = {p: i for i, p in enumerate(lv['periods'])}
+    fora = {}
+    for ym, ops in total.items():
+        ant = _ym_menos(ym)
+        i = idx.get(_ym_para_rotulo(ant))
+        if i is None: continue
+        d = {}
+        for rotulo_nip, serie in IGR_VIDAS.items():
+            n = ops.get(rotulo_nip)
+            vals = lv['series'].get(serie)
+            v = vals[i] if vals and i < len(vals) else None
+            if n is None or not v: continue
+            d[rotulo_nip] = round(n / (v * 1000.0) * 1e5, 6)
+        if d: fora[ym] = d
+    # descarta as operadoras cuja fórmula não reproduz o último mês conhecido
+    bloco = D['nip'].get('IGR') or {}
+    comuns = [p for p in bloco.get('periods', []) if _rotulo_para_ym(p) in fora]
+    if comuns:
+        p = comuns[-1]; ym = _rotulo_para_ym(p); i = bloco['periods'].index(p)
+        bons, ruins = set(), []
+        for op in list(fora[ym]):
+            vals = bloco['series'].get(op)
+            b = vals[i] if vals and i < len(vals) else None
+            c = fora[ym][op]
+            if b and abs(c / b - 1) <= tolerancia: bons.add(op)
+            elif b: ruins.append((op, b, c))
+        if verboso:
+            print(f'   IGR: {len(bons)} operadoras reproduzem {p}; '
+                  f'{len(ruins)} ficam de fora')
+            for op, b, c in sorted(ruins, key=lambda x: -abs(x[2]/x[1]-1))[:4]:
+                print(f'      fora {op:16} base {b:8.2f}  fórmula {c:8.2f} '
+                      f'({c/b-1:+.1%})')
+        fora = {y: {k: v for k, v in d.items() if k in bons} for y, d in fora.items()}
+    return fora
+
+
 def conferir_nip(D, total, sem_reemb, igr, ultimo, tolerancia=0.02):
     """O que eu contei reproduz o mês que a base já tem?"""
     rel = {}
@@ -2945,19 +3007,10 @@ def acao_nip(ano=None, verboso=True):
     print(f'\n   Recorte escolhido: {r} ({melhor["acerto"]:.0%} de acerto)')
     total, sem_reemb = totais[r], sem_reembs[r]
 
-    igr = {}
-    try:
-        alvo_ano = int(max(total)[:4])
-        for a in sorted({alvo_ano, alvo_ano - 1}):
-            try:
-                caminho, arqs, itens = baixar_igr(a)
-                igr.update(ler_igr(caminho, verboso))
-            except Exception as e:
-                print(f'        IGR {a}: {e}')
-        if igr:
-            print(f'        IGR: {len(igr)} meses, até {_ym_para_rotulo(max(igr))}')
-    except Exception as e:
-        print(f'        IGR: {e}')
+    igr = calcular_igr(base, total)
+    if igr:
+        print(f'        IGR calculado para {len(igr)} meses '
+              f'({len(igr[max(igr)])} operadoras no último)')
 
     res = merge_nip(base, total, sem_reemb, igr, verboso)
     diag['recorte_usado'] = r
