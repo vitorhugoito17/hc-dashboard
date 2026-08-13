@@ -308,62 +308,44 @@
    ]
   },
   "IGR": {
-   "periodo": "out/22",
-   "operadoras": 13,
-   "dentro_da_tolerancia": 1,
-   "aprovado": false,
+   "periodo": "jun/26",
+   "operadoras": 5,
+   "dentro_da_tolerancia": 5,
+   "aprovado": true,
    "detalhe": [
     {
      "operadora": "SulAmérica",
-     "base": 91.892596,
-     "calculado": 5.132,
-     "dif": -0.9442
-    },
-    {
-     "operadora": "Porto Seguro",
-     "base": 42.029285,
-     "calculado": 2.739,
-     "dif": -0.9348
-    },
-    {
-     "operadora": "NDI",
-     "base": 89.39006,
-     "calculado": 8.255,
-     "dif": -0.9077
+     "base": 93.336592,
+     "calculado": 94.1358,
+     "dif": 0.0086
     },
     {
      "operadora": "Hapvida",
-     "base": 43.066582,
-     "calculado": 4.599,
-     "dif": -0.8932
+     "base": 49.195686,
+     "calculado": 48.836,
+     "dif": -0.0073
     },
     {
-     "operadora": "Unimed BH",
-     "base": 20.927426,
-     "calculado": 2.397,
-     "dif": -0.8855
-    },
-    {
-     "operadora": "Unimed Rio",
-     "base": 170.469896,
-     "calculado": 20.369,
-     "dif": -0.8805
+     "operadora": "Bradesco Saúde",
+     "base": 72.790932,
+     "calculado": 72.4666,
+     "dif": -0.0045
     },
     {
      "operadora": "Unimed Seguros",
-     "base": 44.346346,
-     "calculado": 5.705,
-     "dif": -0.8714
+     "base": 56.675297,
+     "calculado": 56.4747,
+     "dif": -0.0035
     },
     {
-     "operadora": "Amil",
-     "base": 57.334231,
-     "calculado": 8.448,
-     "dif": -0.8527
+     "operadora": "Market",
+     "base": 55.390289,
+     "calculado": 55.2961,
+     "dif": -0.0017
     }
    ]
   }
  },
  "ultimo_mes_nip": "jul/26",
- "ultimo_mes_igr": "out/22"
+ "ultimo_mes_igr": "jul/26"
 }
