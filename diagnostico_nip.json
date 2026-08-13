@@ -3,9 +3,9 @@
   {
    "recorte": "tudo",
    "periodo": "jun/26",
-   "operadoras": 16,
-   "dentro": 6,
-   "acerto": 0.375,
+   "operadoras": 17,
+   "dentro": 13,
+   "acerto": 0.765,
    "pior": {
     "operadora": "Unimed Rio",
     "dif": 0.4
@@ -14,9 +14,9 @@
   {
    "recorte": "assist_ou_vazio",
    "periodo": "jun/26",
-   "operadoras": 16,
-   "dentro": 6,
-   "acerto": 0.375,
+   "operadoras": 17,
+   "dentro": 13,
+   "acerto": 0.765,
    "pior": {
     "operadora": "Unimed Rio",
     "dif": 0.4
@@ -25,9 +25,9 @@
   {
    "recorte": "sem_odonto",
    "periodo": "jun/26",
-   "operadoras": 16,
-   "dentro": 1,
-   "acerto": 0.062,
+   "operadoras": 17,
+   "dentro": 4,
+   "acerto": 0.235,
    "pior": {
     "operadora": "Unimed Rio",
     "dif": 0.3
@@ -36,9 +36,9 @@
   {
    "recorte": "sem_odonto+assist_ou_vazio",
    "periodo": "jun/26",
-   "operadoras": 16,
-   "dentro": 1,
-   "acerto": 0.062,
+   "operadoras": 17,
+   "dentro": 4,
+   "acerto": 0.235,
    "pior": {
     "operadora": "Unimed Rio",
     "dif": 0.3
@@ -85,51 +85,31 @@
   },
   "razoes_sociais_por_operadora": {
    "Amil": {
-    "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.": 14065,
-    "AMIL SAÚDE LTDA.": 64,
-    "AMIL PLANOS POR ADMINISTRAÇÃO LTDA": 14,
-    "AMIL SEGURADORA S/A": 2
+    "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.": 14065
    },
    "Bio Saúde": {
     "BIO SAÚDE SERVIÇOS MÉDICOS LTDA": 170
    },
    "Bradesco Saúde": {
-    "BRADESCO SAÚDE S.A.": 16092,
-    "BRADESCO SAÚDE - OPERADORA DE PLANOS  S/A": 1693,
-    "MEDISERVICE OPERADORA DE PLANOS DE SAÚDE S.A.": 419,
-    "BRADESCO SAUDE E ASSISTENCIA S.A": 18,
-    "BRADESCO DENTAL S.A.": 15,
-    "BRADESCO SEGUROS S/A": 11
+    "BRADESCO SAÚDE S.A.": 16092
    },
    "Clinipam": {
     "CLINIPAM CLINICA PARANAENSE DE ASSISTENCIA MEDICA LTDA": 1336
    },
+   "H.B. Saúde": {
+    "H.B. SAÚDE S/A.": 129
+   },
    "Hapvida": {
     "HAPVIDA ASSISTENCIA MEDICA S.A.": 14111
    },
-   "Medisanitas": {
-    "FILOSANITAS SAUDE LTDA": 1
-   },
    "NDI": {
-    "NOTRE DAME INTERMÉDICA SAÚDE S.A.": 16445,
-    "NOTRE DAME INTERMÉDICA MINAS GERAIS SAÚDE S.A.": 1555,
-    "NOTRE DAME SEGURADORA S/A": 1
+    "NOTRE DAME INTERMÉDICA SAÚDE S.A.": 16445
    },
    "Porto Seguro": {
-    "PORTO SEGURO - SEGURO SAÚDE S/A": 3742,
-    "PORTOMED - PORTO SEGURO SERVIÇOS DE SAUDE LTDA": 104,
-    "PORTO SEGURO CIA DE SEGUROS GERAIS": 5,
-    "PORTO SEGURO SERVIÇOS ODONTOLÓGICOS LTDA.": 1
+    "PORTO SEGURO - SEGURO SAÚDE S/A": 3742
    },
    "SulAmérica": {
-    "SUL AMERICA COMPANHIA DE SEGURO SAÚDE": 15346,
-    "SUL AMÉRICA PARANÁ CLÍNICAS SERVIÇOS DE SAÚDE S.A.": 2151,
-    "SUL AMÉRICA ODONTOLÓGICO S/A": 95,
-    "SUL AMÉRICA SEGURADORA DE SAÚDE S.A.": 23,
-    "SUL AMÉRICA SEGURO SAÚDE S/A": 20,
-    "SUL AMÉRICA SAÚDE S.A.": 5,
-    "SUL AMERICA SEGUROS GERAIS S/A": 3,
-    "SUL AMÉRICA CIA NACIONAL DE SEGUROS GERAIS": 3
+    "SUL AMERICA COMPANHIA DE SEGURO SAÚDE": 15346
    },
    "São Lucas": {
     "SÃO LUCAS SAÚDE S/A": 256
@@ -141,8 +121,7 @@
     "UNIMED DO EST. DO RJ FEDERAÇÃO EST. DAS COOPERATIVAS MÉDICAS": 7569
    },
    "Unimed Nacional": {
-    "UNIMED CNU - COOPERATIVA CENTRAL": 7174,
-    "UNIMED DO BRASIL - CONF. NACIONAL DAS COOPERATIVAS MÉDICAS": 694
+    "UNIMED CNU - COOPERATIVA CENTRAL": 7174
    },
    "Unimed Rio": {
     "UNIMED-RIO COOPERATIVA DE TRABALHO MEDICO DO RIO DE JANEIRO": 75
@@ -150,6 +129,241 @@
    "Unimed Seguros": {
     "UNIMED SEGUROS SAÚDE S/A": 3936
    }
+  },
+  "maiores_sem_balde": {
+   "GEAP AUTOGESTÃO EM SAÚDE": 5199,
+   "AMPLA PLANOS DE SAUDE LTDA": 3710,
+   "PREVENT SENIOR PRIVATE OPERADORA DE SAÚDE LTDA": 2822,
+   "GRUPO HOSPITALAR DO RIO DE JANEIRO LTDA": 2705,
+   "CAIXA DE ASSISTÊNCIA DOS FUNCIONÁRIOS DO BANCO DO BRASIL": 2426,
+   "SELECT OPERADORA DE PLANO DE SAUDE LTDA": 2426,
+   "SUL AMÉRICA PARANÁ CLÍNICAS SERVIÇOS DE SAÚDE S.A.": 2151,
+   "UNIMED CURITIBA - SOCIEDADE COOPERATIVA DE MÉDICOS": 2021,
+   "UNIMED VITORIA COOPERATIVA DE TRABALHO MEDICO": 1910,
+   "HUMANA SAÚDE NORDESTE LTDA.": 1907,
+   "CAIXA ECONÔMICA FEDERAL": 1890,
+   "QUALICORP ADMINISTRADORA DE BENEFÍCIOS S.A.": 1837,
+   "BRADESCO SAÚDE - OPERADORA DE PLANOS  S/A": 1693,
+   "SAMEDIL SERVIÇOS DE ATENDIMENTO MÉDICO S/A": 1562,
+   "NOTRE DAME INTERMÉDICA MINAS GERAIS SAÚDE S.A.": 1555,
+   "POSTAL SAÚDE CAIXA DE ASSISTÊNCIA E SAÚDE DOS EMPREGADOS DOS": 1546,
+   "UNIMED GOIANIA COOPERATIVA DE TRABALHO MÉDICO": 1506,
+   "SAMP ESPIRITO SANTO ASSISTENCIA MEDICA SA": 1501,
+   "PLENA SAÚDE S.A.": 1448,
+   "ASSOCIAÇÃO DE BENEFICÊNCIA E FILANTROPIA SÃO CRISTOVÃO": 1337,
+   "UNIMED DE FORTALEZA SOCIEDADE COOPERATIVA MÉDICA LTDA.": 1310,
+   "UNIMED BELÉM COOPERATIVA DE TRABALHO MÉDICO": 1204,
+   "UNIMED JOAO PESSOA - COOPERATIVA DE TRABALHO MÉDICO": 1203,
+   "UNIMED RECIFE COOPERATIVA DE TRABALHO MÉDICO": 1057,
+   "UNIMED CAMPINAS - COOPERATIVA DE TRABALHO MÉDICO": 1042,
+   "UNIMED PORTO ALEGRE - COOPERATIVA MÉDICA LTDA.": 1032,
+   "QUALLITY PRÓ SAÚDE PLANO DE ASSISTÊNCIA MÉDICA LTDA.": 1003,
+   "UNIMED-SÃO GONÇALO - NITERÓI - SOC.COOP.SERV.MED E HOSP LTDA": 948,
+   "NOVA SAÚDE OPERADORA INTEGRADA DE SAÚDE LTDA": 892,
+   "INTEGRA ASSISTENCIA MEDICA SA": 871,
+   "UNIMED OESTE DO PARÁ - COOPERATIVA DE TRABALHO MÉDICO": 821,
+   "UNIMED DO ESTADO DE SÃO PAULO - FEDERAÇÃO ESTADUAL DAS COOP.": 811,
+   "FUNDAÇÃO ASSISTENCIAL DOS SERVIDORES DO MINISTÉRIO DA FAZEND": 749,
+   "UNIMED TERESINA - COOPERATIVA DE TRABALHO MÉDICO": 720,
+   "KLINI PLANOS DE SAÚDE LTDA": 710,
+   "ASSOCIAÇÃO SANTA SAÚDE": 705,
+   "UNIMED DO BRASIL - CONF. NACIONAL DAS COOPERATIVAS MÉDICAS": 694,
+   "SERV SOCIAL AUTÔNOMO DE ASSIST À SAÚDE DOS SERV PÚBLICOS E M": 681,
+   "UNIMED MACEIO COOPERATIVA DE TRABALHO MÉDICO": 665,
+   "ASSOCIAÇÃO PETROBRAS DE SAÚDE - APS": 617,
+   "UNIMED SAO JOSÉ DO RIO PRETO - COOP. DE TRABALHO MÉDICO": 593,
+   "LEVE SAUDE OPERADORA DE PLANOS DE SAUDE S.A": 584,
+   "HUMANA SAÚDE LTDA.": 566,
+   "UNIMED GRANDE FLORIANÓPOLIS-COOPERATIVA DE TRABALHO MEDICO": 565,
+   "UNIMED MONTES CLAROS COOPERATIVA DE  TRABALHO MÉDICO LTDA.": 553,
+   "BRADSAUDE S.A.": 538,
+   "SAÚDE BRASIL ASSISTÊNCIA MÉDICA LTDA.": 514,
+   "ÚNICA ASSISTENCIA MEDICA LTDA": 513,
+   "UNITY SERVIÇOS INTEGRADOS DE SAÚDE LTDA.": 511,
+   "CENTRO CLÍNICO GAÚCHO LTDA": 506,
+   "BLUE MED SAUDE LTDA": 497,
+   "UNIMED NATAL SOC. COOP. DE TRAB. MÉDICO": 490,
+   "SANTA HELENA ASSISTÊNCIA MÉDICA S/A.": 483,
+   "UNIMED DO SUDOESTE COOPERATIVA DE TRABALHO MEDICO LTDA": 471,
+   "GOCARE PLANOS DE SAUDE LTDA": 470,
+   "FUNDAÇÃO SÃO FRANCISCO XAVIER": 463,
+   "PROMÉDICA - PROTEÇÃO MEDICA A EMPRESAS S.A.": 462,
+   "UNIMED CUIABA COOPERATIVA DE TRABALHO MÉDICO": 457,
+   "ASSOCIAÇÃO ASSISTENCIAL DE SAÚDE SUPLEMENTAR CRUZ AZUL SAÚDE": 430,
+   "MEDISERVICE OPERADORA DE PLANOS DE SAÚDE S.A.": 419
   }
- }
+ },
+ "recorte_usado": "tudo",
+ "conferencia": {
+  "NIPs": {
+   "periodo": "jun/26",
+   "operadoras": 17,
+   "dentro_da_tolerancia": 13,
+   "aprovado": true,
+   "detalhe": [
+    {
+     "operadora": "Unimed Rio",
+     "base": 10.0,
+     "calculado": 14.0,
+     "dif": 0.4
+    },
+    {
+     "operadora": "HAPV",
+     "base": 5005.0,
+     "calculado": 4754.0,
+     "dif": -0.0501
+    },
+    {
+     "operadora": "Others",
+     "base": 13771.0,
+     "calculado": 14278.0,
+     "dif": 0.0368
+    },
+    {
+     "operadora": "Unimed Nacional",
+     "base": 1048.0,
+     "calculado": 1011.0,
+     "dif": -0.0353
+    },
+    {
+     "operadora": "Clinipam",
+     "base": 159.0,
+     "calculado": 155.0,
+     "dif": -0.0252
+    },
+    {
+     "operadora": "Unimed BH",
+     "base": 723.0,
+     "calculado": 705.0,
+     "dif": -0.0249
+    },
+    {
+     "operadora": "Unimed Ferj",
+     "base": 743.0,
+     "calculado": 730.0,
+     "dif": -0.0175
+    },
+    {
+     "operadora": "Amil",
+     "base": 2025.0,
+     "calculado": 2060.0,
+     "dif": 0.0173
+    }
+   ]
+  },
+  "NIPs (ex. Reimbursement)": {
+   "periodo": "jun/26",
+   "operadoras": 17,
+   "dentro_da_tolerancia": 13,
+   "aprovado": true,
+   "detalhe": [
+    {
+     "operadora": "Unimed Rio",
+     "base": 9.0,
+     "calculado": 12.0,
+     "dif": 0.3333
+    },
+    {
+     "operadora": "HAPV",
+     "base": 4785.0,
+     "calculado": 4545.0,
+     "dif": -0.0502
+    },
+    {
+     "operadora": "Others",
+     "base": 12757.0,
+     "calculado": 13242.0,
+     "dif": 0.038
+    },
+    {
+     "operadora": "Unimed Nacional",
+     "base": 959.0,
+     "calculado": 928.0,
+     "dif": -0.0323
+    },
+    {
+     "operadora": "Clinipam",
+     "base": 151.0,
+     "calculado": 147.0,
+     "dif": -0.0265
+    },
+    {
+     "operadora": "Unimed BH",
+     "base": 668.0,
+     "calculado": 651.0,
+     "dif": -0.0254
+    },
+    {
+     "operadora": "Amil",
+     "base": 1859.0,
+     "calculado": 1888.0,
+     "dif": 0.0156
+    },
+    {
+     "operadora": "Hapvida",
+     "base": 2056.0,
+     "calculado": 2086.0,
+     "dif": 0.0146
+    }
+   ]
+  },
+  "IGR": {
+   "periodo": "out/22",
+   "operadoras": 13,
+   "dentro_da_tolerancia": 1,
+   "aprovado": false,
+   "detalhe": [
+    {
+     "operadora": "SulAmérica",
+     "base": 91.892596,
+     "calculado": 5.132,
+     "dif": -0.9442
+    },
+    {
+     "operadora": "Porto Seguro",
+     "base": 42.029285,
+     "calculado": 2.739,
+     "dif": -0.9348
+    },
+    {
+     "operadora": "NDI",
+     "base": 89.39006,
+     "calculado": 8.255,
+     "dif": -0.9077
+    },
+    {
+     "operadora": "Hapvida",
+     "base": 43.066582,
+     "calculado": 4.599,
+     "dif": -0.8932
+    },
+    {
+     "operadora": "Unimed BH",
+     "base": 20.927426,
+     "calculado": 2.397,
+     "dif": -0.8855
+    },
+    {
+     "operadora": "Unimed Rio",
+     "base": 170.469896,
+     "calculado": 20.369,
+     "dif": -0.8805
+    },
+    {
+     "operadora": "Unimed Seguros",
+     "base": 44.346346,
+     "calculado": 5.705,
+     "dif": -0.8714
+    },
+    {
+     "operadora": "Amil",
+     "base": 57.334231,
+     "calculado": 8.448,
+     "dif": -0.8527
+    }
+   ]
+  }
+ },
+ "ultimo_mes_nip": "jul/26",
+ "ultimo_mes_igr": "out/22"
 }
