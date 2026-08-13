@@ -12,6 +12,17 @@
    }
   },
   {
+   "recorte": "assist_ou_vazio",
+   "periodo": "jun/26",
+   "operadoras": 16,
+   "dentro": 6,
+   "acerto": 0.375,
+   "pior": {
+    "operadora": "Unimed Rio",
+    "dif": 0.4
+   }
+  },
+  {
    "recorte": "sem_odonto",
    "periodo": "jun/26",
    "operadoras": 16,
@@ -23,7 +34,7 @@
    }
   },
   {
-   "recorte": "so_medico",
+   "recorte": "sem_odonto+assist_ou_vazio",
    "periodo": "jun/26",
    "operadoras": 16,
    "dentro": 1,
@@ -34,12 +45,15 @@
    }
   },
   {
-   "recorte": "sem_odonto+assist",
-   "sem_mes_comum": true
-  },
-  {
-   "recorte": "so_medico+assist",
-   "sem_mes_comum": true
+   "recorte": "assistencial",
+   "periodo": "jun/26",
+   "operadoras": 8,
+   "dentro": 0,
+   "acerto": 0.0,
+   "pior": {
+    "operadora": "SulAmérica",
+    "dif": -0.9995
+   }
   }
  ],
  "valores_das_colunas": {
@@ -68,6 +82,74 @@
    "": 104724,
    "assistencial": 83526,
    "nao_assistencial": 21888
+  },
+  "razoes_sociais_por_operadora": {
+   "Amil": {
+    "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.": 14065,
+    "AMIL SAÚDE LTDA.": 64,
+    "AMIL PLANOS POR ADMINISTRAÇÃO LTDA": 14,
+    "AMIL SEGURADORA S/A": 2
+   },
+   "Bio Saúde": {
+    "BIO SAÚDE SERVIÇOS MÉDICOS LTDA": 170
+   },
+   "Bradesco Saúde": {
+    "BRADESCO SAÚDE S.A.": 16092,
+    "BRADESCO SAÚDE - OPERADORA DE PLANOS  S/A": 1693,
+    "MEDISERVICE OPERADORA DE PLANOS DE SAÚDE S.A.": 419,
+    "BRADESCO SAUDE E ASSISTENCIA S.A": 18,
+    "BRADESCO DENTAL S.A.": 15,
+    "BRADESCO SEGUROS S/A": 11
+   },
+   "Clinipam": {
+    "CLINIPAM CLINICA PARANAENSE DE ASSISTENCIA MEDICA LTDA": 1336
+   },
+   "Hapvida": {
+    "HAPVIDA ASSISTENCIA MEDICA S.A.": 14111
+   },
+   "Medisanitas": {
+    "FILOSANITAS SAUDE LTDA": 1
+   },
+   "NDI": {
+    "NOTRE DAME INTERMÉDICA SAÚDE S.A.": 16445,
+    "NOTRE DAME INTERMÉDICA MINAS GERAIS SAÚDE S.A.": 1555,
+    "NOTRE DAME SEGURADORA S/A": 1
+   },
+   "Porto Seguro": {
+    "PORTO SEGURO - SEGURO SAÚDE S/A": 3742,
+    "PORTOMED - PORTO SEGURO SERVIÇOS DE SAUDE LTDA": 104,
+    "PORTO SEGURO CIA DE SEGUROS GERAIS": 5,
+    "PORTO SEGURO SERVIÇOS ODONTOLÓGICOS LTDA.": 1
+   },
+   "SulAmérica": {
+    "SUL AMERICA COMPANHIA DE SEGURO SAÚDE": 15346,
+    "SUL AMÉRICA PARANÁ CLÍNICAS SERVIÇOS DE SAÚDE S.A.": 2151,
+    "SUL AMÉRICA ODONTOLÓGICO S/A": 95,
+    "SUL AMÉRICA SEGURADORA DE SAÚDE S.A.": 23,
+    "SUL AMÉRICA SEGURO SAÚDE S/A": 20,
+    "SUL AMÉRICA SAÚDE S.A.": 5,
+    "SUL AMERICA SEGUROS GERAIS S/A": 3,
+    "SUL AMÉRICA CIA NACIONAL DE SEGUROS GERAIS": 3
+   },
+   "São Lucas": {
+    "SÃO LUCAS SAÚDE S/A": 256
+   },
+   "Unimed BH": {
+    "UNIMED BELO HORIZONTE COOPERATIVA DE TRABALHO MÉDICO": 5128
+   },
+   "Unimed Ferj": {
+    "UNIMED DO EST. DO RJ FEDERAÇÃO EST. DAS COOPERATIVAS MÉDICAS": 7569
+   },
+   "Unimed Nacional": {
+    "UNIMED CNU - COOPERATIVA CENTRAL": 7174,
+    "UNIMED DO BRASIL - CONF. NACIONAL DAS COOPERATIVAS MÉDICAS": 694
+   },
+   "Unimed Rio": {
+    "UNIMED-RIO COOPERATIVA DE TRABALHO MEDICO DO RIO DE JANEIRO": 75
+   },
+   "Unimed Seguros": {
+    "UNIMED SEGUROS SAÚDE S/A": 3936
+   }
   }
  }
 }
