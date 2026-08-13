@@ -2595,12 +2595,18 @@ def contar_nip(caminho, verboso=True):
     try: amostra.decode('utf-8')
     except UnicodeDecodeError: enc = 'latin-1'
 
-    recortes = ['tudo', 'sem_odonto', 'so_medico',
-                'sem_odonto+assist', 'so_medico+assist']
+    # A primeira tentativa filtrou por CLASSIFICACAO_DA_NIP, que na verdade é o
+    # status da demanda ("inativa", "em andamento"). O corte assistencial está
+    # em NATUREZA_DA_NIP — e boa parte das linhas vem com esse campo vazio.
+    recortes = ['tudo', 'sem_odonto', 'assistencial', 'assist_ou_vazio',
+                'sem_odonto+assist_ou_vazio']
     total = {r: defaultdict(lambda: defaultdict(float)) for r in recortes}
     sem_reemb = {r: defaultdict(lambda: defaultdict(float)) for r in recortes}
     valores = {'cobertura': defaultdict(int), 'classificacao': defaultdict(int),
                'natureza': defaultdict(int)}
+    # quem exatamente está sendo somado em cada operadora do dashboard: é aqui
+    # que se vê que "Bradesco Saúde" está engolindo a Mediservice e a Dental
+    quem = defaultdict(lambda: defaultdict(int))
 
     with open(caminho, encoding=enc, errors='replace', newline='') as fh:
         leitor = csv.reader(fh, delimiter=';')
@@ -2629,6 +2635,8 @@ def contar_nip(caminho, verboso=True):
             if not a.isdigit() or not mm.isdigit(): continue
             ym = f'{int(a)}{int(mm):02d}'
             g = classificar_nip(l[i_op])
+            if g != 'Others':
+                quem[g][l[i_op].strip().strip('"')[:60]] += 1
             cob = _norm(l[i_cob]) if i_cob is not None and i_cob < len(l) else ''
             cla = _norm(l[i_cla]) if i_cla is not None and i_cla < len(l) else ''
             nat = _norm(l[i_nat]) if i_nat is not None and i_nat < len(l) else ''
@@ -2637,13 +2645,13 @@ def contar_nip(caminho, verboso=True):
                 valores['classificacao'][cla[:40]] += 1
                 valores['natureza'][nat[:40]] += 1
             odonto = 'odonto' in cob
-            medico = bool(re.search(r'medic|ambulator|hospital|referencia', cob))
-            assist = cla.startswith('assist')
+            assist = nat.startswith('assist')
+            vazio = not nat
             quais = ['tudo']
             if not odonto: quais.append('sem_odonto')
-            if medico and not odonto: quais.append('so_medico')
-            if not odonto and assist: quais.append('sem_odonto+assist')
-            if medico and not odonto and assist: quais.append('so_medico+assist')
+            if assist: quais.append('assistencial')
+            if assist or vazio: quais.append('assist_ou_vazio')
+            if (assist or vazio) and not odonto: quais.append('sem_odonto+assist_ou_vazio')
             assunto = _norm(l[i_as]) if i_as is not None and i_as < len(l) else ''
             reembolso = bool(re.search(NIP_REEMBOLSO, assunto))
             for r in quais:
@@ -2665,9 +2673,16 @@ def contar_nip(caminho, verboso=True):
             g['Others'] = g.get('Market', 0) - nomeados
         return {k: dict(v) for k, v in d.items()}
 
+    diag = {k: dict(sorted(v.items(), key=lambda x: -x[1])[:10]) for k, v in valores.items()}
+    diag['razoes_sociais_por_operadora'] = {
+        g: dict(sorted(d.items(), key=lambda x: -x[1])[:8]) for g, d in sorted(quem.items())}
+    if verboso:
+        print('   razões sociais somadas em cada operadora:')
+        for g, d in sorted(quem.items()):
+            topo = sorted(d.items(), key=lambda x: -x[1])[:4]
+            print(f'      {g:18} ' + ' · '.join(f'{k[:40]}={v}' for k, v in topo))
     return ({r: fecha(total[r]) for r in recortes},
-            {r: fecha(sem_reemb[r]) for r in recortes},
-            {k: dict(sorted(v.items(), key=lambda x: -x[1])[:10]) for k, v in valores.items()})
+            {r: fecha(sem_reemb[r]) for r in recortes}, diag)
 
 
 def _igr_arquivos():
