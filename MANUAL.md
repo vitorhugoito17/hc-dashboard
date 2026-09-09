@@ -97,13 +97,28 @@ em repositório sem atividade por 60 dias — basta um commit qualquer para reat
 
 ---
 
-## 5. Se precisar de um Claude novo
+## 5. Como retomar num Claude novo
 
-Numa conta nova, abra uma conversa e cole isto:
+Antes de tudo, o mal-entendido mais comum: **usar o dashboard não precisa de Claude
+nenhum.** Você abre o HTML e ele funciona; o robô atualiza sozinho no GitHub. Claude só
+entra quando você quer *mudar* alguma coisa — corrigir um coletor, escrever um novo,
+mexer no visual. O passo a passo abaixo é para isso.
+
+### Passo 1 — ligar o navegador à conta nova
+
+O Claude publica no GitHub controlando o seu Chrome. Para isso a **extensão do Claude no
+Chrome precisa estar logada na mesma conta** que você está usando na conversa. Se você
+trocou de conta, entre de novo na extensão. Sem esse passo o Claude consegue escrever o
+código mas não consegue publicar, e você só descobre no fim.
+
+Confira também que você está logado no GitHub como `vitorhugoito17` no mesmo Chrome.
+
+### Passo 2 — colar o prompt de retomada
 
 > Tenho um dashboard setorial de saúde suplementar que se atualiza sozinho por um robô
-> em `github.com/vitorhugoito17/hc-dashboard`. Leia o `atualizador.py` e o
-> `MANUAL.md` desse repositório antes de mexer em qualquer coisa.
+> em `github.com/vitorhugoito17/hc-dashboard`. Leia o `MANUAL.md` e o `atualizador.py`
+> desse repositório antes de mexer em qualquer coisa — dá para baixar os dois com curl
+> em `raw.githubusercontent.com`.
 >
 > A regra da casa: nunca grave um número que você não consiga reproduzir contra um
 > período que a base já tem. Se não bater, não grave e me diga por quê. Antes de
@@ -112,11 +127,41 @@ Numa conta nova, abra uma conversa e cole isto:
 > ele se explicar — quais entidades caíram em cada balde, quais recortes candidatos e o
 > erro de cada um — em vez de chutar.
 >
-> O robô roda no GitHub Actions, não na minha máquina: minha rede bloqueia os
-> servidores de dados abertos e bloqueia download de `.py`.
+> Como trabalhamos: seu ambiente alcança o `raw.githubusercontent.com` mas **não**
+> alcança ANS, CNES, DATASUS nem IBGE — todo teste contra dado real roda no GitHub
+> Actions. Você edita o `atualizador.py` aí, sobe pela página de upload do GitHub
+> usando meu Chrome, dispara o workflow em Actions e lê o resultado nos
+> `diagnostico_*.json` publicados. Minha rede corporativa bloqueia os servidores de
+> dados abertos e bloqueia download de `.py`, então não adianta me mandar script.
 
-Depois, se quiser a skill de volta naquela conta, peça: *"salve como skill o texto que
-está no anexo do MANUAL.md do repositório"*.
+### Passo 3 — conferir que ele entendeu antes de confiar
+
+Peça: *"me diga em que competência está cada bloco da base hoje"*. Ele deve responder
+lendo o `dados.json` publicado. Se conseguir, o essencial está de pé.
+
+### Passo 4 — o ciclo de trabalho, uma volta completa
+
+1. Claude edita o `atualizador.py` no ambiente dele e testa a lógica offline com dados
+   sintéticos (o que der para testar sem rede).
+2. Sobe o arquivo em `github.com/vitorhugoito17/hc-dashboard/upload/main`, pelo seu Chrome.
+3. Dispara em **Actions → Run workflow**, usando o campo `so` (`nip`, `cnj`, `explorar`)
+   para rodar só o coletor em questão — a rodada completa leva ~15 minutos quando há
+   competência nova.
+4. Lê o resultado em `raw.githubusercontent.com/.../diagnostico_*.json` e itera.
+
+### O que avisar para poupar meia hora
+
+- A página de upload do GitHub às vezes carrega em cache **como se você estivesse
+  deslogado** ("Uploads are disabled"). Recarregue; não é falta de permissão.
+- Cada rodada de teste custa minutos. Faça o coletor despejar tudo que puder de uma vez
+  (candidatos, valores de coluna, quem caiu em cada balde) em vez de uma pergunta por
+  rodada.
+- Rodada que termina verde sem mudar o `dados.json` normalmente é o portão de
+  reconciliação recusando, não erro. Leia o diagnóstico antes de mexer.
+
+### Recuperar a skill
+
+Peça: *"salve como skill o texto que está no anexo do MANUAL.md do repositório"*.
 
 ---
 
