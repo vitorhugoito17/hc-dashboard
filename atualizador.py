@@ -663,6 +663,9 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     if verboso:
         _imprime_calibragem(diag, ym, ym_ant or ym)
     aceitos = set(fatores)
+    # guarda os níveis BRUTOS da ANS antes de escalar: é deles que sai o fluxo
+    # medido ANS contra ANS, que não depende do nível gravado na base
+    bruto_ans = dict(ag['vidas'])
     ag = escalar(ag, fatores)
     # filtra o agregado para o que foi calibrado
     ag['vidas'] = {k: v for k, v in ag['vidas'].items() if k in aceitos}
@@ -706,8 +709,23 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     # quem entra por nível, o mês anterior é recarimbado com a medição de hoje
     # e a revisão fica registrada; para quem entra encadeado, o nível anterior
     # é a própria âncora da emenda e não se mexe nele.
+    #
+    # Só vale para mês que a PRÓPRIA ANS escreveu. Os meses anteriores à
+    # janela da ANS vêm da consolidação de origem, com escopo de grupo
+    # próprio; recarimbá-los seria trocar histórico de uma metodologia por
+    # número de outra só porque os dois estão a menos de 1,5% um do outro.
+    ans_escritas = D.setdefault('meta', {}).get('competencias_ans')
+    if ans_escritas is None:
+        # primeira vez que a lista existe: as competências que a ANS já
+        # escreveu estão registradas na última reconciliação gravada
+        r0 = (D.get('ans') or {}).get('pda024') or {}
+        ans_escritas = [x for x in (r0.get('competencia_anterior'),
+                                    r0.get('competencia')) if x]
+        D['meta']['competencias_ans'] = ans_escritas
+    if p not in ans_escritas:
+        ans_escritas.append(p)
     revisoes = {}
-    if ag_ant and ym_ant:
+    if ag_ant and ym_ant and rotulo(ym_ant) in ans_escritas:
         p_ant = rotulo(ym_ant)
         lv0 = D['ben']['lives_m']
         if p_ant in lv0['periods']:
@@ -739,15 +757,35 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
 
     pda['revisoes'] = revisoes
 
-    # adições líquidas = variação do estoque, já com os dois meses na mesma safra
+    # ---------- adições líquidas ----------
+    # O fluxo é medido ANS contra ANS: os dois meses saem do mesmo cadastro, na
+    # mesma safra e com o mesmo agrupamento, e o fator de emenda entra igual nos
+    # dois lados. Assim o fluxo não depende do nível gravado na base — que, no
+    # mês em que a série troca de metodologia, carrega um degrau que é mudança
+    # de escopo, não carteira ganha ou perdida.
+    #
+    # Onde não há referência da ANS (o histórico da consolidação de origem), cai
+    # de volta para a diferença dos estoques, que ali é medida certa: aqueles
+    # meses vêm todos da mesma metodologia.
     lv = D['ben']['lives_m']
     i_now = lv['periods'].index(p)
-    net = {}
+    net, base_fluxo = {}, {}
+    ant_ans_vidas = (ag_ant or {}).get('vidas') or {}
     for g, vals in lv['series'].items():
-        if i_now >= 1 and vals[i_now] is not None and vals[i_now-1] is not None:
+        a_ans, b_ans = ant_ans_vidas.get(g), bruto_ans.get(g)
+        if a_ans is not None and b_ans is not None and g in fatores:
+            net[g] = round((b_ans - a_ans) * fatores[g] / 1000.0, 3)
+            base_fluxo[g] = 'ans'
+        elif i_now >= 1 and vals[i_now] is not None and vals[i_now-1] is not None:
             net[g] = round(vals[i_now] - vals[i_now-1], 3)
+            base_fluxo[g] = 'estoque'
     if _upsert(D['ben']['netadds_m'], p, net):
         log.append('ben.netadds_m')
+    pda['base_fluxo'] = base_fluxo
+    n_ans = sum(1 for v in base_fluxo.values() if v == 'ans')
+    if n_ans:
+        print(f'   fluxo de {p}: {n_ans} séries medidas ANS×ANS, '
+              f'{len(base_fluxo)-n_ans} pela diferença de estoque')
 
     # ---------- odontológico ----------
     vid_o = {g: _mil(v) for g, v in ag['vidas_odonto'].items()}
