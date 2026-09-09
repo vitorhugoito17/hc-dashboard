@@ -521,17 +521,27 @@ def escalar(ag, fatores):
     return ag
 
 
-def _ultimos(D):
-    """Último valor não-nulo de cada operadora na série de vidas da base."""
+def _ultimos(D, antes_de=None):
+    """Último valor não-nulo de cada operadora na série de vidas da base.
+
+    Com `antes_de`, olha só para os períodos ANTERIORES a ele. Sem isso,
+    reprocessar um mês do meio da série (--refazer) ancorava a calibragem no
+    último ponto gravado — que nesse caso é um mês POSTERIOR — e o
+    encadeamento saía preso ao futuro em vez do passado.
+    """
+    lv = D['ben']['lives_m']
+    corte = len(lv['periods'])
+    if antes_de is not None and antes_de in lv['periods']:
+        corte = lv['periods'].index(antes_de)
     ult = {}
-    for op, vals in D['ben']['lives_m']['series'].items():
-        for v in reversed(vals):
+    for op, vals in lv['series'].items():
+        for v in reversed(vals[:corte]):
             if v is not None:
                 ult[op] = v; break
     return ult
 
 
-def calibrar(D, ag, ag_ant=None, tol=0.015, limite_var=0.06):
+def calibrar(D, ag, ag_ant=None, tol=0.015, limite_var=0.06, periodo=None):
     """Decide, operadora a operadora, COMO o ponto novo entra na série.
 
     A base histórica vem da consolidação de origem, que agrupa CNPJs por critério
@@ -549,7 +559,7 @@ def calibrar(D, ag, ag_ant=None, tol=0.015, limite_var=0.06):
 
     Devolve (fatores, diagnostico).
     """
-    ult = _ultimos(D)
+    ult = _ultimos(D, periodo)
     ant_ans = (ag_ant or {}).get('vidas') or {}
     fatores, diag = {}, []
     for op, v in ag['vidas'].items():
@@ -649,7 +659,7 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     """
     p = rotulo(ym)
     log = []
-    fatores, diag = calibrar(D, ag, ag_ant, tolerancia)
+    fatores, diag = calibrar(D, ag, ag_ant, tolerancia, periodo=p)
     if verboso:
         _imprime_calibragem(diag, ym, ym_ant or ym)
     aceitos = set(fatores)
@@ -689,7 +699,47 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     if _upsert(D['ben']['share_m'], p, share):
         log.append('ben.share_m')
 
-    # adições líquidas = variação do estoque
+    # ---------- re-carimbo da competência anterior ----------
+    # A referência acaba de ser remedida na safra de hoje. Se o nível gravado
+    # no mês anterior veio de uma safra mais velha, a diferença entre os dois
+    # meses não é adição líquida — é revisão da ANS disfarçada de fluxo. Para
+    # quem entra por nível, o mês anterior é recarimbado com a medição de hoje
+    # e a revisão fica registrada; para quem entra encadeado, o nível anterior
+    # é a própria âncora da emenda e não se mexe nele.
+    revisoes = {}
+    if ag_ant and ym_ant:
+        p_ant = rotulo(ym_ant)
+        lv0 = D['ben']['lives_m']
+        if p_ant in lv0['periods']:
+            k = lv0['periods'].index(p_ant)
+            recarimbo = {}
+            ant_vidas = ag_ant.get('vidas') or {}
+            for op, st in metodo.items():
+                if st != 'nível' or op not in ant_vidas:
+                    continue
+                serie = lv0['series'].get(op)
+                antigo = serie[k] if serie and k < len(serie) else None
+                novo = _mil(ant_vidas[op])
+                if antigo is None or novo is None or abs(novo - antigo) <= 0.05:
+                    continue
+                revisoes[op] = round(novo - antigo, 3)
+                recarimbo[op] = novo
+            if recarimbo:
+                _upsert(lv0, p_ant, recarimbo)
+                tot_ant = ag_ant.get('total')
+                if tot_ant:
+                    _upsert(D['ben']['share_m'], p_ant,
+                            {o: round(ant_vidas[o]/tot_ant, 6) for o in recarimbo})
+                    _upsert(D['ben']['medical_total_q'], p_ant,
+                            {'Beneficiários': _mil(tot_ant)})
+                m = revisoes.get('Market')
+                print(f'\n   {len(revisoes)} séries recarimbadas em {p_ant} por revisão da ANS'
+                      + (f' (mercado {m:+,.1f} mil)'.replace(',', '.') if m else ''))
+                log.append(f'revisão de {p_ant} ({len(revisoes)} séries)')
+
+    pda['revisoes'] = revisoes
+
+    # adições líquidas = variação do estoque, já com os dois meses na mesma safra
     lv = D['ben']['lives_m']
     i_now = lv['periods'].index(p)
     net = {}
@@ -1228,21 +1278,53 @@ def carregar_agregado(ym: str):
     return d if d.get('competencia') == ym else None
 
 def obter_agregado(ym: str):
-    """Agregado de `ym`: do cache se existir, senão baixa e processa a competência."""
-    ag = carregar_agregado(ym)
-    if ag:
-        print(f'        referência {rotulo(ym)} veio do cache (agregado_ans.json)')
-        return ag
-    print(f'        referência {rotulo(ym)} não está em cache — baixando para medir a variação')
-    arqs = baixar_competencia(ym, os.path.join(CACHE, 'pda024', ym))
+    """Agregado de `ym` medido na safra ATUAL da ANS.
+
+    Antes esta função devolvia direto o `agregado_ans.json` gravado na rodada
+    do mês passado. Parecia economia óbvia — o mês anterior já tinha sido
+    medido com esta mesma metodologia, para que medir de novo?
+
+    Porque a ANS revisa competência já publicada. Junho/26 saiu em 05/ago com
+    53.145.666 (número que na época conferiu dígito a dígito com o release) e
+    depois foi revisado para 53.080.809. Julho, medido na safra de hoje, deu
+    53.156.550. Comparar um contra o outro dá +10,9 mil de adição líquida; a
+    variação real, medida com os dois meses na mesma safra, é +75,7 mil. Os
+    dois NÍVEIS estavam certos — o que não existia era a diferença entre eles.
+
+    Erro assim é pior que um buraco na série: ele tem cara de fluxo. Por isso
+    a referência é remedida do arquivo bruto sempre que der. O JSON gravado
+    virou fallback, para quando a remedição não for possível.
+    """
+    guardado = carregar_agregado(ym)
     try:
+        arqs = baixar_competencia(ym, os.path.join(CACHE, 'pda024', ym))
         conferir_cobertura(arqs)
+        ag = agregar(arqs, verboso=False)
     except SystemExit as e:
         # referência incompleta não aborta a rodada: só desliga o encadeamento,
         # e aí as operadoras de escopo divergente ficam onde estavam
-        print(f'        referência {rotulo(ym)} incompleta — sigo sem encadear\n        {e}')
-        return None
-    return agregar(arqs, verboso=False)
+        print(f'        referência {rotulo(ym)} incompleta — {e}')
+        ag = None
+    except Exception as e:
+        print(f'        referência {rotulo(ym)} não pôde ser remedida — {e}')
+        ag = None
+
+    if ag is not None:
+        antes = (guardado or {}).get('total')
+        if antes and abs(ag['total'] - antes) > 1:
+            print(f'        referência {rotulo(ym)} REVISADA pela ANS desde a última '
+                  f'rodada: {antes:,.0f} → {ag["total"]:,.0f} '
+                  f'({ag["total"]-antes:+,.0f})'.replace(',', '.'))
+        else:
+            print(f'        referência {rotulo(ym)} remedida na safra atual')
+        return ag
+
+    if guardado:
+        print(f'        usando o agregado gravado de {rotulo(ym)} — atenção, pode ser '
+              f'de safra anterior à de hoje')
+        return guardado
+    print(f'        sem referência para {rotulo(ym)} — sigo sem encadear')
+    return None
 
 def _selo_da_base(d):
     """Monta o texto do selo do topo a partir das competências realmente gravadas.
