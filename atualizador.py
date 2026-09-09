@@ -2612,8 +2612,19 @@ def classificar_nip(nome):
 
 
 def baixar_nip(ano):
+    """Baixa os microdados do NIP de um ano.
+
+    Cuidado com cache aqui: ao contr\u00e1rio dos arquivos da ANS por compet\u00eancia, que
+    s\u00e3o im\u00fataveis depois de publicados, o CSV do ano corrente CRESCE \u2014 a ANS
+    acrescenta os lotes dos meses novos no mesmo arquivo. Guardar essa c\u00f3pia e
+    reaproveitar significaria nunca mais ver m\u00eas novo. Ano corrente sempre rebaixa;
+    anos fechados podem vir do cache.
+    """
     nome = f'pda-013-demandas_dos_consumidores_nip-{ano}.csv'
-    return baixar(NIP_DIR + nome, os.path.join(CACHE, 'nip', nome))
+    destino = os.path.join(CACHE, 'nip', nome)
+    if ano >= datetime.date.today().year and os.path.exists(destino):
+        os.remove(destino)
+    return baixar(NIP_DIR + nome, destino)
 
 
 def contar_nip(caminho, verboso=True):
@@ -2871,6 +2882,32 @@ def calcular_igr(D, total, tolerancia=0.01, verboso=True):
     return fora
 
 
+
+def _descarta_mes_parcial(total, novos, verboso=True, piso=0.5):
+    """Segura o mês mais recente quando ele ainda est\u00e1 enchendo.
+
+    A ANS publica o arquivo do NIP em lotes mensais, ent\u00e3o na pr\u00e1tica os meses
+    chegam fechados. Mas com o rob\u00f4 rodando todo dia basta um lote sair pela
+    metade para a s\u00e9rie ganhar um m\u00eas com metade das demandas \u2014 e como n\u00e3o
+    reescrevemos hist\u00f3rico, esse buraco ficaria l\u00e1 para sempre. Se o \u00faltimo m\u00eas
+    tem menos da metade da mediana dos tr\u00eas anteriores, ele espera a pr\u00f3xima
+    rodada.
+    """
+    if not novos: return novos
+    ultimo = novos[-1]
+    anteriores = sorted(ym for ym in total if ym < ultimo)[-3:]
+    if len(anteriores) < 2: return novos
+    refs = sorted(total[y].get('Market', 0) for y in anteriores)
+    mediana = refs[len(refs) // 2]
+    atual = total[ultimo].get('Market', 0)
+    if mediana and atual < mediana * piso:
+        if verboso:
+            print(f'   {_ym_para_rotulo(ultimo)} tem {atual:,.0f} demandas contra uma '
+                  f'mediana de {mediana:,.0f} nos meses anteriores \u2014 parece lote '
+                  'incompleto, seguro esse m\u00eas para a pr\u00f3xima rodada')
+        return novos[:-1]
+    return novos
+
 def conferir_nip(D, total, sem_reemb, igr, ultimo, tolerancia=0.02):
     """O que eu contei reproduz o mês que a base já tem?"""
     rel = {}
@@ -2922,6 +2959,7 @@ def merge_nip(D, total, sem_reemb, igr, verboso=True, tolerancia=0.02):
     ref = D['nip']['NIPs']
     ja = {_rotulo_para_ym(p) for p in ref['periods'] if _rotulo_para_ym(p)}
     novos = sorted(ym for ym in total if ym not in ja)
+    novos = _descarta_mes_parcial(total, novos, verboso)
     if not novos:
         if verboso: print(f'\n   Nada novo: a base já vai até {ref["periods"][-1]}.')
         return {'gravado': False, 'relatorio': rel, 'em_dia': True}
