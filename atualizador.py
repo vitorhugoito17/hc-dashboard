@@ -664,6 +664,19 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     # qual foi a última competência que o robô tocou.
     _lvp = D['ben']['lives_m']['periods']
     mais_novo = (p not in _lvp) or (_lvp.index(p) == len(_lvp) - 1)
+    # Quais competências a PRÓPRIA ANS escreveu. Tem que ser lido ANTES de
+    # gravar o registro desta rodada, senão a semente pega a competência atual
+    # como se fosse a anterior e a janela da ANS anda um mês para trás sozinha.
+    ans_escritas = D.setdefault('meta', {}).get('competencias_ans')
+    if ans_escritas is None:
+        # primeira vez que a lista existe: as competências que a ANS já
+        # escreveu estão registradas na última reconciliação gravada
+        r0 = (D.get('ans') or {}).get('pda024') or {}
+        ans_escritas = [x for x in (r0.get('competencia_anterior'),
+                                    r0.get('competencia')) if x]
+        D['meta']['competencias_ans'] = ans_escritas
+    if p not in ans_escritas:
+        ans_escritas.append(p)
     fatores, diag = calibrar(D, ag, ag_ant, tolerancia, periodo=p)
     if verboso:
         _imprime_calibragem(diag, ym, ym_ant or ym)
@@ -720,16 +733,6 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     # janela da ANS vêm da consolidação de origem, com escopo de grupo
     # próprio; recarimbá-los seria trocar histórico de uma metodologia por
     # número de outra só porque os dois estão a menos de 1,5% um do outro.
-    ans_escritas = D.setdefault('meta', {}).get('competencias_ans')
-    if ans_escritas is None:
-        # primeira vez que a lista existe: as competências que a ANS já
-        # escreveu estão registradas na última reconciliação gravada
-        r0 = (D.get('ans') or {}).get('pda024') or {}
-        ans_escritas = [x for x in (r0.get('competencia_anterior'),
-                                    r0.get('competencia')) if x]
-        D['meta']['competencias_ans'] = ans_escritas
-    if p not in ans_escritas:
-        ans_escritas.append(p)
     revisoes = {}
     if ag_ant and ym_ant and rotulo(ym_ant) in ans_escritas:
         p_ant = rotulo(ym_ant)
