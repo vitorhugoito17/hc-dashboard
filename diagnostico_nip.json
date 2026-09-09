@@ -2,57 +2,57 @@
  "placar": [
   {
    "recorte": "tudo",
-   "periodo": "jun/26",
+   "periodo": "jul/26",
    "operadoras": 17,
-   "dentro": 13,
-   "acerto": 0.765,
+   "dentro": 17,
+   "acerto": 1.0,
    "pior": {
-    "operadora": "Unimed Rio",
-    "dif": 0.4
+    "operadora": "Amil",
+    "dif": 0.0
    }
   },
   {
    "recorte": "assist_ou_vazio",
-   "periodo": "jun/26",
+   "periodo": "jul/26",
    "operadoras": 17,
-   "dentro": 13,
-   "acerto": 0.765,
+   "dentro": 17,
+   "acerto": 1.0,
    "pior": {
-    "operadora": "Unimed Rio",
-    "dif": 0.4
+    "operadora": "Amil",
+    "dif": 0.0
    }
   },
   {
    "recorte": "sem_odonto",
-   "periodo": "jun/26",
+   "periodo": "jul/26",
    "operadoras": 17,
-   "dentro": 4,
-   "acerto": 0.235,
+   "dentro": 6,
+   "acerto": 0.353,
    "pior": {
-    "operadora": "Unimed Rio",
-    "dif": 0.3
+    "operadora": "H.B. Saúde",
+    "dif": -0.1702
    }
   },
   {
    "recorte": "sem_odonto+assist_ou_vazio",
-   "periodo": "jun/26",
+   "periodo": "jul/26",
    "operadoras": 17,
-   "dentro": 4,
-   "acerto": 0.235,
+   "dentro": 6,
+   "acerto": 0.353,
    "pior": {
-    "operadora": "Unimed Rio",
-    "dif": 0.3
+    "operadora": "H.B. Saúde",
+    "dif": -0.1702
    }
   },
   {
    "recorte": "assistencial",
-   "periodo": "jun/26",
-   "operadoras": 8,
+   "periodo": "jul/26",
+   "operadoras": 4,
    "dentro": 0,
    "acerto": 0.0,
    "pior": {
-    "operadora": "SulAmérica",
-    "dif": -0.9995
+    "operadora": "HAPV",
+    "dif": -1.0
    }
   }
  ],
@@ -196,152 +196,152 @@
  "recorte_usado": "tudo",
  "conferencia": {
   "NIPs": {
-   "periodo": "jun/26",
+   "periodo": "jul/26",
    "operadoras": 17,
-   "dentro_da_tolerancia": 13,
+   "dentro_da_tolerancia": 17,
    "aprovado": true,
    "detalhe": [
     {
-     "operadora": "Unimed Rio",
-     "base": 10.0,
-     "calculado": 14.0,
-     "dif": 0.4
+     "operadora": "Amil",
+     "base": 2345.0,
+     "calculado": 2345.0,
+     "dif": 0.0
+    },
+    {
+     "operadora": "Bradesco Saúde",
+     "base": 2963.0,
+     "calculado": 2963.0,
+     "dif": 0.0
     },
     {
      "operadora": "HAPV",
-     "base": 5005.0,
-     "calculado": 4754.0,
-     "dif": -0.0501
+     "base": 5382.0,
+     "calculado": 5382.0,
+     "dif": 0.0
     },
     {
-     "operadora": "Others",
-     "base": 13771.0,
-     "calculado": 14278.0,
-     "dif": 0.0368
+     "operadora": "Hapvida",
+     "base": 2374.0,
+     "calculado": 2374.0,
+     "dif": 0.0
     },
     {
-     "operadora": "Unimed Nacional",
-     "base": 1048.0,
-     "calculado": 1011.0,
-     "dif": -0.0353
+     "operadora": "H.B. Saúde",
+     "base": 47.0,
+     "calculado": 47.0,
+     "dif": 0.0
+    },
+    {
+     "operadora": "NDI",
+     "base": 2747.0,
+     "calculado": 2747.0,
+     "dif": 0.0
     },
     {
      "operadora": "Clinipam",
-     "base": 159.0,
-     "calculado": 155.0,
-     "dif": -0.0252
+     "base": 183.0,
+     "calculado": 183.0,
+     "dif": 0.0
     },
     {
-     "operadora": "Unimed BH",
-     "base": 723.0,
-     "calculado": 705.0,
-     "dif": -0.0249
-    },
-    {
-     "operadora": "Unimed Ferj",
-     "base": 743.0,
-     "calculado": 730.0,
-     "dif": -0.0175
-    },
-    {
-     "operadora": "Amil",
-     "base": 2025.0,
-     "calculado": 2060.0,
-     "dif": 0.0173
+     "operadora": "São Lucas",
+     "base": 31.0,
+     "calculado": 31.0,
+     "dif": 0.0
     }
    ]
   },
   "NIPs (ex. Reimbursement)": {
-   "periodo": "jun/26",
+   "periodo": "jul/26",
    "operadoras": 17,
-   "dentro_da_tolerancia": 13,
+   "dentro_da_tolerancia": 17,
    "aprovado": true,
    "detalhe": [
     {
-     "operadora": "Unimed Rio",
-     "base": 9.0,
-     "calculado": 12.0,
-     "dif": 0.3333
+     "operadora": "Amil",
+     "base": 2166.0,
+     "calculado": 2166.0,
+     "dif": 0.0
+    },
+    {
+     "operadora": "Bradesco Saúde",
+     "base": 2067.0,
+     "calculado": 2067.0,
+     "dif": 0.0
     },
     {
      "operadora": "HAPV",
-     "base": 4785.0,
-     "calculado": 4545.0,
-     "dif": -0.0502
-    },
-    {
-     "operadora": "Others",
-     "base": 12757.0,
-     "calculado": 13242.0,
-     "dif": 0.038
-    },
-    {
-     "operadora": "Unimed Nacional",
-     "base": 959.0,
-     "calculado": 928.0,
-     "dif": -0.0323
-    },
-    {
-     "operadora": "Clinipam",
-     "base": 151.0,
-     "calculado": 147.0,
-     "dif": -0.0265
-    },
-    {
-     "operadora": "Unimed BH",
-     "base": 668.0,
-     "calculado": 651.0,
-     "dif": -0.0254
-    },
-    {
-     "operadora": "Amil",
-     "base": 1859.0,
-     "calculado": 1888.0,
-     "dif": 0.0156
+     "base": 5159.0,
+     "calculado": 5159.0,
+     "dif": 0.0
     },
     {
      "operadora": "Hapvida",
-     "base": 2056.0,
-     "calculado": 2086.0,
-     "dif": 0.0146
+     "base": 2263.0,
+     "calculado": 2263.0,
+     "dif": 0.0
+    },
+    {
+     "operadora": "H.B. Saúde",
+     "base": 47.0,
+     "calculado": 47.0,
+     "dif": 0.0
+    },
+    {
+     "operadora": "NDI",
+     "base": 2654.0,
+     "calculado": 2654.0,
+     "dif": 0.0
+    },
+    {
+     "operadora": "Clinipam",
+     "base": 167.0,
+     "calculado": 167.0,
+     "dif": 0.0
+    },
+    {
+     "operadora": "São Lucas",
+     "base": 28.0,
+     "calculado": 28.0,
+     "dif": 0.0
     }
    ]
   },
   "IGR": {
-   "periodo": "jun/26",
+   "periodo": "jul/26",
    "operadoras": 5,
    "dentro_da_tolerancia": 5,
    "aprovado": true,
    "detalhe": [
     {
-     "operadora": "SulAmérica",
-     "base": 93.336592,
-     "calculado": 94.1358,
-     "dif": 0.0086
+     "operadora": "Bradesco Saúde",
+     "base": 86.611317,
+     "calculado": 86.6113,
+     "dif": 0.0
     },
     {
      "operadora": "Hapvida",
-     "base": 49.195686,
-     "calculado": 48.836,
-     "dif": -0.0073
+     "base": 53.222423,
+     "calculado": 53.2224,
+     "dif": 0.0
     },
     {
-     "operadora": "Bradesco Saúde",
-     "base": 72.790932,
-     "calculado": 72.4666,
-     "dif": -0.0045
+     "operadora": "SulAmérica",
+     "base": 113.456292,
+     "calculado": 113.4563,
+     "dif": 0.0
     },
     {
      "operadora": "Unimed Seguros",
-     "base": 56.675297,
-     "calculado": 56.4747,
-     "dif": -0.0035
+     "base": 66.522137,
+     "calculado": 66.5221,
+     "dif": 0.0
     },
     {
      "operadora": "Market",
-     "base": 55.390289,
-     "calculado": 55.2961,
-     "dif": -0.0017
+     "base": 65.390092,
+     "calculado": 65.3901,
+     "dif": 0.0
     }
    ]
   }
