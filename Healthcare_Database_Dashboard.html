@@ -162,6 +162,19 @@ tbody tr.lvl-state td.lbl{padding-left:24px;color:var(--text);}
 tbody tr.lvl-city td.lbl{padding-left:40px;color:var(--text-dim);font-weight:400;}
 tbody tr.lvl-sub td.lbl{padding-left:24px;color:var(--text-dim);font-weight:400;}
 .num-neg{color:var(--neg);} .num-pos{color:var(--accent);}
+/* adições líquidas — tabela mensal + QTD/YTD */
+.na-tab td.na-num,.na-tab th.na-num{font-variant-numeric:tabular-nums;text-align:right;}
+.na-tab th.na-ult{color:var(--accent-text);}
+.na-tab td.na-sep,.na-tab th.na-sep{border-left:1px solid var(--border);}
+.na-tab tbody tr.na-total td{background:var(--surface-2);color:var(--text);font-weight:600;
+  border-top:1px solid var(--border);}
+.na-tab tbody tr.na-total td.lbl{background:var(--surface-2);color:var(--text);font-weight:600;}
+.na-tab tbody tr.na-gap td{padding:0;height:6px;border-bottom:none;background:transparent;}
+.na-tab tbody tr.na-gap:hover td{background:transparent;}
+.na-dag{color:var(--warn);margin-left:2px;cursor:help;}
+#naBox{margin-top:26px;}
+#naChips{margin:10px 0 12px;}
+
 .badge{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:4px;}
 .badge-op{background:var(--accent-soft);color:var(--accent-text);}
 .badge-n{background:var(--warn-soft);color:var(--warn);}
@@ -1850,6 +1863,122 @@ function covAudit(){
     return (perKey(b.last)||0)-(perKey(a.last)||0);
   });
 }
+
+/* ===================================================================
+   ADIÇÕES LÍQUIDAS — mensal (12 meses), QTD e YTD
+   Tudo derivado de ben.netadds_m e ben.lives_m na hora do render, para a
+   tabela andar junto com a base quando o robô publicar competência nova.
+   =================================================================== */
+const NA_ESCOPOS = {
+  grupo: {rotulo:'Grupo econômico', ops:[
+    'Hapvida + GNDI','Bradesco Saúde','SulAmérica','Amil','Unimed Nacional',
+    'Unimed Seguros','Unimed BH','Porto Seguro','Athena Saúde','Unimed Rio/Ferj']},
+  principal: {rotulo:'Operadora principal', ops:[
+    'Hapvida','GNDI','Bradesco Saúde S.A.','Sul América Cia Seguro Saúde',
+    'Amil Assistência Médica','Unimed Nacional','Unimed Seguros','Unimed BH',
+    'Porto Seguro','Unimed Ferj']},
+};
+let naEscopo = 'grupo';
+
+function naSinal(v){
+  if(!isNum(v)) return '—';
+  return (v>0?'+':v<0?'−':'') + nf(Math.abs(v),{minimumFractionDigits:1,maximumFractionDigits:1});
+}
+function naMesAno(p){
+  const m=/^([a-z]{3})\/(\d{2})$/.exec(p);
+  return m ? {mes:MES_ORD[m[1]], ano:2000+ +m[2]} : null;
+}
+function naSoma(vals, idxs){
+  let t=null;
+  for(const i of idxs){ if(isNum(vals[i])) t=(t||0)+vals[i]; }
+  return t===null?null:Math.round(t*10)/10;
+}
+
+function renderNetAdds(){
+  const na=S('ben.netadds_m'), lv=S('ben.lives_m');
+  if(!na||!lv) return '';
+  // só competências mensais, em ordem
+  const mIdx = na.periods.map((p,i)=>M_RE.test(p)?i:-1).filter(i=>i>=0)
+                 .sort((a,b)=>perKey(na.periods[a])-perKey(na.periods[b]));
+  if(mIdx.length<2) return '';
+  const ult   = mIdx[mIdx.length-1];
+  const ref   = naMesAno(na.periods[ult]);
+  const doze  = mIdx.slice(-12);
+  const ytdI  = mIdx.filter(i=>{ const d=naMesAno(na.periods[i]);
+                  return d && d.ano===ref.ano && d.mes<=ref.mes; });
+  const tri   = Math.ceil(ref.mes/3);
+  const qtdI  = mIdx.filter(i=>{ const d=naMesAno(na.periods[i]);
+                  return d && d.ano===ref.ano && Math.ceil(d.mes/3)===tri; });
+
+  // meses em que o fluxo medido não é a diferença dos estoques: ali a série de
+  // nível tem emenda de metodologia ou revisão de safra, e o fluxo é o número
+  // bom. Marcados com † para o degrau do estoque não confundir.
+  const emenda = new Set();
+  for(const i of doze){
+    const n=na.series['Market'] ? na.series['Market'][i] : null;
+    const a=lv.series['Market'] ? lv.series['Market'][i-1] : null;
+    const b=lv.series['Market'] ? lv.series['Market'][i] : null;
+    if(isNum(n)&&isNum(a)&&isNum(b)&&Math.abs(n-(b-a))>0.5) emenda.add(i);
+  }
+
+  const cfg=NA_ESCOPOS[naEscopo];
+  const linhas=cfg.ops.filter(o=>na.series[o] && doze.some(i=>isNum(na.series[o][i])))
+    .map(o=>{ const v=na.series[o];
+      return {op:o, m:doze.map(i=>v[i]), qtd:naSoma(v,qtdI), ytd:naSoma(v,ytdI)}; })
+    .sort((a,b)=>(b.ytd===null?-1e9:b.ytd)-(a.ytd===null?-1e9:a.ytd));
+  // "Others" da base é o mercado menos os GRUPOS — só fecha no recorte de grupo.
+  // No recorte de operadora principal as linhas não particionam o mercado, então
+  // a linha de resíduo sairia mentindo e é omitida.
+  const partic = naEscopo==='grupo';
+  const extras=(partic?['Others','Market']:['Market']).filter(o=>na.series[o]).map(o=>{
+      const v=na.series[o];
+      return {op:o==='Market'?'Mercado':'Demais operadoras', forte:o==='Market',
+              m:doze.map(i=>v[i]), qtd:naSoma(v,qtdI), ytd:naSoma(v,ytdI)}; });
+
+  const cel=v=>`<td class="na-num${isNum(v)&&v<0?' num-neg':''}">${naSinal(v)}</td>`;
+  const tr=r=>`<tr${r.forte?' class="na-total"':''}><td class="lbl">${esc(r.op)}</td>`+
+    r.m.map(cel).join('')+`<td class="na-num na-sep${isNum(r.qtd)&&r.qtd<0?' num-neg':''}">${naSinal(r.qtd)}</td>`+
+    `<td class="na-num${isNum(r.ytd)&&r.ytd<0?' num-neg':''}">${naSinal(r.ytd)}</td></tr>`;
+
+  const cab=doze.map(i=>`<th class="na-num${i===ult?' na-ult':''}">${na.periods[i]}`+
+      `${emenda.has(i)?'<span class="na-dag" title="Fluxo medido na ANS contra a ANS. Neste mês a série de nível troca de metodologia ou recebeu revisão de safra, então o degrau do estoque não é igual à adição líquida.">†</span>':''}</th>`).join('');
+
+  return `
+    <div class="section-h">Adições líquidas por operadora — últimos 12 meses</div>
+    <div class="section-lede">Carteira ganha ou perdida mês a mês, em milhares de vidas.
+      <b>QTD</b> acumula o trimestre corrente (${tri}T${String(ref.ano).slice(2)}, de
+      ${qtdI.length} ${qtdI.length===1?'mês':'meses'}) e <b>YTD</b> o ano corrente
+      (${ytdI.length} ${ytdI.length===1?'mês':'meses'} de ${ref.ano}). Ordenado pelo YTD.
+      O fluxo é medido no cadastro da ANS contra a própria ANS, com os dois meses na
+      mesma safra — por isso ele não muda quando a ANS revisa uma competência já
+      publicada.${emenda.size?' Os meses marcados com † são aqueles em que o degrau da série de nível não é igual à adição líquida.':''}</div>
+    <div class="chipbar" id="naChips">
+      ${Object.entries(NA_ESCOPOS).map(([k,c])=>
+        `<span class="chip ${k===naEscopo?'on':''}" data-esc="${k}">${c.rotulo}</span>`).join('')}
+    </div>
+    <div class="table-wrap"><table class="na-tab">
+      <thead><tr><th class="lbl">${cfg.rotulo}</th>${cab}
+        <th class="na-num na-sep">QTD</th><th class="na-num">YTD</th></tr></thead>
+      <tbody>${linhas.map(tr).join('')}
+        <tr class="na-gap"><td colspan="${doze.length+3}"></td></tr>
+        ${extras.map(tr).join('')}</tbody>
+    </table></div>
+    <div class="rowcount">Valores em milhares de beneficiários de planos médicos. ${partic
+      ? '“Demais operadoras” é o mercado menos os dez grupos listados. A soma das linhas não fecha exatamente com o Mercado: as operadoras retidas ficam de fora e as encadeadas entram por variação.'
+      : 'Cada linha é a operadora principal do grupo, não o grupo econômico — as linhas não somam o mercado.'}</div>`;
+}
+
+function montarNetAdds(host){
+  if(!host) return;
+  let box=host.querySelector('#naBox');
+  if(!box){ box=document.createElement('div'); box.id='naBox'; host.appendChild(box); }
+  box.innerHTML=renderNetAdds();
+  const chips=box.querySelector('#naChips');
+  if(chips) chips.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+    naEscopo=c.dataset.esc; montarNetAdds(host);
+  }));
+}
+
 function renderReconc(){
   const a=S('ans'); const p=a&&a.pda024; if(!p) return '';
   const lv=S('ben.lives_m');
@@ -2104,6 +2233,7 @@ function renderView(id){
       'Aquisições em diagnósticos, varejo farmacêutico e distribuição.');
   }
   if(PANELS[id]) mountPanels(host,PANELS[id]);
+  if(id==='op-ben-med') montarNetAdds(host);
   if(id==='ipca-geral') ligarBarra();
 }
 function switchView(id){
