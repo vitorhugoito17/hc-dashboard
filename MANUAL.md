@@ -9,8 +9,8 @@ o acesso a esta conta do Claude?*
 
 **Perder a conta do Claude não para nada.** O dashboard não é atualizado pelo Claude.
 Ele é atualizado por uma rotina que roda no GitHub Actions, dentro do seu repositório,
-no dia 11 de cada mês, sem ninguém logado em lugar nenhum. O Claude escreveu o robô;
-quem executa o robô é o GitHub.
+todo dia às 12h UTC (9h de Brasília), sem ninguém logado em lugar nenhum. O Claude
+escreveu o robô; quem executa o robô é o GitHub.
 
 Prova disso, hoje: o ambiente onde tudo foi construído já foi reciclado — não existe
 mais um único arquivo lá. O repositório continua no ar, com o `atualizador.py` de
@@ -24,6 +24,33 @@ O que você perde ao trocar de conta do Claude:
 
 O que você **não** perde: o dashboard, o robô, os dados, o histórico de rodadas, o
 agendamento. Nada disso está dentro do Claude.
+
+---
+
+## 1.5. Onde abrir o dashboard
+
+O endereço fixo, sempre com a versão do dia:
+
+**https://vitorhugoito17.github.io/hc-dashboard/**
+
+É GitHub Pages servindo o próprio repositório. O robô reescreve o
+`Healthcare_Database_Dashboard.html` na rodada diária e o Pages republica em um ou dois
+minutos; o link nunca muda. Dá para favoritar, mandar por e-mail e abrir do celular.
+
+A contrapartida, que você aceitou conscientemente: **Pages só funciona em repositório
+público** — site privado é recurso de conta Enterprise. Ou seja, qualquer pessoa com o
+endereço vê o dashboard e o código. O que está lá dentro é dado público reconciliado
+(ANS, CNES, CNJ, IBGE) mais os números do relatório do Bradesco BBI; não há credencial,
+posição de carteira nem nota interna da Apex no repositório, e não deve haver. Antes de
+acrescentar qualquer bloco novo, pergunte se ele pode ser lido por um estranho.
+
+Três alternativas, se um dia a exposição incomodar:
+
+- **Baixar o HTML e abrir local.** Arquivo único, funciona offline com a base embutida.
+- **Voltar o repositório a privado.** O robô continua rodando normalmente; só o Pages
+  para de servir, e você volta a abrir o arquivo baixado.
+- **Mover para uma organização da Apex** com plano Enterprise, onde o Pages pode ser
+  publicado de forma restrita aos membros.
 
 ---
 
@@ -61,6 +88,8 @@ que o próprio GitHub injeta na execução. Não coloque token, senha ou chave l
 | `agregado_ans.json` | Memória do mês anterior, usada para encadear as séries por variação. |
 | `cnes_map.json` | O casamento entre as 166 unidades do dashboard e os códigos do CNES. |
 | `diagnostico_*.json` | O que cada coletor viu, conferiu e recusou na última rodada. |
+| `index.html` | Redirecionamento, para o endereço curto do Pages abrir o dashboard. |
+| `.nojekyll` | Diz ao Pages para servir os arquivos como estão, sem processar. |
 
 O dashboard busca a base nesta ordem: base publicada no GitHub → `dados.json` ao lado
 do arquivo → cópia embutida no próprio HTML. Ele desenha na hora com a embutida e
