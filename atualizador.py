@@ -659,6 +659,11 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     """
     p = rotulo(ym)
     log = []
+    # Reprocessar um mês do meio da série não pode fazer o cabeçalho e a aba de
+    # reconciliação andarem para trás: eles descrevem até onde a base vai, não
+    # qual foi a última competência que o robô tocou.
+    _lvp = D['ben']['lives_m']['periods']
+    mais_novo = (p not in _lvp) or (_lvp.index(p) == len(_lvp) - 1)
     fatores, diag = calibrar(D, ag, ag_ant, tolerancia, periodo=p)
     if verboso:
         _imprime_calibragem(diag, ym, ym_ant or ym)
@@ -676,22 +681,23 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     metodo = {op: st for op, st, *_ in diag if st in ('nível', 'encadeado')}
     incorporadas = sorted(x for x in aceitos if x != 'Market')
     retidas = sorted(op for op, st, *_ in diag if st == 'retido')
-    D.setdefault('meta', {})['reconciliacao'] = {
-        'competencia': p, 'tolerancia': tolerancia,
-        'competencia_anterior': rotulo(ym_ant) if ym_ant else None,
-        'metodo': metodo, 'incorporadas': incorporadas, 'retidas': retidas,
-    }
     # o dashboard lê a tabela de reconciliação daqui, não do meta
     pda = D.setdefault('ans', {}).setdefault('pda024', {})
-    pda.update({'competencia': p, 'competencia_anterior': rotulo(ym_ant) if ym_ant else None,
-                'processado_em': datetime.date.today().strftime('%d/%m/%Y'),
-                'tolerancia': tolerancia, 'metodo': metodo,
-                'incorporadas': incorporadas, 'retidas': retidas,
-                'total_medico': round(ag['total'] / 1000, 3),
-                'total_odonto': round(ag['total_odonto'] / 1000, 3)})
-    D['ans']['periodo'] = p
-    D['ans']['medico'] = round(ag['total'] / 1000, 3)
-    D['ans']['odonto'] = round(ag['total_odonto'] / 1000, 3)
+    if mais_novo:
+        D.setdefault('meta', {})['reconciliacao'] = {
+            'competencia': p, 'tolerancia': tolerancia,
+            'competencia_anterior': rotulo(ym_ant) if ym_ant else None,
+            'metodo': metodo, 'incorporadas': incorporadas, 'retidas': retidas,
+        }
+        pda.update({'competencia': p, 'competencia_anterior': rotulo(ym_ant) if ym_ant else None,
+                    'processado_em': datetime.date.today().strftime('%d/%m/%Y'),
+                    'tolerancia': tolerancia, 'metodo': metodo,
+                    'incorporadas': incorporadas, 'retidas': retidas,
+                    'total_medico': round(ag['total'] / 1000, 3),
+                    'total_odonto': round(ag['total_odonto'] / 1000, 3)})
+        D['ans']['periodo'] = p
+        D['ans']['medico'] = round(ag['total'] / 1000, 3)
+        D['ans']['odonto'] = round(ag['total_odonto'] / 1000, 3)
 
     # ---------- vidas e market share por operadora (médico) ----------
     vidas = {g: _mil(v) for g, v in ag['vidas'].items()}
@@ -755,7 +761,8 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
                       + (f' (mercado {m:+,.1f} mil)'.replace(',', '.') if m else ''))
                 log.append(f'revisão de {p_ant} ({len(revisoes)} séries)')
 
-    pda['revisoes'] = revisoes
+    if mais_novo:
+        pda['revisoes'] = revisoes
 
     # ---------- adições líquidas ----------
     # O fluxo é medido ANS contra ANS: os dois meses saem do mesmo cadastro, na
@@ -781,7 +788,8 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
             base_fluxo[g] = 'estoque'
     if _upsert(D['ben']['netadds_m'], p, net):
         log.append('ben.netadds_m')
-    pda['base_fluxo'] = base_fluxo
+    if mais_novo:
+        pda['base_fluxo'] = base_fluxo
     n_ans = sum(1 for v in base_fluxo.values() if v == 'ans')
     if n_ans:
         print(f'   fluxo de {p}: {n_ans} séries medidas ANS×ANS, '
@@ -904,13 +912,20 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
 
     conferir_emenda(D, p)
     rel = conferir_identidade(D, p)
-    D.setdefault('meta', {})['vintage_beneficiarios'] = p
-    D['meta']['reconciliacao']['gap_identidade'] = rel
+    if mais_novo:
+        D['meta']['reconciliacao']['gap_identidade'] = rel
+    # Reprocessar um mês antigo não pode fazer o selo do topo andar para trás:
+    # o cabeçalho anuncia até onde a base vai, não qual foi a última coisa que
+    # o robô tocou. --refazer 202606 com julho já gravado tem que deixar o selo
+    # em jul/26.
+    if mais_novo:
+        D.setdefault('meta', {})['vintage_beneficiarios'] = p
     n_niv = sum(1 for _, st, *_ in diag if st == 'nível') - 1
     n_enc = sum(1 for _, st, *_ in diag if st == 'encadeado')
     n_ret = sum(1 for _, st, *_ in diag if st == 'retido')
-    D['meta']['base'] = (f'beneficiários: {p} ({n_niv} operadoras por nível, '
-                         f'{n_enc} encadeadas' + (f', {n_ret} retidas' if n_ret else '') + ')')
+    if mais_novo:
+        D['meta']['base'] = (f'beneficiários: {p} ({n_niv} operadoras por nível, '
+                             f'{n_enc} encadeadas' + (f', {n_ret} retidas' if n_ret else '') + ')')
     if verboso:
         print(f'\n   Competência {p} incorporada em {len(log)} blocos:')
         for l in log: print(f'      · {l}')
