@@ -3,7 +3,7 @@
 atualizador.py — atualiza o Healthcare Database Dashboard (arquivo único)
 ========================================================================
 
-Este arquivo foi entregue como .txt porque a rede da Apex bloqueia download
+Este arquivo foi entregue como .txt porque a rede corporativa bloqueia download
 de .py. Renomeie para "atualizador.py" e deixe na mesma pasta do
 Healthcare_Database_Dashboard.html e do dados.json.
 
@@ -121,7 +121,7 @@ def mapear_colunas(header, verboso=True):
 # dashboard usa são somas de baldes, definidas em COMPOSTOS. Baldes que começam com
 # "_" são internos: existem só para alimentar a soma e não vão para o dashboard.
 GRUPOS = [
- # GNDI inclui as adquiridas que o BBI consolida no grupo (Clinipam, São Lucas)
+ # GNDI inclui as adquiridas que a base de origem consolida no grupo (Clinipam, São Lucas)
  ('GNDI',                        r'notre ?dame|interm[e_]dica|\bgndi\b|clinipam|sao lucas saude'),
  ('Hapvida',                     r'\bhapvida\b'),
  ('Amil Assistência Médica',     r'amil assist'),
@@ -534,7 +534,7 @@ def _ultimos(D):
 def calibrar(D, ag, ag_ant=None, tol=0.015, limite_var=0.06):
     """Decide, operadora a operadora, COMO o ponto novo entra na série.
 
-    A base histórica vem da consolidação do BBI, que agrupa CNPJs por critério
+    A base histórica vem da consolidação de origem, que agrupa CNPJs por critério
     societário próprio. O cálculo novo vem do PDA-024 agrupado por razão social.
     Onde os dois escopos coincidem, o número absoluto da ANS entra direto. Onde
     divergem, o nível não é comparável — mas a VARIAÇÃO é, desde que medida na
@@ -563,7 +563,7 @@ def calibrar(D, ag, ag_ant=None, tol=0.015, limite_var=0.06):
         if base is None:
             diag.append((op, 'fora da base', None, novo, None, None)); continue
         if base == 0:
-            # ex.: Unimed Rio, que o BBI consolida dentro da Ferj
+            # ex.: Unimed Rio, que a base de origem consolida dentro da Ferj
             if novo <= 1.0:
                 fatores[op] = 1.0
                 diag.append((op, 'nível', base, novo, 0.0, 1.0))
@@ -643,7 +643,7 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
     """Acrescenta a competência ym às séries de beneficiários. Devolve o log.
 
     Com `ag_ant` (o agregado da competência anterior, calculado com ESTA mesma
-    metodologia), as operadoras cujo escopo de grupo não bate com o do BBI
+    metodologia), as operadoras cujo escopo de grupo não bate com o da base
     entram por variação mês a mês em vez de ficarem paradas. Sem ele, o
     comportamento é o antigo: só entra quem reconcilia por nível.
     """
@@ -832,7 +832,7 @@ def merge(D, ag, ym, ag_ant=None, ym_ant=None, verboso=True, tolerancia=0.015):
 def conferir_emenda(D, p, limite=0.03):
     """Compara o ponto novo com o anterior de cada operadora.
 
-    As séries da base vêm da consolidação do BBI; o ponto novo vem do PDA-024
+    As séries da base vêm da consolidação de origem; o ponto novo vem do PDA-024
     cru. Se as duas metodologias divergirem, aparece como um degrau — e é melhor
     ver isso explicitamente do que descobrir num gráfico depois.
     """
@@ -855,7 +855,7 @@ def conferir_emenda(D, p, limite=0.03):
     for op, ant, atual, d in sorted(alertas, key=lambda x:-abs(x[3])):
         print(f'   {op:32} {ant:12,.1f} {atual:12,.1f} {d:9.1%}')
     print('   Variação mensal real de carteira raramente passa de 1-2%. Degrau grande aqui')
-    print('   normalmente significa diferença de metodologia entre a consolidação do BBI e')
+    print('   normalmente significa diferença de metodologia entre a consolidação de origem e')
     print('   o agrupamento deste script — revise GRUPOS em py antes de usar a série.')
 
 
@@ -1095,7 +1095,7 @@ FONTES = {
    'dir': 'https://justica-em-numeros.cnj.jus.br/painel-saude/',
    'tipo': 'cnj', 'alimenta': ['legal.lawsuits'],
    'obs': 'Painel "Estatísticas Processuais de Direito à Saúde", atualizado mensalmente. '
-          'Consultado direto no modelo do Power BI publicado. Reproduz a série do BBI '
+          'Consultado direto no modelo do Power BI publicado. Reproduz a série da base de origem '
           'mês a mês. A API pública do DataJud, por outro lado, está ~18 meses atrasada.',
  },
  'sindusfarma': {
@@ -1717,7 +1717,7 @@ def casar_unidades(D, leitos, tolerancia=0.10, verboso=True):
 
     Só aceita o casamento quando os leitos calculados batem com os que a base
     já traz na última competência — ou seja, quando conseguimos REPRODUZIR o
-    número que o BBI publicou. Casamento que não reproduz é casamento errado.
+    número que a base de origem publicou. Casamento que não reproduz é casamento errado.
     """
     linhas = D['hosp']['units']['rows']
     periodos = D['hosp']['units']['periods']
@@ -1976,9 +1976,9 @@ Coletor do painel "Estatísticas Processuais de Direito à Saúde" do CNJ
 Por que este painel e não a API pública do DataJud: a API está cerca de 18
 meses atrasada, enquanto o painel é atualizado mensalmente e já traz
 "Dados até 30/06/2026". Mais importante: os números batem. A série
-`legal.lawsuits` do relatório do BBI, somada de jan a jun/26, dá 181.643 —
+`legal.lawsuits` da base de origem, somada de jan a jun/26, dá 181.643 —
 exatamente o "Entradas em 2026 · Novos" que o painel mostra para Saúde
-Suplementar. Mês a mês também: jan/26 = 23.608 nos dois. O BBI é consumidor
+Suplementar. Mês a mês também: jan/26 = 23.608 nos dois. A base de origem é consumidora
 desta mesma fonte.
 
 O painel é um Power BI publicado na web. Publicação desse tipo aceita consulta
@@ -2193,7 +2193,7 @@ def conferir_cnj(D, series, tolerancia=0.005, ultimos=6):
     """O painel reproduz os meses que a base já tem?
 
     O CNJ reprocessa o histórico à medida que os tribunais reenviam dados, então
-    meses antigos saem um pouco diferentes do que o BBI publicou na época. O que
+    meses antigos saem um pouco diferentes do que a base de origem publicou na época. O que
     precisa bater é a ponta: se os últimos meses coincidem, é a mesma
     metodologia e o mês novo pode entrar na mesma série.
     """
@@ -2228,7 +2228,7 @@ def conferir_cnj(D, series, tolerancia=0.005, ultimos=6):
 def merge_cnj(D, series, ultimo, verboso=True, tolerancia=0.005):
     """Acrescenta à série de novas ações os meses que o painel já tem e a base não.
 
-    Não reescreve o histórico. O que o BBI publicou fica como está — o painel
+    Não reescreve o histórico. O que a base de origem publicou fica como está — o painel
     revisa meses antigos, e trocar número que você já citou em relatório é pior
     do que conviver com a revisão. O tamanho da revisão vai para o diagnóstico.
     """
@@ -2557,7 +2557,7 @@ Duas bases distintas alimentam a aba de reclamações:
   IGR  — Índice Geral de Reclamações, já calculado pela ANS: um CSV por ano,
          uma linha por operadora e uma coluna por mês.
 
-O agrupamento aqui é diferente do usado em beneficiários: nesta aba o BBI abre
+O agrupamento aqui é diferente do usado em beneficiários: nesta aba a base de origem abre
 Clinipam, São Lucas, Medisanitas e CCG como linhas próprias, e "HAPV" é a soma
 de todas as empresas do grupo Hapvida. Conferi a definição na própria base:
 em jun/26, HAPV = 5.005 = Hapvida 2.153 + NDI 2.358 + Clinipam 159 + São Lucas
@@ -2567,7 +2567,7 @@ em jun/26, HAPV = 5.005 = Hapvida 2.153 + NDI 2.358 + Clinipam 159 + São Lucas
 NIP_DIR = 'https://dadosabertos.ans.gov.br/FTP/PDA/demandas_dos_consumidores_nip/'
 IGR_DIR = 'https://dadosabertos.ans.gov.br/FTP/PDA/IGR/'
 
-# Nesta aba o BBI conta a operadora principal de cada grupo, não o grupo
+# Nesta aba a base de origem conta a operadora principal de cada grupo, não o grupo
 # econômico inteiro. Descobri isso auditando quais razões sociais caíam em cada
 # balde: somando "Bradesco Saúde - Operadora de Planos" e a Mediservice à
 # Bradesco Saúde S.A., o mês de jun/26 dava 2.829 contra 2.469 do relatório;
@@ -2822,7 +2822,7 @@ def ler_igr(caminho, verboso=True):
 
 
 # O IGR não precisa dos arquivos do IGR: a ANS o define como demandas por 100
-# mil beneficiários, e conferi na base que o BBI usa a carteira do mês ANTERIOR
+# mil beneficiários, e conferi na base que a origem usa a carteira do mês ANTERIOR
 # como denominador. Em jun/26 isso reproduz Amil 63,81, Bradesco 72,79,
 # SulAmérica 93,34, Unimed Ferj 348,65 e o mercado 55,39 — todos exatos.
 # Como já coleto NIP e beneficiários, o índice sai de graça e sem depender de

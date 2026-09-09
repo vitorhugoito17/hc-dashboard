@@ -40,8 +40,8 @@ minutos; o link nunca muda. Dá para favoritar, mandar por e-mail e abrir do cel
 A contrapartida, que você aceitou conscientemente: **Pages só funciona em repositório
 público** — site privado é recurso de conta Enterprise. Ou seja, qualquer pessoa com o
 endereço vê o dashboard e o código. O que está lá dentro é dado público reconciliado
-(ANS, CNES, CNJ, IBGE) mais os números do relatório do Bradesco BBI; não há credencial,
-posição de carteira nem nota interna da Apex no repositório, e não deve haver. Antes de
+(ANS, CNES, CNJ, IBGE) mais os números da base setorial de origem; não há credencial,
+posição de carteira nem nota interna no repositório, e não deve haver. Antes de
 acrescentar qualquer bloco novo, pergunte se ele pode ser lido por um estranho.
 
 Três alternativas, se um dia a exposição incomodar:
@@ -49,7 +49,7 @@ Três alternativas, se um dia a exposição incomodar:
 - **Baixar o HTML e abrir local.** Arquivo único, funciona offline com a base embutida.
 - **Voltar o repositório a privado.** O robô continua rodando normalmente; só o Pages
   para de servir, e você volta a abrir o arquivo baixado.
-- **Mover para uma organização da Apex** com plano Enterprise, onde o Pages pode ser
+- **Mover para uma organização corporativa** com plano Enterprise, onde o Pages pode ser
   publicado de forma restrita aos membros.
 
 ---
@@ -63,9 +63,9 @@ Vale gastar dez minutos agora com três coisas:
 
 1. **E-mail de recuperação e 2FA** configurados na conta do GitHub, com os códigos de
    backup guardados fora do computador.
-2. **Um segundo dono.** Em `Settings → Collaborators` você adiciona alguém da Apex com
+2. **Um segundo dono.** Em `Settings → Collaborators` você adiciona um colega com
    acesso de escrita, ou — melhor — transfere o repositório para uma organização da
-   Apex, onde mais de uma pessoa administra.
+   sua empresa, onde mais de uma pessoa administra.
 3. **Uma cópia local do repositório.** Baixe o ZIP em `Code → Download ZIP` de vez em
    quando, ou clone. São poucos megabytes e é a apólice mais barata que existe.
 
@@ -94,7 +94,7 @@ que o próprio GitHub injeta na execução. Não coloque token, senha ou chave l
 O dashboard busca a base nesta ordem: base publicada no GitHub → `dados.json` ao lado
 do arquivo → cópia embutida no próprio HTML. Ele desenha na hora com a embutida e
 troca em segundo plano quando a publicada chega, então nunca fica tela branca — e se a
-rede da Apex bloquear o GitHub, ele simplesmente continua com a embutida.
+rede corporativa bloquear o GitHub, ele simplesmente continua com a embutida.
 
 ---
 
@@ -216,7 +216,7 @@ contratação e faixa etária (ANS PDA-024), leitos por hospital (CNES), judicia
 
 **Tentado e não resolvido:** leitos por UF e por município. Seis recortes do CNES
 testados contra os 23.251 leitos de São Paulo da base; o melhor deu 61.416. O universo
-que o BBI usa é bem mais estreito do que qualquer filtro simples do cadastro. O
+que a base de origem usa é bem mais estreito do que qualquer filtro simples do cadastro. O
 `diagnostico_leitos_uf.json` tem os números de cada tentativa.
 
 **Sem endpoint:** ANAHP e Sindusfarma publicam PDF e planilha. Dá para extrair, mas
