@@ -309,39 +309,33 @@
   },
   "IGR": {
    "periodo": "jul/26",
-   "operadoras": 5,
-   "dentro_da_tolerancia": 5,
+   "operadoras": 4,
+   "dentro_da_tolerancia": 4,
    "aprovado": true,
    "detalhe": [
     {
-     "operadora": "Bradesco Saúde",
-     "base": 86.611317,
-     "calculado": 86.6113,
-     "dif": 0.0
-    },
-    {
      "operadora": "Hapvida",
      "base": 53.222423,
-     "calculado": 53.2224,
-     "dif": 0.0
+     "calculado": 53.0308,
+     "dif": -0.0036
     },
     {
      "operadora": "SulAmérica",
      "base": 113.456292,
-     "calculado": 113.4563,
-     "dif": 0.0
-    },
-    {
-     "operadora": "Unimed Seguros",
-     "base": 66.522137,
-     "calculado": 66.5221,
-     "dif": 0.0
+     "calculado": 113.3003,
+     "dif": -0.0014
     },
     {
      "operadora": "Market",
      "base": 65.390092,
-     "calculado": 65.3901,
-     "dif": 0.0
+     "calculado": 65.47,
+     "dif": 0.0012
+    },
+    {
+     "operadora": "Unimed Seguros",
+     "base": 66.522137,
+     "calculado": 66.5636,
+     "dif": 0.0006
     }
    ]
   }
