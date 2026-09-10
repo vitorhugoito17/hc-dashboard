@@ -3368,10 +3368,11 @@ LISTADAS = {
           'rotulo': 'Hapvida · Hapvida + NDI'},
  'QUAL': {'re': [r'^qualicorp consultoria'], 'ans': None,
           'rotulo': 'Qualicorp'},
- # Odontoprev não aparece no IPE de 2025-2026 sob nenhum nome com "odonto".
- # Fica declarada para a descoberta continuar procurando e avisar se voltar.
- 'ODPV': {'re': [r'^odontoprev'], 'ans': 'Odontoprev', 'rotulo': 'Odontoprev',
-          'odonto': True},
+ # A Odontoprev sumiu do IPE sob esse nome: virou o veículo de saúde do
+ # Bradesco (Bradsaúde). Os dois padrões ficam declarados porque a razão social
+ # exata da holding nova ainda tem de sair da descoberta, não de suposição.
+ 'ODPV': {'re': [r'^odontoprev', r'^brads'], 'ans': 'Odontoprev',
+          'rotulo': 'Odontoprev / Bradsaúde', 'odonto': True},
 }
 
 # assuntos que costumam carregar número de resultado; a descoberta confirma
@@ -3468,8 +3469,9 @@ def _nome_simples(s):
 
 
 # tokens usados só para o dump de nomes candidatos da descoberta
-REL_TOKENS = ('bradesco', 'porto', 'rede d', 'odonto', 'sul america', 'hapvida',
-              'qualicorp', 'notre dame', 'amil', 'intermedica')
+REL_TOKENS = ('bradesco', 'brads', 'porto', 'rede d', 'odonto', 'sul america',
+              'hapvida', 'qualicorp', 'notre dame', 'intermedica', 'saude part',
+              'seguro saude')
 
 
 def acao_releases_descobrir(anos=None):
