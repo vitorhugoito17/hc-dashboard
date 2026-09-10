@@ -3560,6 +3560,13 @@ def acao_releases_descobrir(anos=None):
         n = len(a['recentes'])
         cn = ', '.join(list(a['cnpjs'])[:2]) or '—'
         print(f'   {k:<5} {a["rotulo"]:<28} cnpj {cn:<22} {n} documentos com cara de resultado')
+
+    # a segunda metade da descoberta roda junto: saber QUANDO saiu não serve de
+    # nada sem saber COMO o número está escrito lá dentro
+    try:
+        acao_releases_documentos()
+    except Exception as e:
+        print(f'  abrir os documentos falhou: {type(e).__name__}: {e}')
     return saida
 
 
@@ -3597,7 +3604,15 @@ def _trechos_pdf(caminho, chaves=REL_CHAVES, por_chave=3, janela=190):
     try:
         import pdfplumber
     except ImportError:
-        return {'erro': 'pdfplumber não instalado'}
+        # o passo de dependências do workflow pode não ter o pdfplumber; instalar
+        # aqui deixa o coletor inteiro num arquivo só, que é o combinado do projeto
+        import subprocess
+        subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', 'pdfplumber'],
+                       check=False)
+        try:
+            import pdfplumber
+        except ImportError as e:
+            return {'erro': f'pdfplumber indisponível: {e}'}
     achados, paginas = {}, 0
     try:
         with pdfplumber.open(caminho) as pdf:
