@@ -3360,20 +3360,23 @@ CAB_CVM = {
 LISTADAS = {
  'RDOR': {'re': [r'^rede d or sao luiz'], 'ans': 'SulAmérica',
           'rotulo': "Rede D'Or · SulAmérica"},
- 'BBDC': {'re': [r'^banco bradesco s a$'], 'ans': 'Bradesco Saúde',
-          'rotulo': 'Bradesco · Bradesco Saúde'},
- 'PSSA': {'re': [r'^porto seguro s ?a$', r'^porto saude participacoes'],
-          'ans': 'Porto Seguro', 'rotulo': 'Porto · Porto Saúde'},
+ # Porto e Bradesco são conferidas pela SUBSIDIÁRIA de saúde, não pela
+ # controladora: as duas protocolam separado na CVM, e o release da holding
+ # mistura seguro auto, banco e consórcio com a carteira médica. A descoberta
+ # é que mostrou que essas registrantes existem.
+ 'PSAU': {'re': [r'^porto saude participacoes'], 'ans': 'Porto Seguro',
+          'rotulo': 'Porto Saúde'},
+ # A Bradsaúde é a antiga Odontoprev renomeada: mesma registrante, agora
+ # holding de saúde do Bradesco. Por isso ela tem DOIS comparáveis na ANS —
+ # a carteira médica e a odontológica.
+ 'SAUD': {'re': [r'^brads', r'^odontoprev'], 'ans': 'Bradesco Saúde',
+          'ans_odonto': 'Odontoprev', 'rotulo': 'Bradsaúde (ex-Odontoprev)'},
  'HAPV': {'re': [r'^hapvida participacoes'], 'ans': 'Hapvida + GNDI',
-          'rotulo': 'Hapvida · Hapvida + NDI'},
+          'ans_odonto': 'Hapvida', 'rotulo': 'Hapvida · Hapvida + NDI'},
  'QUAL': {'re': [r'^qualicorp consultoria'], 'ans': None,
           'rotulo': 'Qualicorp'},
- # A Odontoprev sumiu do IPE sob esse nome: virou o veículo de saúde do
- # Bradesco (Bradsaúde). Os dois padrões ficam declarados porque a razão social
- # exata da holding nova ainda tem de sair da descoberta, não de suposição.
- 'ODPV': {'re': [r'^odontoprev', r'^brads'], 'ans': 'Odontoprev',
-          'rotulo': 'Odontoprev / Bradsaúde', 'odonto': True},
 }
+
 
 # assuntos que costumam carregar número de resultado; a descoberta confirma
 REL_PISTAS = ('resultado', 'release', 'earnings', 'itr', 'demonstra', 'desempenho',
@@ -3484,6 +3487,7 @@ def acao_releases_descobrir(anos=None):
     anos = anos or [datetime.date.today().year, datetime.date.today().year - 1]
     padroes = {k: [re.compile(x, re.I) for x in v['re']] for k, v in LISTADAS.items()}
     achados = {k: {'rotulo': LISTADAS[k]['rotulo'], 'ans': LISTADAS[k]['ans'],
+                   'ans_odonto': LISTADAS[k].get('ans_odonto'),
                    'cnpjs': {}, 'categorias': {}, 'tipos': {}, 'recentes': []}
                for k in LISTADAS}
     saida = {'gerado_em': datetime.date.today().isoformat(), 'anos': anos,
@@ -3559,6 +3563,131 @@ def acao_releases_descobrir(anos=None):
     return saida
 
 
+# ---- segunda descoberta: abrir os documentos e ver como o número é escrito ----
+"""
+O índice da CVM já diz QUANDO saiu e ONDE está. Falta saber COMO cada companhia
+escreve os números no release — e isso nenhuma documentação responde, porque
+cada uma escreve do seu jeito e muda de layout entre trimestres.
+
+Esta passada baixa o release mais recente de cada uma e registra, sem gravar
+nada na base: o formato que o link devolve, quantas páginas tem, e os trechos
+em volta das palavras que interessam. O parser vem depois, escrito em cima
+disto. É o mesmo laço que a gente usou no PDA-024 e no CNES.
+"""
+
+REL_CHAVES = ('beneficiári', 'beneficiario', 'vidas', 'sinistralidade',
+              'sinistro', 'mlr', 'carteira', 'ticket')
+TIPOS_ALVO = ('press-release', 'demonstrações financeiras', 'demonstracoes financeiras')
+
+
+def _baixar_documento(url, destino):
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    r = requests.get(url, headers=CAB_CVM, timeout=(30, 300), stream=True,
+                     allow_redirects=True)
+    r.raise_for_status()
+    ct = r.headers.get('Content-Type', '')
+    with open(destino, 'wb') as f:
+        for c in r.iter_content(1 << 20):
+            f.write(c)
+    return ct, os.path.getsize(destino)
+
+
+def _trechos_pdf(caminho, chaves=REL_CHAVES, por_chave=3, janela=190):
+    """Páginas, e os trechos em volta de cada palavra-chave."""
+    try:
+        import pdfplumber
+    except ImportError:
+        return {'erro': 'pdfplumber não instalado'}
+    achados, paginas = {}, 0
+    try:
+        with pdfplumber.open(caminho) as pdf:
+            paginas = len(pdf.pages)
+            for n, pag in enumerate(pdf.pages, 1):
+                txt = (pag.extract_text() or '')
+                baixo = _nome_simples(txt)
+                for ch in chaves:
+                    alvo = _nome_simples(ch)
+                    ini = 0
+                    while len(achados.get(ch, [])) < por_chave:
+                        k = baixo.find(alvo, ini)
+                        if k < 0:
+                            break
+                        achados.setdefault(ch, []).append(
+                            {'pagina': n,
+                             'trecho': baixo[max(0, k - janela//2): k + janela].strip()})
+                        ini = k + len(alvo)
+    except Exception as e:
+        return {'erro': f'{type(e).__name__}: {e}', 'paginas': paginas}
+    return {'paginas': paginas, 'trechos': achados}
+
+
+def _inspecionar(url, tag):
+    """Baixa e descreve um documento: formato, tamanho e o que tem dentro."""
+    saida = {'url': url}
+    destino = os.path.join(CACHE, 'cvm', 'docs', re.sub(r'[^A-Za-z0-9_.-]', '_', tag)[:80])
+    try:
+        ct, tam = _baixar_documento(url, destino)
+    except Exception as e:
+        saida['erro'] = f'{type(e).__name__}: {e}'[:200]
+        return saida
+    with open(destino, 'rb') as f:
+        magia = f.read(8)
+    saida.update({'content_type': ct, 'bytes': tam, 'magia': magia[:4].hex()})
+
+    if magia.startswith(b'PK'):
+        saida['formato'] = 'zip'
+        try:
+            with zipfile.ZipFile(destino) as z:
+                membros = z.namelist()
+                saida['membros'] = membros[:25]
+                pdfs = [m for m in membros if m.lower().endswith('.pdf')]
+                if pdfs:
+                    alvo = os.path.join(CACHE, 'cvm', 'docs', 'extraido.pdf')
+                    with open(alvo, 'wb') as g:
+                        g.write(z.read(pdfs[0]))
+                    saida['pdf_no_zip'] = pdfs[0]
+                    saida.update(_trechos_pdf(alvo))
+        except Exception as e:
+            saida['erro_zip'] = str(e)[:200]
+    elif magia.startswith(b'%PDF'):
+        saida['formato'] = 'pdf'
+        saida.update(_trechos_pdf(destino))
+    else:
+        saida['formato'] = 'outro'
+        with open(destino, 'rb') as f:
+            saida['inicio'] = f.read(300).decode('utf-8', 'replace')
+    return saida
+
+
+def acao_releases_documentos(por_empresa=1):
+    """Abre o release mais recente de cada listada e registra como ele é escrito."""
+    if not os.path.exists(DIAG_REL):
+        print('  rode antes --releases-descobrir'); return
+    diag = json.load(open(DIAG_REL, encoding='utf-8'))
+    diag['documentos'] = {}
+    for k, e in diag.get('empresas', {}).items():
+        alvos = [r for r in e.get('recentes', [])
+                 if any(t in (r.get('tipo') or '').lower() for t in TIPOS_ALVO)]
+        alvos = [r for r in alvos if r.get('link')][:por_empresa]
+        if not alvos:
+            diag['documentos'][k] = {'aviso': 'nenhum documento com link e tipo alvo'}
+            continue
+        r = alvos[0]
+        print(f'\n  {k} — {r["data_entrega"][:10]} · {r["tipo"][:30]} · {r["assunto"][:50]}')
+        info = _inspecionar(r['link'], f'{k}_{r["data_entrega"][:10]}')
+        info.update({'data_entrega': r['data_entrega'], 'tipo': r['tipo'],
+                     'assunto': r['assunto']})
+        diag['documentos'][k] = info
+        ch = (info.get('trechos') or {})
+        print(f'     formato {info.get("formato")} · {info.get("bytes",0)/1024:.0f} KB · '
+              f'{info.get("paginas","?")} páginas · {len(ch)} palavras-chave achadas'
+              + (f' · ERRO {info.get("erro") or info.get("erro_zip")}'
+                 if info.get('erro') or info.get('erro_zip') else ''))
+    json.dump(diag, open(DIAG_REL, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print('\n  diagnostico_releases.json atualizado com a seção documentos')
+    return diag
+
+
 def _cli():
     import argparse
     ap = argparse.ArgumentParser(description='Atualiza o Healthcare Database Dashboard.')
@@ -3584,6 +3713,8 @@ def _cli():
                     help='mapeia o schema das bases da ANS que ainda não têm coletor')
     ap.add_argument('--releases-descobrir', action='store_true',
                     help='mapeia o que a CVM publica das listadas (não grava número)')
+    ap.add_argument('--releases-documentos', action='store_true',
+                    help='abre o release mais recente de cada listada e registra o formato')
     ap.add_argument('--leitos-uf', action='store_true',
                     help='testa recortes do CNES contra os leitos por UF da base')
     ap.add_argument('--refazer', metavar='AAAAMM',
@@ -3593,6 +3724,9 @@ def _cli():
 
     if getattr(a, 'releases_descobrir', False):
         acao_releases_descobrir(); return
+
+    if getattr(a, 'releases_documentos', False):
+        acao_releases_documentos(); return
 
     if a.refazer:
         if not re.fullmatch(r'\d{6}', a.refazer):
