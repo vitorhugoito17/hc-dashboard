@@ -1374,21 +1374,285 @@
    }
   },
   "ODPV": {
-   "rotulo": "Odontoprev",
+   "rotulo": "Odontoprev / Bradsaúde",
    "ans": "Odontoprev",
-   "cnpjs": {},
-   "categorias": {},
-   "tipos": {},
-   "recentes": []
+   "cnpjs": {
+    "58.119.199/0001-51": 194
+   },
+   "categorias": {
+    "Valores Mobiliários negociados e detidos (art. 11 da Instr. CVM nº 358)": 42,
+    "Assembleia": 29,
+    "Reunião da Administração": 29,
+    "Comunicado ao Mercado": 23,
+    "Aviso aos Acionistas": 15,
+    "Dados Econômico-Financeiros": 11,
+    "Relatório Proventos": 10,
+    "Fato Relevante": 9,
+    "Calendário de Eventos Corporativos": 8,
+    "Comunicação sobre Transação entre Partes Relacionadas": 3,
+    "Estatuto Social": 2,
+    "Política para Contratação de Serviços Extra-Auditoria de seus Auditores Independentes": 2,
+    "Regimento interno de Comitês": 2,
+    "Política de Divulgação de Ato ou Fato Relevante": 1,
+    "Política de indicação": 1
+   },
+   "tipos": {
+    "Conselho de Administração": 26,
+    "Posição Consolidada": 21,
+    "Posição Individual - Cia, Controladas e Coligadas": 21,
+    "Outros avisos": 12,
+    "AGE": 11,
+    "AGO": 11,
+    "Outros Comunicados Não Considerados Fatos Relevantes": 11,
+    "Apresentações a analistas/agentes do mercado": 8,
+    "Demonstrações Financeiras Adicionais": 7,
+    "AGO/E": 7,
+    "Aquisição/Alienação de Participação Acionária (art. 12 da Instr. CVM nº 358)": 4,
+    "Data prevista para a assembleia": 3,
+    "Conselho Fiscal": 3,
+    "Demonstrações Financeiras Anuais Completas": 2,
+    "Press-release": 2
+   },
+   "recentes": [
+    {
+     "data_referencia": "2026-06-30",
+     "data_entrega": "2026-08-17",
+     "categoria": "Dados Econômico-Financeiros",
+     "tipo": "Demonstrações Financeiras Adicionais",
+     "especie": "Demonstrações Financeiras em Padrões Internacionais",
+     "assunto": "ITR Inglês 3T26",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1558699&numSequencia=1083405&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-08-04",
+     "data_entrega": "2026-08-04",
+     "categoria": "Comunicado ao Mercado",
+     "tipo": "Apresentações a analistas/agentes do mercado",
+     "especie": "",
+     "assunto": "Webcast 2T26",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1551666&numSequencia=1076372&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-06-30",
+     "data_entrega": "2026-08-04",
+     "categoria": "Dados Econômico-Financeiros",
+     "tipo": "Press-release",
+     "especie": "",
+     "assunto": "Relatório de Resultados 2T26 [Português e Inglês]",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1552191&numSequencia=1076897&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-08-03",
+     "data_entrega": "2026-08-03",
+     "categoria": "Dados Econômico-Financeiros",
+     "tipo": "Press-release",
+     "especie": "",
+     "assunto": "Relatório de Resultados 2T26 [Português e Inglês]",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1551412&numSequencia=1076118&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-08-03",
+     "data_entrega": "2026-08-03",
+     "categoria": "Política de Divulgação de Ato ou Fato Relevante",
+     "tipo": "",
+     "especie": "",
+     "assunto": "",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1551401&numSequencia=1076107&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-08-03",
+     "data_entrega": "2026-08-03",
+     "categoria": "Reunião da Administração",
+     "tipo": "Conselho de Administração",
+     "especie": "Ata",
+     "assunto": "Aprovação da Política de Divulgação de Atos ou Fatos Relevantes||Aprovação da Política de Negociação de Valores Mobiliários||Aprovação da Política de Remuneração dos Administradores||Aprovação do Regimento Interno do Com",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1551073&numSequencia=1075779&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-03-31",
+     "data_entrega": "2026-05-21",
+     "categoria": "Dados Econômico-Financeiros",
+     "tipo": "Demonstrações Financeiras Adicionais",
+     "especie": "Demonstrações Financeiras em Padrões Internacionais",
+     "assunto": "ITR 1T26 - Inglês",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1525610&numSequencia=1050316&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-05-05",
+     "data_entrega": "2026-05-05",
+     "categoria": "Comunicado ao Mercado",
+     "tipo": "Apresentações a analistas/agentes do mercado",
+     "especie": "",
+     "assunto": "Webcast 1T26",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1515720&numSequencia=1040426&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-05-04",
+     "data_entrega": "2026-05-04",
+     "categoria": "Reunião da Administração",
+     "tipo": "Conselho de Administração",
+     "especie": "Ata",
+     "assunto": "Apreciação do relatório do Comitê de Auditoria da Odontoprev S.A. referente ao primeiro trimestre do exercício de 2026||Aprovação dos resultados do 1º Trimestre/2026 da Odontoprev S.A.||Obrigações decorrentes da RN 518/2",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1515243&numSequencia=1039949&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-03-31",
+     "data_entrega": "2026-03-31",
+     "categoria": "Assembleia",
+     "tipo": "AGO",
+     "especie": "Ata",
+     "assunto": "Destinação dos Resultados||Eleição de Membros dos Conselhos de Administração e Fiscal||Remuneração dos Administradores e Conselheiros||Tomada de Contas-Votação do Relatório da Administração e das Demonstrações Financeira",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1499213&numSequencia=1023919&numVersao=1"
+    },
+    {
+     "data_referencia": "2025-12-31",
+     "data_entrega": "2026-03-19",
+     "categoria": "Dados Econômico-Financeiros",
+     "tipo": "Demonstrações Financeiras Adicionais",
+     "especie": "Demonstrações Financeiras em Padrões Internacionais",
+     "assunto": "Versão em inglês",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1492787&numSequencia=1017493&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-03-31",
+     "data_entrega": "2026-03-18",
+     "categoria": "Assembleia",
+     "tipo": "AGO",
+     "especie": "Proposta da Administração",
+     "assunto": "Comentário dos administradores sobre a situação financeira da companhia||Destinação dos Resultados||Eleição de Membros dos Conselhos de Administração e Fiscal||Remuneração dos Administradores e Conselheiros||Tomada de Co",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1492149&numSequencia=1016855&numVersao=3"
+    },
+    {
+     "data_referencia": "2026-03-31",
+     "data_entrega": "2026-03-02",
+     "categoria": "Assembleia",
+     "tipo": "AGO",
+     "especie": "Proposta da Administração",
+     "assunto": "Comentário dos administradores sobre a situação financeira da companhia||Destinação dos Resultados||Eleição de Membros dos Conselhos de Administração e Fiscal||Remuneração dos Administradores e Conselheiros||Tomada de Co",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1484315&numSequencia=1009021&numVersao=2"
+    },
+    {
+     "data_referencia": "2026-03-01",
+     "data_entrega": "2026-03-02",
+     "categoria": "Comunicado ao Mercado",
+     "tipo": "Apresentações a analistas/agentes do mercado",
+     "especie": "",
+     "assunto": "Apresentação ROADSHOW Bradsaúde",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1483671&numSequencia=1008377&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-03-31",
+     "data_entrega": "2026-02-27",
+     "categoria": "Assembleia",
+     "tipo": "AGO",
+     "especie": "Edital de Convocação",
+     "assunto": "Destinação dos Resultados||Eleição de Membros dos Conselhos de Administração e Fiscal||Remuneração dos Administradores e Conselheiros||Tomada de Contas-Votação do Relatório da Administração e das Demonstrações Financeira",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1482959&numSequencia=1007665&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-03-31",
+     "data_entrega": "2026-02-27",
+     "categoria": "Assembleia",
+     "tipo": "AGO",
+     "especie": "Proposta da Administração",
+     "assunto": "Comentário dos administradores sobre a situação financeira da companhia||Destinação dos Resultados||Eleição de Membros dos Conselhos de Administração e Fiscal||Remuneração dos Administradores e Conselheiros||Tomada de Co",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1482967&numSequencia=1007673&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-02-27",
+     "data_entrega": "2026-02-27",
+     "categoria": "Comunicado ao Mercado",
+     "tipo": "Apresentações a analistas/agentes do mercado",
+     "especie": "",
+     "assunto": "Webcast 4T25",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1483346&numSequencia=1008052&numVersao=1"
+    },
+    {
+     "data_referencia": "2025-12-31",
+     "data_entrega": "2026-02-27",
+     "categoria": "Dados Econômico-Financeiros",
+     "tipo": "Demonstrações Financeiras Anuais Completas",
+     "especie": "",
+     "assunto": "",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1483043&numSequencia=1007749&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-02-26",
+     "data_entrega": "2026-02-27",
+     "categoria": "Reunião da Administração",
+     "tipo": "Conselho de Administração",
+     "especie": "Ata",
+     "assunto": "Alteração de Membros do Conselho de Administração||Apreciar o Relatório Anual da Administração, contas dos administradores, Demonstrações Financeiras e o Relatório dos Auditores Independentes da Companhia, relativos ao e",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1482948&numSequencia=1007654&numVersao=1"
+    },
+    {
+     "data_referencia": "2026-02-26",
+     "data_entrega": "2026-02-27",
+     "categoria": "Reunião da Administração",
+     "tipo": "Conselho Fiscal",
+     "especie": "Ata",
+     "assunto": "Parecer acerca das Demonstrações Financeiras",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1483012&numSequencia=1007718&numVersao=1"
+    },
+    {
+     "data_referencia": "2025-09-30",
+     "data_entrega": "2025-11-17",
+     "categoria": "Dados Econômico-Financeiros",
+     "tipo": "Demonstrações Financeiras Adicionais",
+     "especie": "Demonstrações Financeiras em Padrões Internacionais",
+     "assunto": "ITR 3T25 - Inglês",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1446418&numSequencia=971130&numVersao=1"
+    },
+    {
+     "data_referencia": "2025-11-05",
+     "data_entrega": "2025-11-05",
+     "categoria": "Comunicado ao Mercado",
+     "tipo": "Apresentações a analistas/agentes do mercado",
+     "especie": "",
+     "assunto": "Webcast 3T25",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1439967&numSequencia=964679&numVersao=1"
+    },
+    {
+     "data_referencia": "2025-11-04",
+     "data_entrega": "2025-11-04",
+     "categoria": "Reunião da Administração",
+     "tipo": "Conselho de Administração",
+     "especie": "Ata",
+     "assunto": "Apreciação do relatório do Comitê de Auditoria referente ao 3º Trimestre/2025||Aprovação dos resultados do 3º Trimestre/2025||Obrigações RN 518 - 3º Trimestre/2025",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1439463&numSequencia=964175&numVersao=1"
+    },
+    {
+     "data_referencia": "2025-06-30",
+     "data_entrega": "2025-08-18",
+     "categoria": "Dados Econômico-Financeiros",
+     "tipo": "Demonstrações Financeiras Adicionais",
+     "especie": "Demonstrações Financeiras em Padrões Internacionais",
+     "assunto": "ITR 2T25",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1414723&numSequencia=939435&numVersao=1"
+    },
+    {
+     "data_referencia": "2025-08-06",
+     "data_entrega": "2025-08-06",
+     "categoria": "Comunicado ao Mercado",
+     "tipo": "Apresentações a analistas/agentes do mercado",
+     "especie": "",
+     "assunto": "Webcast 2T25",
+     "link": "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1408726&numSequencia=933438&numVersao=1"
+    }
+   ],
+   "razoes_sociais": {
+    "BRADSAÚDE S.A.": 194
+   }
   }
  },
  "nomes_candidatos": {
   "BANCO BRADESCO S.A.": 323,
   "REDE D'OR SÃO LUIZ S.A.": 222,
   "HAPVIDA PARTICIPAÇÕES E INVESTIMENTOS S.A.": 220,
+  "BRADSAÚDE S.A.": 194,
   "QUALICORP CONSULTORIA E CORRETORA DE SEGUROS S.A.": 189,
   "PORTO SEGURO SA": 186,
-  "CAMIL ALIMENTOS S/A": 158,
+  "KORA SAÚDE PARTICIPAÇÕES S.A.": 122,
   "PORTO SAÚDE PARTICIPAÇÕES S.A.": 85,
   "PORTO SERVIÇO S.A": 73,
   "BRADESCO LEASING S.A. - ARRENDAMENTO MERCANTIL": 54,
