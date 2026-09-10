@@ -1,0 +1,63 @@
+{
+ "gerado_em": "2026-09-10",
+ "anos": [
+  2026,
+  2025
+ ],
+ "colunas_ipe": null,
+ "linhas_lidas": 0,
+ "empresas": {
+  "RDOR": {
+   "rotulo": "Rede D'Or · SulAmérica",
+   "ans": "SulAmérica",
+   "cnpjs": {},
+   "categorias": {},
+   "tipos": {},
+   "recentes": []
+  },
+  "BBDC": {
+   "rotulo": "Bradesco · Bradesco Saúde",
+   "ans": "Bradesco Saúde",
+   "cnpjs": {},
+   "categorias": {},
+   "tipos": {},
+   "recentes": []
+  },
+  "PSSA": {
+   "rotulo": "Porto · Porto Saúde",
+   "ans": "Porto Seguro",
+   "cnpjs": {},
+   "categorias": {},
+   "tipos": {},
+   "recentes": []
+  },
+  "HAPV": {
+   "rotulo": "Hapvida · Hapvida + NDI",
+   "ans": "Hapvida + GNDI",
+   "cnpjs": {},
+   "categorias": {},
+   "tipos": {},
+   "recentes": []
+  },
+  "QUAL": {
+   "rotulo": "Qualicorp",
+   "ans": null,
+   "cnpjs": {},
+   "categorias": {},
+   "tipos": {},
+   "recentes": []
+  },
+  "ODPV": {
+   "rotulo": "Odontoprev",
+   "ans": "Odontoprev",
+   "cnpjs": {},
+   "categorias": {},
+   "tipos": {},
+   "recentes": []
+  }
+ },
+ "erros": [
+  "2026: 404 Client Error: Not Found for url: https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/ipe_cia_aberta_2026.csv",
+  "2025: 404 Client Error: Not Found for url: https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/ipe_cia_aberta_2025.csv"
+ ]
+}
