@@ -3442,6 +3442,23 @@ def _ler_ipe(caminho):
             yield cols, linha
 
 
+def _nome_simples(s):
+    """Nome de companhia comparável: sem acento, minúsculo, pontuação virando espaço.
+
+    Não dá para usar _norm() aqui: ela troca todo não-alfanumérico por "_", e aí
+    padrão escrito com espaço ("banco bradesco") nunca casa com "banco_bradesco".
+    Foi exatamente o que aconteceu na primeira descoberta — Hapvida e Qualicorp
+    casaram porque são uma palavra só, e as outras quatro não.
+    """
+    s = unicodedata.normalize('NFD', str(s)).encode('ascii', 'ignore').decode()
+    return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9]+', ' ', s.lower())).strip()
+
+
+# tokens usados só para o dump de nomes candidatos da descoberta
+REL_TOKENS = ('bradesco', 'porto', 'rede d', 'odonto', 'sul america', 'hapvida',
+              'qualicorp', 'notre dame', 'amil', 'intermedica')
+
+
 def acao_releases_descobrir(anos=None):
     """Registra o que a CVM publica para as listadas, sem escrever número nenhum.
 
@@ -3455,7 +3472,10 @@ def acao_releases_descobrir(anos=None):
                    'cnpjs': {}, 'categorias': {}, 'tipos': {}, 'recentes': []}
                for k in LISTADAS}
     saida = {'gerado_em': datetime.date.today().isoformat(), 'anos': anos,
-             'colunas_ipe': None, 'linhas_lidas': 0, 'empresas': achados}
+             'colunas_ipe': None, 'linhas_lidas': 0, 'empresas': achados,
+             # nomes que a CVM de fato usa, para consertar padrão que não casou
+             # em vez de chutar de novo
+             'nomes_candidatos': {}}
 
     url_dir, itens = _achar_dir_ipe(saida)
     saida['diretorio_ipe'] = url_dir
@@ -3472,7 +3492,13 @@ def acao_releases_descobrir(anos=None):
         for cols, linha in _ler_ipe(caminho):
             saida['colunas_ipe'] = saida['colunas_ipe'] or cols
             saida['linhas_lidas'] += 1
-            nome = _norm(linha.get('Nome_Companhia') or linha.get('Nome_Companhia'.upper()) or '')
+            cru = linha.get('Nome_Companhia') or ''
+            nome = _nome_simples(cru)
+            for tk in REL_TOKENS:
+                if tk in nome:
+                    nc = saida['nomes_candidatos'].setdefault(cru.strip(), 0)
+                    saida['nomes_candidatos'][cru.strip()] = nc + 1
+                    break
             for k, rx in padroes.items():
                 if not rx.search(nome):
                     continue
@@ -3498,6 +3524,8 @@ def acao_releases_descobrir(anos=None):
                     })
                 break
 
+    saida['nomes_candidatos'] = dict(sorted(saida['nomes_candidatos'].items(),
+                                            key=lambda x: -x[1])[:40])
     for k, a in achados.items():
         a['recentes'].sort(key=lambda r: r.get('data_entrega') or '', reverse=True)
         a['recentes'] = a['recentes'][:25]
