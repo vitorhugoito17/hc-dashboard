@@ -3311,6 +3311,157 @@ def main() -> None:
 # ======================================================================
 # PONTO DE ENTRADA
 # ======================================================================
+# ======================================================================
+# RELEASES DAS LISTADAS — CVM (IPE) e confronto com a ANS
+# ======================================================================
+"""
+A ANS conta vidas por registro de operadora; a companhia listada conta vidas
+pelo perímetro que ela consolida. Os dois quase nunca dão o mesmo número, e a
+diferença não é erro de ninguém — é definição. O que interessa a quem cobre o
+setor é o TAMANHO e a ESTABILIDADE dessa diferença: se a dispersão anda junto
+mês a mês, a série da ANS serve de proxy antecipado do resultado; se ela pula,
+alguma coisa mudou de perímetro e o proxy quebrou naquele trimestre.
+
+Esta camada existe para medir isso. Não para "corrigir" a ANS com o número da
+companhia, nem o contrário.
+
+Como o release é achado, sem depender do site de RI de cada uma: toda companhia
+aberta protocola na CVM, e a CVM publica o índice desses protocolos em dados
+abertos (IPE — Informações Periódicas e Eventuais). Cada linha traz companhia,
+categoria, assunto, data de entrega e o LINK DE DOWNLOAD do documento. É um
+índice único, estável e machine-readable para as seis empresas de uma vez —
+muito melhor que raspar seis sites de RI feitos por três fornecedores
+diferentes, que mudam de layout sem avisar.
+
+O laço é o mesmo do resto do robô: primeiro uma passada de descoberta que
+registra o que a CVM de fato publica (--releases-descobrir), depois o parser,
+escrito em cima do que a descoberta mostrou. Nunca o contrário.
+"""
+
+CVM_IPE = 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/ipe_cia_aberta_{ano}.csv'
+DIAG_REL = os.path.join(HERE, 'diagnostico_releases.json')
+
+CAB_CVM = {
+ 'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'),
+ 'Accept': 'text/csv,application/csv,text/plain,*/*',
+ 'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+}
+
+# Empresa listada -> linha da ANS contra a qual o número dela deve ser conferido.
+# O casamento é por padrão de razão social, e não por CNPJ decorado: CNPJ de
+# memória é exatamente o tipo de constante que envelhece sem avisar. A descoberta
+# devolve o CNPJ que a CVM de fato usa, e aí ele passa a valer.
+LISTADAS = {
+ 'RDOR': {'re': r'rede d.?or',      'ans': 'SulAmérica',     'rotulo': "Rede D'Or · SulAmérica"},
+ 'BBDC': {'re': r'^banco bradesco', 'ans': 'Bradesco Saúde', 'rotulo': 'Bradesco · Bradesco Saúde'},
+ 'PSSA': {'re': r'^porto seguro',   'ans': 'Porto Seguro',   'rotulo': 'Porto · Porto Saúde'},
+ 'HAPV': {'re': r'^hapvida',        'ans': 'Hapvida + GNDI', 'rotulo': 'Hapvida · Hapvida + NDI'},
+ 'QUAL': {'re': r'^qualicorp',      'ans': None,             'rotulo': 'Qualicorp'},
+ 'ODPV': {'re': r'^odontoprev',     'ans': 'Odontoprev',     'rotulo': 'Odontoprev', 'odonto': True},
+}
+
+# assuntos que costumam carregar número de resultado; a descoberta confirma
+REL_PISTAS = ('resultado', 'release', 'earnings', 'itr', 'demonstra', 'desempenho',
+              'apresenta', 'planilha', 'divulga')
+
+
+def _baixar_ipe(ano, forcar=False):
+    """CSV do índice de protocolos da CVM para um ano. O do ano corrente cresce."""
+    destino = os.path.join(CACHE, 'cvm', f'ipe_cia_aberta_{ano}.csv')
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    if os.path.exists(destino) and (forcar or ano >= datetime.date.today().year):
+        os.remove(destino)
+    if not os.path.exists(destino):
+        url = CVM_IPE.format(ano=ano)
+        print(f'    baixando {os.path.basename(destino)} …', flush=True)
+        r = requests.get(url, headers=CAB_CVM, timeout=(30, 300), stream=True)
+        r.raise_for_status()
+        with open(destino, 'wb') as f:
+            for c in r.iter_content(1 << 20):
+                f.write(c)
+    return destino
+
+
+def _ler_ipe(caminho):
+    """Devolve (colunas, linhas) do IPE já decodificado, sem carregar tudo na RAM."""
+    with open(caminho, 'rb') as f:
+        cabeca = f.read(1 << 16)
+    meta = _amostra_csv(cabeca, os.path.basename(caminho))
+    enc, sep = meta.get('codificacao', 'latin-1'), meta.get('separador', ';')
+    cols = meta['colunas']
+    import csv as _csv
+    with open(caminho, encoding=enc, errors='replace', newline='') as f:
+        for linha in _csv.DictReader(f, delimiter=sep):
+            yield cols, linha
+
+
+def acao_releases_descobrir(anos=None):
+    """Registra o que a CVM publica para as listadas, sem escrever número nenhum.
+
+    Objetivo: descobrir os nomes reais das colunas, as categorias e os assuntos
+    sob os quais cada companhia protocola o release de resultado, e o formato do
+    link de download. Sem isso, qualquer parser aqui seria chute.
+    """
+    anos = anos or [datetime.date.today().year, datetime.date.today().year - 1]
+    padroes = {k: re.compile(v['re'], re.I) for k, v in LISTADAS.items()}
+    achados = {k: {'rotulo': LISTADAS[k]['rotulo'], 'ans': LISTADAS[k]['ans'],
+                   'cnpjs': {}, 'categorias': {}, 'tipos': {}, 'recentes': []}
+               for k in LISTADAS}
+    saida = {'gerado_em': datetime.date.today().isoformat(), 'anos': anos,
+             'colunas_ipe': None, 'linhas_lidas': 0, 'empresas': achados}
+
+    for ano in anos:
+        try:
+            caminho = _baixar_ipe(ano)
+        except Exception as e:
+            saida.setdefault('erros', []).append(f'{ano}: {e}')
+            continue
+        for cols, linha in _ler_ipe(caminho):
+            saida['colunas_ipe'] = saida['colunas_ipe'] or cols
+            saida['linhas_lidas'] += 1
+            nome = _norm(linha.get('Nome_Companhia') or linha.get('Nome_Companhia'.upper()) or '')
+            for k, rx in padroes.items():
+                if not rx.search(nome):
+                    continue
+                a = achados[k]
+                cnpj = (linha.get('CNPJ_Companhia') or '').strip()
+                if cnpj:
+                    a['cnpjs'][cnpj] = a['cnpjs'].get(cnpj, 0) + 1
+                cat = (linha.get('Categoria') or '').strip()
+                tip = (linha.get('Tipo') or '').strip()
+                a['categorias'][cat] = a['categorias'].get(cat, 0) + 1
+                if tip:
+                    a['tipos'][tip] = a['tipos'].get(tip, 0) + 1
+                assunto = (linha.get('Assunto') or '').strip()
+                alvo = (cat + ' ' + tip + ' ' + assunto).lower()
+                if any(p in alvo for p in REL_PISTAS):
+                    a['recentes'].append({
+                        'data_referencia': (linha.get('Data_Referencia') or '').strip(),
+                        'data_entrega': (linha.get('Data_Entrega') or '').strip(),
+                        'categoria': cat, 'tipo': tip,
+                        'especie': (linha.get('Especie') or '').strip(),
+                        'assunto': assunto[:220],
+                        'link': (linha.get('Link_Download') or '').strip(),
+                    })
+                break
+
+    for k, a in achados.items():
+        a['recentes'].sort(key=lambda r: r.get('data_entrega') or '', reverse=True)
+        a['recentes'] = a['recentes'][:25]
+        a['categorias'] = dict(sorted(a['categorias'].items(), key=lambda x: -x[1])[:15])
+        a['tipos'] = dict(sorted(a['tipos'].items(), key=lambda x: -x[1])[:15])
+
+    json.dump(saida, open(DIAG_REL, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(f'\n  diagnostico_releases.json gravado — {saida["linhas_lidas"]:,} linhas lidas'
+          .replace(',', '.'))
+    for k, a in achados.items():
+        n = len(a['recentes'])
+        cn = ', '.join(list(a['cnpjs'])[:2]) or '—'
+        print(f'   {k:<5} {a["rotulo"]:<28} cnpj {cn:<22} {n} documentos com cara de resultado')
+    return saida
+
+
 def _cli():
     import argparse
     ap = argparse.ArgumentParser(description='Atualiza o Healthcare Database Dashboard.')
@@ -3334,12 +3485,17 @@ def _cli():
                     help='atualiza reclamações (NIP) e IGR')
     ap.add_argument('--explorar', action='store_true',
                     help='mapeia o schema das bases da ANS que ainda não têm coletor')
+    ap.add_argument('--releases-descobrir', action='store_true',
+                    help='mapeia o que a CVM publica das listadas (não grava número)')
     ap.add_argument('--leitos-uf', action='store_true',
                     help='testa recortes do CNES contra os leitos por UF da base')
     ap.add_argument('--refazer', metavar='AAAAMM',
                     help='reprocessa uma competência da ANS mesmo que a base já esteja nela '
                          '(usado para reescrever por encadeamento o que entrou só por nível)')
     a = ap.parse_args()
+
+    if getattr(a, 'releases_descobrir', False):
+        acao_releases_descobrir(); return
 
     if a.refazer:
         if not re.fullmatch(r'\d{6}', a.refazer):
