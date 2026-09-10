@@ -3364,8 +3364,12 @@ LISTADAS = {
  # controladora: as duas protocolam separado na CVM, e o release da holding
  # mistura seguro auto, banco e consórcio com a carteira médica. A descoberta
  # é que mostrou que essas registrantes existem.
- 'PSAU': {'re': [r'^porto saude participacoes'], 'ans': 'Porto Seguro',
-          'rotulo': 'Porto Saúde'},
+ # A subsidiária protocola as demonstrações, mas o release de resultado sai
+ # pela holding — a descoberta mostrou que o doc mais recente da Porto Saúde
+ # sozinha era uma DF de março. Os dois registrantes ficam, e o diagnóstico
+ # anota de qual veio cada documento.
+ 'PSAU': {'re': [r'^porto saude participacoes', r'^porto seguro s ?a$'],
+          'ans': 'Porto Seguro', 'rotulo': 'Porto Saúde'},
  # A Bradsaúde é a antiga Odontoprev renomeada: mesma registrante, agora
  # holding de saúde do Bradesco. Por isso ela tem DOIS comparáveis na ANS —
  # a carteira médica e a odontológica.
@@ -3536,6 +3540,7 @@ def acao_releases_descobrir(anos=None):
                 alvo = (cat + ' ' + tip + ' ' + assunto).lower()
                 if any(p in alvo for p in REL_PISTAS):
                     a['recentes'].append({
+                        'registrante': cru.strip(),
                         'data_referencia': (linha.get('Data_Referencia') or '').strip(),
                         'data_entrega': (linha.get('Data_Entrega') or '').strip(),
                         'categoria': cat, 'tipo': tip,
@@ -3681,9 +3686,16 @@ def acao_releases_documentos(por_empresa=1):
     diag = json.load(open(DIAG_REL, encoding='utf-8'))
     diag['documentos'] = {}
     for k, e in diag.get('empresas', {}).items():
-        alvos = [r for r in e.get('recentes', [])
-                 if any(t in (r.get('tipo') or '').lower() for t in TIPOS_ALVO)]
-        alvos = [r for r in alvos if r.get('link')][:por_empresa]
+        # Press-release primeiro: é o documento que traz os operacionais.
+        # A demonstração financeira só entra se não houver release, e mesmo
+        # assim é o segundo melhor — ITR traz o contábil, não a carteira.
+        def _rank(r):
+            t = (r.get('tipo') or '').lower()
+            return (0 if 'press' in t else 1, r.get('data_entrega') or '')
+        alvos = [r for r in e.get('recentes', []) if r.get('link')
+                 and any(t in (r.get('tipo') or '').lower() for t in TIPOS_ALVO)]
+        alvos.sort(key=lambda r: (_rank(r)[0], [-ord(c) for c in (r.get('data_entrega') or '')]))
+        alvos = alvos[:por_empresa]
         if not alvos:
             diag['documentos'][k] = {'aviso': 'nenhum documento com link e tipo alvo'}
             continue
@@ -3691,7 +3703,7 @@ def acao_releases_documentos(por_empresa=1):
         print(f'\n  {k} — {r["data_entrega"][:10]} · {r["tipo"][:30]} · {r["assunto"][:50]}')
         info = _inspecionar(r['link'], f'{k}_{r["data_entrega"][:10]}')
         info.update({'data_entrega': r['data_entrega'], 'tipo': r['tipo'],
-                     'assunto': r['assunto']})
+                     'assunto': r['assunto'], 'registrante': r.get('registrante')})
         diag['documentos'][k] = info
         ch = (info.get('trechos') or {})
         print(f'     formato {info.get("formato")} · {info.get("bytes",0)/1024:.0f} KB · '
