@@ -3366,20 +3366,66 @@ REL_PISTAS = ('resultado', 'release', 'earnings', 'itr', 'demonstra', 'desempenh
               'apresenta', 'planilha', 'divulga')
 
 
-def _baixar_ipe(ano, forcar=False):
-    """CSV do índice de protocolos da CVM para um ano. O do ano corrente cresce."""
-    destino = os.path.join(CACHE, 'cvm', f'ipe_cia_aberta_{ano}.csv')
+def _listar_cvm(url):
+    """Nomes de arquivo/pasta de um índice do portal de dados abertos da CVM."""
+    r = requests.get(url, headers=CAB_CVM, timeout=(30, 120))
+    r.raise_for_status()
+    nomes = re.findall(r'href="([^"?][^"]*)"', r.text)
+    return [n for n in nomes if not n.startswith(('/', 'http', '..', '?'))]
+
+
+def _achar_dir_ipe(diag=None):
+    """Descobre em qual diretório o IPE está, em vez de fixar o caminho.
+
+    A primeira versão disto fixava .../DOC/IPE/DADOS/ipe_cia_aberta_AAAA.csv e
+    tomou 404 nos dois anos. Adivinhar URL é o mesmo pecado de escrever parser
+    a partir da documentação: o certo é perguntar ao servidor.
+    """
+    candidatos = ['https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/',
+                  'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/',
+                  'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/',
+                  'https://dados.cvm.gov.br/dados/CIA_ABERTA/']
+    for url in candidatos:
+        try:
+            itens = _listar_cvm(url)
+        except Exception as e:
+            if diag is not None:
+                diag.setdefault('sondagem', []).append({'url': url, 'erro': str(e)[:160]})
+            continue
+        if diag is not None:
+            diag.setdefault('sondagem', []).append({'url': url, 'itens': itens[:60]})
+        if any(re.search(r'ipe_cia_aberta.*\.(csv|zip)$', i, re.I) for i in itens):
+            return url, itens
+    return None, []
+
+
+def _baixar_ipe(ano, url_dir, itens, forcar=False):
+    """Baixa o arquivo do IPE do ano. Aceita .csv ou .zip, conforme o servidor."""
+    alvos = [i for i in itens if re.search(rf'ipe_cia_aberta_{ano}\.(csv|zip)$', i, re.I)]
+    if not alvos:
+        raise FileNotFoundError(f'nada com cara de ipe_cia_aberta_{ano} em {url_dir}')
+    nome = alvos[0]
+    destino = os.path.join(CACHE, 'cvm', nome)
     os.makedirs(os.path.dirname(destino), exist_ok=True)
+    # o arquivo do ano corrente cresce a cada protocolo novo: nunca reaproveitar
     if os.path.exists(destino) and (forcar or ano >= datetime.date.today().year):
         os.remove(destino)
     if not os.path.exists(destino):
-        url = CVM_IPE.format(ano=ano)
-        print(f'    baixando {os.path.basename(destino)} …', flush=True)
-        r = requests.get(url, headers=CAB_CVM, timeout=(30, 300), stream=True)
+        print(f'    baixando {nome} …', flush=True)
+        r = requests.get(urljoin(url_dir, nome), headers=CAB_CVM, timeout=(30, 300), stream=True)
         r.raise_for_status()
         with open(destino, 'wb') as f:
             for c in r.iter_content(1 << 20):
                 f.write(c)
+    if destino.lower().endswith('.zip'):
+        with zipfile.ZipFile(destino) as z:
+            dentro = [n for n in z.namelist() if n.lower().endswith('.csv')]
+            if not dentro:
+                raise FileNotFoundError(f'{nome} não tem csv dentro: {z.namelist()[:6]}')
+            alvo = os.path.join(CACHE, 'cvm', dentro[0])
+            if not os.path.exists(alvo):
+                z.extract(dentro[0], os.path.join(CACHE, 'cvm'))
+            return alvo
     return destino
 
 
@@ -3411,9 +3457,15 @@ def acao_releases_descobrir(anos=None):
     saida = {'gerado_em': datetime.date.today().isoformat(), 'anos': anos,
              'colunas_ipe': None, 'linhas_lidas': 0, 'empresas': achados}
 
+    url_dir, itens = _achar_dir_ipe(saida)
+    saida['diretorio_ipe'] = url_dir
+    if not url_dir:
+        json.dump(saida, open(DIAG_REL, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        print('  não achei o diretório do IPE; a sondagem está no diagnóstico')
+        return saida
     for ano in anos:
         try:
-            caminho = _baixar_ipe(ano)
+            caminho = _baixar_ipe(ano, url_dir, itens)
         except Exception as e:
             saida.setdefault('erros', []).append(f'{ano}: {e}')
             continue
