@@ -3352,13 +3352,26 @@ CAB_CVM = {
 # O casamento é por padrão de razão social, e não por CNPJ decorado: CNPJ de
 # memória é exatamente o tipo de constante que envelhece sem avisar. A descoberta
 # devolve o CNPJ que a CVM de fato usa, e aí ele passa a valer.
+# Padrões conferidos contra os nomes que a descoberta leu no IPE, não decorados.
+# Duas armadilhas que a descoberta pegou e que valem ficar registradas:
+#   · "PORTO SEGURO SA" vem sem ponto, e existe uma segunda registrante,
+#     "PORTO SAÚDE PARTICIPAÇÕES S.A.", que é justamente a da operação de saúde;
+#   · "CAMIL ALIMENTOS" casa com qualquer padrão frouxo de "amil". Daí as âncoras.
 LISTADAS = {
- 'RDOR': {'re': r'rede d.?or',      'ans': 'SulAmérica',     'rotulo': "Rede D'Or · SulAmérica"},
- 'BBDC': {'re': r'^banco bradesco', 'ans': 'Bradesco Saúde', 'rotulo': 'Bradesco · Bradesco Saúde'},
- 'PSSA': {'re': r'^porto seguro',   'ans': 'Porto Seguro',   'rotulo': 'Porto · Porto Saúde'},
- 'HAPV': {'re': r'^hapvida',        'ans': 'Hapvida + GNDI', 'rotulo': 'Hapvida · Hapvida + NDI'},
- 'QUAL': {'re': r'^qualicorp',      'ans': None,             'rotulo': 'Qualicorp'},
- 'ODPV': {'re': r'^odontoprev',     'ans': 'Odontoprev',     'rotulo': 'Odontoprev', 'odonto': True},
+ 'RDOR': {'re': [r'^rede d or sao luiz'], 'ans': 'SulAmérica',
+          'rotulo': "Rede D'Or · SulAmérica"},
+ 'BBDC': {'re': [r'^banco bradesco s a$'], 'ans': 'Bradesco Saúde',
+          'rotulo': 'Bradesco · Bradesco Saúde'},
+ 'PSSA': {'re': [r'^porto seguro s ?a$', r'^porto saude participacoes'],
+          'ans': 'Porto Seguro', 'rotulo': 'Porto · Porto Saúde'},
+ 'HAPV': {'re': [r'^hapvida participacoes'], 'ans': 'Hapvida + GNDI',
+          'rotulo': 'Hapvida · Hapvida + NDI'},
+ 'QUAL': {'re': [r'^qualicorp consultoria'], 'ans': None,
+          'rotulo': 'Qualicorp'},
+ # Odontoprev não aparece no IPE de 2025-2026 sob nenhum nome com "odonto".
+ # Fica declarada para a descoberta continuar procurando e avisar se voltar.
+ 'ODPV': {'re': [r'^odontoprev'], 'ans': 'Odontoprev', 'rotulo': 'Odontoprev',
+          'odonto': True},
 }
 
 # assuntos que costumam carregar número de resultado; a descoberta confirma
@@ -3467,7 +3480,7 @@ def acao_releases_descobrir(anos=None):
     link de download. Sem isso, qualquer parser aqui seria chute.
     """
     anos = anos or [datetime.date.today().year, datetime.date.today().year - 1]
-    padroes = {k: re.compile(v['re'], re.I) for k, v in LISTADAS.items()}
+    padroes = {k: [re.compile(x, re.I) for x in v['re']] for k, v in LISTADAS.items()}
     achados = {k: {'rotulo': LISTADAS[k]['rotulo'], 'ans': LISTADAS[k]['ans'],
                    'cnpjs': {}, 'categorias': {}, 'tipos': {}, 'recentes': []}
                for k in LISTADAS}
@@ -3499,8 +3512,8 @@ def acao_releases_descobrir(anos=None):
                     nc = saida['nomes_candidatos'].setdefault(cru.strip(), 0)
                     saida['nomes_candidatos'][cru.strip()] = nc + 1
                     break
-            for k, rx in padroes.items():
-                if not rx.search(nome):
+            for k, rxs in padroes.items():
+                if not any(rx.search(nome) for rx in rxs):
                     continue
                 a = achados[k]
                 cnpj = (linha.get('CNPJ_Companhia') or '').strip()
@@ -3508,6 +3521,8 @@ def acao_releases_descobrir(anos=None):
                     a['cnpjs'][cnpj] = a['cnpjs'].get(cnpj, 0) + 1
                 cat = (linha.get('Categoria') or '').strip()
                 tip = (linha.get('Tipo') or '').strip()
+                a.setdefault('razoes_sociais', {})
+                a['razoes_sociais'][cru.strip()] = a['razoes_sociais'].get(cru.strip(), 0) + 1
                 a['categorias'][cat] = a['categorias'].get(cat, 0) + 1
                 if tip:
                     a['tipos'][tip] = a['tipos'].get(tip, 0) + 1
