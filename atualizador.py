@@ -3541,6 +3541,7 @@ def acao_releases_descobrir(anos=None):
                 if any(p in alvo for p in REL_PISTAS):
                     a['recentes'].append({
                         'registrante': cru.strip(),
+                        'protocolo': (linha.get('Protocolo_Entrega') or '').strip(),
                         'data_referencia': (linha.get('Data_Referencia') or '').strip(),
                         'data_entrega': (linha.get('Data_Entrega') or '').strip(),
                         'categoria': cat, 'tipo': tip,
@@ -3641,7 +3642,35 @@ def _trechos_pdf(caminho, chaves=REL_CHAVES, por_chave=3, janela=190):
     return {'paginas': paginas, 'trechos': achados}
 
 
-def _inspecionar(url, tag):
+# Endpoint alternativo do ENET. O frmDownloadDocumento devolve o arquivo na
+# maioria dos casos, mas em alguns devolve a página do sistema — e aí é este
+# aqui, indexado pelo protocolo de entrega, que entrega o binário.
+CVM_ALT = ('https://www.rad.cvm.gov.br/ENET/frmExibirArquivoIPEExterno.aspx'
+           '?NumeroProtocoloEntrega={protocolo}')
+
+
+def _links_da_pagina(caminho, base):
+    """Se o servidor devolveu página em vez de arquivo, o que ela oferece?"""
+    try:
+        with open(caminho, encoding='latin-1', errors='replace') as f:
+            html = f.read(400000)
+    except Exception:
+        return []
+    achados = []
+    for pad in (r'href="([^"]+)"', r"window\.open\('([^']+)'",
+                r'location\.href\s*=\s*[\'"]([^\'"]+)', r'src="([^"]+\.(?:pdf|zip))"'):
+        for m in re.finditer(pad, html, re.I):
+            u = m.group(1)
+            if re.search(r'(download|arquivo|documento|\.pdf|\.zip)', u, re.I):
+                achados.append(urljoin(base, u))
+    vistos, saida = set(), []
+    for u in achados:
+        if u not in vistos:
+            vistos.add(u); saida.append(u)
+    return saida[:12]
+
+
+def _inspecionar(url, tag, protocolo=None):
     """Baixa e descreve um documento: formato, tamanho e o que tem dentro."""
     saida = {'url': url}
     destino = os.path.join(CACHE, 'cvm', 'docs', re.sub(r'[^A-Za-z0-9_.-]', '_', tag)[:80])
@@ -3650,6 +3679,25 @@ def _inspecionar(url, tag):
     except Exception as e:
         saida['erro'] = f'{type(e).__name__}: {e}'[:200]
         return saida
+
+    def _magia():
+        with open(destino, 'rb') as f:
+            return f.read(8)
+
+    magia = _magia()
+    # não veio binário: registra o que a página oferece e tenta o endpoint alternativo
+    if not (magia.startswith(b'PK') or magia.startswith(b'%PDF')):
+        saida['links_na_pagina'] = _links_da_pagina(destino, url)
+        if protocolo:
+            alt = CVM_ALT.format(protocolo=protocolo)
+            saida['tentou_alternativo'] = alt
+            try:
+                ct, tam = _baixar_documento(alt, destino)
+                magia = _magia()
+                if magia.startswith(b'PK') or magia.startswith(b'%PDF'):
+                    saida['url_que_funcionou'] = alt
+            except Exception as e:
+                saida['erro_alternativo'] = f'{type(e).__name__}: {e}'[:160]
     with open(destino, 'rb') as f:
         magia = f.read(8)
     saida.update({'content_type': ct, 'bytes': tam, 'magia': magia[:4].hex()})
@@ -3701,7 +3749,8 @@ def acao_releases_documentos(por_empresa=1):
             continue
         r = alvos[0]
         print(f'\n  {k} — {r["data_entrega"][:10]} · {r["tipo"][:30]} · {r["assunto"][:50]}')
-        info = _inspecionar(r['link'], f'{k}_{r["data_entrega"][:10]}')
+        info = _inspecionar(r['link'], f'{k}_{r["data_entrega"][:10]}',
+                            protocolo=r.get('protocolo'))
         info.update({'data_entrega': r['data_entrega'], 'tipo': r['tipo'],
                      'assunto': r['assunto'], 'registrante': r.get('registrante')})
         diag['documentos'][k] = info
