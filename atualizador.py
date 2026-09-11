@@ -3588,20 +3588,55 @@ em volta das palavras que interessam. O parser vem depois, escrito em cima
 disto. É o mesmo laço que a gente usou no PDA-024 e no CNES.
 """
 
+_ACENTOS = str.maketrans('áàâãäéèêëíìîïóòôõöúùûüçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑ',
+                          'aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN')
+
+
+def _dobra(txt):
+    """Minúsculo e sem acento, mas do MESMO comprimento e com a pontuação intacta.
+
+    A primeira versão localizava a palavra-chave em _nome_simples() e recortava
+    o trecho desse mesmo texto. Só que aquela função troca todo não-alfanumérico
+    por espaço: "2.498" virava "2 498" e "78,1%" virava "78 1". Ou seja, o texto
+    que servia para CASAR destruía exatamente o número que a gente quer LER.
+    Localizar e ler precisam de textos diferentes, alinhados no mesmo índice.
+    """
+    return txt.translate(_ACENTOS).lower()
+
+
 REL_CHAVES = ('beneficiári', 'beneficiario', 'vidas', 'sinistralidade',
               'sinistro', 'mlr', 'carteira', 'ticket')
 TIPOS_ALVO = ('press-release', 'demonstrações financeiras', 'demonstracoes financeiras')
 
 
-def _baixar_documento(url, destino):
+def _binario(caminho):
+    with open(caminho, 'rb') as f:
+        m = f.read(8)
+    return m.startswith(b'PK') or m.startswith(b'%PDF')
+
+
+def _baixar_documento(url, destino, tentativas=4):
+    """Baixa um documento do ENET, insistindo quando ele devolve a página do sistema.
+
+    Na primeira rodada, Porto e Hapvida vieram como HTML e as outras três como
+    PDF; na rodada seguinte, com o MESMO código e as MESMAS URLs, as duas vieram
+    certas e quem falhou foi a Qualicorp. Isso não é URL errada — é o servidor
+    da CVM oscilando. Então a resposta certa é insistir, não trocar de endpoint.
+    """
     os.makedirs(os.path.dirname(destino), exist_ok=True)
-    r = requests.get(url, headers=CAB_CVM, timeout=(30, 300), stream=True,
-                     allow_redirects=True)
-    r.raise_for_status()
-    ct = r.headers.get('Content-Type', '')
-    with open(destino, 'wb') as f:
-        for c in r.iter_content(1 << 20):
-            f.write(c)
+    ct = ''
+    for t in range(1, tentativas + 1):
+        r = requests.get(url, headers=CAB_CVM, timeout=(30, 300), stream=True,
+                         allow_redirects=True)
+        r.raise_for_status()
+        ct = r.headers.get('Content-Type', '')
+        with open(destino, 'wb') as f:
+            for c in r.iter_content(1 << 20):
+                f.write(c)
+        if _binario(destino) or t == tentativas:
+            return ct, os.path.getsize(destino)
+        print(f'      tentativa {t}: veio página em vez de arquivo, repetindo…', flush=True)
+        time.sleep(3 * t)
     return ct, os.path.getsize(destino)
 
 
@@ -3625,9 +3660,9 @@ def _trechos_pdf(caminho, chaves=REL_CHAVES, por_chave=3, janela=190):
             paginas = len(pdf.pages)
             for n, pag in enumerate(pdf.pages, 1):
                 txt = (pag.extract_text() or '')
-                baixo = _nome_simples(txt)
+                baixo = _dobra(txt)          # mesmo comprimento que txt
                 for ch in chaves:
-                    alvo = _nome_simples(ch)
+                    alvo = _dobra(ch)
                     ini = 0
                     while len(achados.get(ch, [])) < por_chave:
                         k = baixo.find(alvo, ini)
@@ -3635,7 +3670,9 @@ def _trechos_pdf(caminho, chaves=REL_CHAVES, por_chave=3, janela=190):
                             break
                         achados.setdefault(ch, []).append(
                             {'pagina': n,
-                             'trecho': baixo[max(0, k - janela//2): k + janela].strip()})
+                             # recorta do texto CRU: é dele que sai o número
+                             'trecho': re.sub(r'\s+', ' ',
+                                              txt[max(0, k - janela//2): k + janela]).strip()})
                         ini = k + len(alvo)
     except Exception as e:
         return {'erro': f'{type(e).__name__}: {e}', 'paginas': paginas}
