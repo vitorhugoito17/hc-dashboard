@@ -3571,8 +3571,9 @@ def acao_releases_descobrir(anos=None):
     # nada sem saber COMO o número está escrito lá dentro
     try:
         acao_releases_documentos()
+        acao_releases_extrair()
     except Exception as e:
-        print(f'  abrir os documentos falhou: {type(e).__name__}: {e}')
+        print(f'  abrir/extrair os documentos falhou: {type(e).__name__}: {e}')
     return saida
 
 
@@ -3801,6 +3802,171 @@ def acao_releases_documentos(por_empresa=1):
     return diag
 
 
+# ---- extração: o número do release, com portão contra a ANS ----
+"""
+Agora que dá para ler o texto com pontuação, os números aparecem em prosa:
+
+  "atingindo 904 mil vidas"
+  "Sinistralidade consolidada média de 78,1% no trimestre"
+
+Num release de 76 a 128 páginas há dezenas de números perto dessas palavras —
+gráficos, notas, séries históricas. Por isso nada é aceito por casar com o
+padrão: cada candidato passa por um portão, e o que não passa não é gravado,
+é registrado com o motivo. O portão aqui é de PLAUSIBILIDADE contra a ANS,
+porque não existe histórico próprio de número reportado para reproduzir: se a
+companhia diz ter 904 mil vidas e a ANS registra 877 mil, é dispersão de
+perímetro e vale; se o candidato dá 8 milhões, é outro número do documento.
+
+A banda é larga de propósito (0,4x a 2,5x). Ela não serve para "corrigir" a
+companhia — serve para descartar o candidato que claramente não é carteira.
+"""
+
+# número brasileiro: 1.234.567 | 904 | 78,1
+_NUM = r'(\d{1,3}(?:\.\d{3})+|\d+(?:,\d+)?)'
+RE_VIDAS = re.compile(
+    _NUM + r'\s*(mil|milh(?:ões|oes)|mm)?\s*(?:de\s+)?(?:vidas|benefici[áa]rios)', re.I)
+RE_SINIS = re.compile(
+    r'sinistralidade[^.;•]{0,90}?' + _NUM + r'\s*%', re.I)
+RE_MLR = re.compile(r'\bmlr\b[^.;•]{0,90}?' + _NUM + r'\s*%', re.I)
+
+
+def _num_br(txt, escala=None):
+    v = float(txt.replace('.', '').replace(',', '.'))
+    e = (escala or '').lower()
+    if e.startswith('milh') or e == 'mm':
+        return v * 1000.0          # em milhares
+    if e == 'mil':
+        return v
+    return v / 1000.0              # veio em unidades
+
+
+def _texto_pdf(caminho, ate=None):
+    try:
+        import pdfplumber
+    except ImportError:
+        return []
+    paginas = []
+    try:
+        with pdfplumber.open(caminho) as pdf:
+            for n, pag in enumerate(pdf.pages, 1):
+                if ate and n > ate:
+                    break
+                paginas.append((n, re.sub(r'\s+', ' ', pag.extract_text() or '')))
+    except Exception:
+        return paginas
+    return paginas
+
+
+def _ans_referencia(D, serie, periodo=None):
+    """Último nível da ANS para a linha comparável, em milhares de vidas."""
+    for bloco in ('ben.lives_m', 'ben.dental_lives_m'):
+        no = D
+        for parte in bloco.split('.'):
+            no = (no or {}).get(parte) if isinstance(no, dict) else None
+        if not no or serie not in (no.get('series') or {}):
+            continue
+        vals, pers = no['series'][serie], no['periods']
+        if periodo and periodo in pers:
+            v = vals[pers.index(periodo)]
+            if v is not None:
+                return v, periodo
+        for i in range(len(vals) - 1, -1, -1):
+            if vals[i] is not None:
+                return vals[i], pers[i]
+    return None, None
+
+
+def acao_releases_extrair(banda=(0.4, 2.5), paginas=14):
+    """Tira do release os números comparáveis, com o motivo de cada recusa."""
+    if not os.path.exists(DIAG_REL):
+        print('  rode antes --releases-descobrir'); return
+    diag = json.load(open(DIAG_REL, encoding='utf-8'))
+    D = carregar_base()
+    saida = {}
+
+    for k, doc in (diag.get('documentos') or {}).items():
+        conf = LISTADAS.get(k, {})
+        reg = {'rotulo': conf.get('rotulo'), 'ans': conf.get('ans'),
+               'data_entrega': doc.get('data_entrega'), 'assunto': doc.get('assunto')}
+        caminho = os.path.join(CACHE, 'cvm', 'docs',
+                               re.sub(r'[^A-Za-z0-9_.-]', '_',
+                                      f'{k}_{(doc.get("data_entrega") or "")[:10]}')[:80])
+        if doc.get('formato') != 'pdf' or not os.path.exists(caminho):
+            reg['recusa'] = f'documento não é PDF legível ({doc.get("formato")})'
+            saida[k] = reg; continue
+
+        ref, per = _ans_referencia(D, conf.get('ans')) if conf.get('ans') else (None, None)
+        reg['ans_nivel_mil'] = ref
+        reg['ans_competencia'] = per
+
+        # ---------- vidas ----------
+        cands = []
+        for n, txt in _texto_pdf(caminho, ate=paginas):
+            for m in RE_VIDAS.finditer(txt):
+                try:
+                    v = _num_br(m.group(1), m.group(2))
+                except ValueError:
+                    continue
+                cands.append({'pagina': n, 'valor_mil': round(v, 1),
+                              'trecho': txt[max(0, m.start()-90):m.end()+40].strip()})
+        reg['candidatos_vidas'] = cands[:12]
+        if not cands:
+            reg['vidas_recusa'] = 'nenhum número com unidade de vidas nas primeiras páginas'
+        elif ref is None:
+            reg['vidas_recusa'] = 'sem linha da ANS para comparar — não dá para conferir'
+        else:
+            dentro = [c for c in cands if banda[0] * ref <= c['valor_mil'] <= banda[1] * ref]
+            if not dentro:
+                reg['vidas_recusa'] = (f'nenhum candidato na banda de plausibilidade '
+                                       f'({banda[0]}x–{banda[1]}x de {ref:,.1f} mil da ANS)'
+                                       .replace(',', '.'))
+            else:
+                # o mais cedo no documento: destaques vêm antes de anexo
+                esc = sorted(dentro, key=lambda c: (c['pagina'], -c['valor_mil']))[0]
+                reg['vidas_mil'] = esc['valor_mil']
+                reg['vidas_pagina'] = esc['pagina']
+                reg['vidas_trecho'] = esc['trecho'][:200]
+                reg['dispersao_pct'] = round((esc['valor_mil'] / ref - 1) * 100, 2)
+                reg['candidatos_na_banda'] = len(dentro)
+
+        # ---------- sinistralidade ----------
+        sin = []
+        for n, txt in _texto_pdf(caminho, ate=paginas):
+            for rx in (RE_SINIS, RE_MLR):
+                for m in rx.finditer(txt):
+                    try:
+                        v = float(m.group(1).replace('.', '').replace(',', '.'))
+                    except ValueError:
+                        continue
+                    if 30.0 <= v <= 110.0:       # sinistralidade fora disso não é sinistralidade
+                        sin.append({'pagina': n, 'pct': v,
+                                    'trecho': txt[max(0, m.start()-60):m.end()+30].strip()})
+        reg['candidatos_sinistralidade'] = sin[:12]
+        if sin:
+            esc = sorted(sin, key=lambda c: c['pagina'])[0]
+            reg['sinistralidade_pct'] = esc['pct']
+            reg['sinistralidade_pagina'] = esc['pagina']
+            reg['sinistralidade_trecho'] = esc['trecho'][:200]
+        else:
+            reg['sinistralidade_recusa'] = 'nenhum percentual plausível junto de sinistralidade/MLR'
+        saida[k] = reg
+
+    diag['extracao'] = saida
+    json.dump(diag, open(DIAG_REL, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print('\n  Extração dos releases')
+    print('  ' + '-' * 78)
+    for k, r in saida.items():
+        v = r.get('vidas_mil'); s = r.get('sinistralidade_pct'); a = r.get('ans_nivel_mil')
+        if v is not None:
+            print(f'   {k:<6} {r["rotulo"][:26]:<26} vidas {v:>9,.1f} mil · ANS {a:>9,.1f} mil'
+                  f' · dispersão {r["dispersao_pct"]:+6.2f}%'.replace(',', '.')
+                  + (f' · sinistralidade {s:.1f}%' if s else ''))
+        else:
+            print(f'   {k:<6} {r["rotulo"][:26]:<26} RECUSADO — '
+                  f'{r.get("vidas_recusa") or r.get("recusa")}')
+    return saida
+
+
 def _cli():
     import argparse
     ap = argparse.ArgumentParser(description='Atualiza o Healthcare Database Dashboard.')
@@ -3826,6 +3992,8 @@ def _cli():
                     help='mapeia o schema das bases da ANS que ainda não têm coletor')
     ap.add_argument('--releases-descobrir', action='store_true',
                     help='mapeia o que a CVM publica das listadas (não grava número)')
+    ap.add_argument('--releases-extrair', action='store_true',
+                    help='tira do release os números comparáveis, com portão contra a ANS')
     ap.add_argument('--releases-documentos', action='store_true',
                     help='abre o release mais recente de cada listada e registra o formato')
     ap.add_argument('--leitos-uf', action='store_true',
@@ -3840,6 +4008,9 @@ def _cli():
 
     if getattr(a, 'releases_documentos', False):
         acao_releases_documentos(); return
+
+    if getattr(a, 'releases_extrair', False):
+        acao_releases_extrair(); return
 
     if a.refazer:
         if not re.fullmatch(r'\d{6}', a.refazer):
