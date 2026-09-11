@@ -2195,337 +2195,296 @@
  "extracao": {
   "RDOR": {
    "rotulo": "Rede D'Or · SulAmérica",
-   "ans": "SulAmérica",
    "data_entrega": "2026-08-12",
    "assunto": "Press-release de Resultados 2T26",
-   "ans_nivel_mil": 3161.844,
-   "ans_competencia": "jul/26",
-   "candidatos_vidas": [],
-   "vidas_recusa": "nenhum número com unidade de vidas nas primeiras páginas",
-   "candidatos_sinistralidade": [
-    {
-     "pagina": 5,
-     "pct": 78.1,
-     "trecho": "base de beneficiários e ajustes de preços das carteiras. • Sinistralidade consolidada média de 78,1% no trimestre, melhora de 3,2"
-    }
+   "banda": [
+    0.6,
+    1.6
    ],
-   "sinistralidade_pct": 78.1,
-   "sinistralidade_pagina": 5,
-   "sinistralidade_trecho": "base de beneficiários e ajustes de preços das carteiras. • Sinistralidade consolidada média de 78,1% no trimestre, melhora de 3,2"
+   "leituras": 48,
+   "medico": {
+    "serie_ans": "SulAmérica",
+    "ans_mil": 3161.844,
+    "ans_competencia": "jul/26",
+    "candidatos": 1,
+    "exemplos": [
+     {
+      "pagina": 3,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 0.0,
+      "trecho": "OMOS 113/197/232 A Rede D’Or (“Companhia”), maior rede Em 16 de agosto de 2024, após as devidas 0/40/85 privada de assistência médica do"
+     }
+    ],
+    "recusa": "1 candidatos, nenhum entre 0.6x e 1.6x dos 3161.8 mil da ANS"
+   },
+   "odonto": {
+    "recusa": "sem linha da ANS declarada para este segmento"
+   },
+   "sinistralidade": {
+    "pct": 78.1,
+    "pagina": 5,
+    "origem": "col-esq",
+    "trecho": "base de beneficiários e ajustes de preços das carteiras. • Sinistralidade consolidada média de 78,1% no trimestre, melhora de 3,2",
+    "candidatos": 2
+   }
   },
   "PSAU": {
    "rotulo": "Porto Saúde",
-   "ans": "Porto Seguro",
    "data_entrega": "2026-08-07",
    "assunto": "Release de Resultados 2T26",
-   "ans_nivel_mil": 891.741,
-   "ans_competencia": "jul/26",
-   "candidatos_vidas": [
-    {
-     "pagina": 3,
-     "valor_mil": 904.0,
-     "trecho": "pansão foi impulsionada por um aumento de 20% em beneficiários de seguro Saúde, atingindo 904 mil vidas, e de 16% de vidas no Odonto, alcançand"
-    },
-    {
-     "pagina": 11,
-     "valor_mil": 934.8,
-     "trecho": "Release de Resultados 2T26 Vida • Aumento de 934,8mil vidas (vs. 2T25) 6,4 mi R$ 508 mi • Crescimen"
-    },
-    {
-     "pagina": 11,
-     "valor_mil": 6400.0,
-     "trecho": "s O segmento de Vida obteve uma expansão de 935 mil pessoas (+17,0% vs. 2T25), alcançando 6,4 milhões de vidas 5,51 5,76 6,08 6,57 6,45 seguradas. 508"
-    },
-    {
-     "pagina": 14,
-     "valor_mil": 0.0,
-     "trecho": "Release de Resultados 2T26 Beneficiários e Receitas R$ 2,3 bi 904 mil Vidas R$ 1"
-    },
-    {
-     "pagina": 14,
-     "valor_mil": 904.0,
-     "trecho": "Release de Resultados 2T26 Beneficiários e Receitas R$ 2,3 bi 904 mil Vidas R$ 143,9 mi 24,0% em receitas no 2T26 +"
-    },
-    {
-     "pagina": 14,
-     "valor_mil": 153.0,
-     "trecho": "6 Beneficiários e Receitas R$ 2,3 bi 904 mil Vidas R$ 143,9 mi 24,0% em receitas no 2T26 +153 mil vidas no de lucro líquido ROAE (+14,4% vs. 2T"
-    },
-    {
-     "pagina": 14,
-     "valor_mil": 904.0,
-     "trecho": "4% vs. 2T25) Seguro Saúde no 2T26 (+1,6 p.p. vs. 2T25) (+36,4% vs. 2T25) • Atingimento de 904 mil de vidas no seguro saúde • Receitas e Prêmios au"
-    },
-    {
-     "pagina": 14,
-     "valor_mil": 904.0,
-     "trecho": "25) +20,3% +5,3% Beneficiários 606 641 675 702 751 784 831 858 904 O Seguro Saúde atingiu 904 mil vidas, mantendo uma série de 23 trimestres co"
-    },
-    {
-     "pagina": 14,
-     "valor_mil": 153.0,
-     "trecho": "tres consecutivos de crescimento. Aumentamos 2T24 3T24 4T24 1T25 2T25 3T25 4T25 1T26 2T26 153 mil vidas em relação ao 2T25 e 46 mil em comparaç"
-    },
-    {
-     "pagina": 14,
-     "valor_mil": 1267.0,
-     "trecho": "mil em comparação ao Beneficiários -Saúde(mil) trimestre anterior. O Seguro Odontoatingiu 1.267 mil vidas, aumentando 176 mil +16,1% +4,6% vidas"
-    },
-    {
-     "pagina": 14,
-     "valor_mil": 0.0,
-     "trecho": "879 946 995 1.032 1.091 1.138 1.184 1.211 1.267 2T24 3T24 4T24 1T25 2T25 3T25 4T25 1T26 2T26 Beneficiários –Odonto (mil) Receitas +14,8% +4,0% 1.9"
-    }
+   "banda": [
+    0.6,
+    1.6
    ],
-   "vidas_mil": 904.0,
-   "vidas_pagina": 3,
-   "vidas_trecho": "pansão foi impulsionada por um aumento de 20% em beneficiários de seguro Saúde, atingindo 904 mil vidas, e de 16% de vidas no Odonto, alcançand",
-   "dispersao_pct": 1.37,
-   "candidatos_na_banda": 6,
-   "candidatos_sinistralidade": [
-    {
-     "pagina": 3,
-     "pct": 76.9,
-     "trecho": "idas, e de 16% de vidas no Odonto, alcançando 1,3 milhão. A sinistralidade foi de 76,9%, uma melhora de 0,4 p.p., pat"
-    },
-    {
-     "pagina": 3,
-     "pct": 49.0,
-     "trecho": "ma melhora de 0,4 p.p. —explicado pela queda de 1,4 p.p. na sinistralidade (49%).Como resultado, o lucro líqu"
-    },
-    {
-     "pagina": 9,
-     "pct": 56.7,
-     "trecho": "rotado2T26(+93milvs.2T25) de veículos em prêmios emitidos • Sinistralidadede56,7%no2T26;melhorade1,8p.p.(vs.2T2"
-    },
-    {
-     "pagina": 9,
-     "pct": 56.7,
-     "trecho": "s. Sinistralidade -1,8 p.p. 58,5% 58,2% 57,7% 58,5% 56,7% A sinistralidade do Auto atingiu 56,7% no trimestre, melhora de 1,8"
-    },
-    {
-     "pagina": 10,
-     "pct": 34.6,
-     "trecho": "s Emitidos (R$ milhões) Itens Segurados (milhões) +2,9 p.p. Sinistralidade 34,6% 30,7% 31,4% 28,0% A sinistral"
-    },
-    {
-     "pagina": 11,
-     "pct": 33.0,
-     "trecho": "% nos prêmios do Vida (vs. 2T25) Vidas em prêmios no Vida • Sinistralidade do Vida de 33,0% (+0,8 p.p. vs. 2T25) (Jun/26)"
-    },
-    {
-     "pagina": 11,
-     "pct": 39.5,
-     "trecho": ", com destaque para o aumento do crosssellcom as Verticais. Sinistralidade -Vida 39,5% 37,1% 32,2% 34,9% 33,0% A sin"
-    },
-    {
-     "pagina": 11,
-     "pct": 33.0,
-     "trecho": "icais. Sinistralidade -Vida 39,5% 37,1% 32,2% 34,9% 33,0% A sinistralidade do segundo trimestre do Vida alcançou 33,0% no 2T26, aumento de 0,8 p.p."
-    }
-   ],
-   "sinistralidade_pct": 76.9,
-   "sinistralidade_pagina": 3,
-   "sinistralidade_trecho": "idas, e de 16% de vidas no Odonto, alcançando 1,3 milhão. A sinistralidade foi de 76,9%, uma melhora de 0,4 p.p., pat"
+   "leituras": 48,
+   "medico": {
+    "serie_ans": "Porto Seguro",
+    "ans_mil": 891.741,
+    "ans_competencia": "jul/26",
+    "candidatos": 17,
+    "exemplos": [
+     {
+      "pagina": 14,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 904.0,
+      "trecho": "Release de Resultados 2T26 Beneficiários e Receitas R$ 2,3 bi 904 mil Vidas R$ 143,9 mi 24,0% em receitas no 2T26 +"
+     },
+     {
+      "pagina": 14,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 153.0,
+      "trecho": "6 Beneficiários e Receitas R$ 2,3 bi 904 mil Vidas R$ 143,9 mi 24,0% em receitas no 2T26 +153 mil vidas no de lucro líquido ROAE (+14,4% vs. 2T"
+     },
+     {
+      "pagina": 14,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 904.0,
+      "trecho": "25) +20,3% +5,3% Beneficiários 606 641 675 702 751 784 831 858 904 O Seguro Saúde atingiu 904 mil vidas, mantendo uma série de 23 trimestres co"
+     },
+     {
+      "pagina": 14,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 0.0,
+      "trecho": "Release de Resultados 2T26 Beneficiários e Receitas R$ 2,3 bi 904 mil Vidas R$ 143,9 mi 24,0% em re"
+     },
+     {
+      "pagina": 14,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 0.1,
+      "trecho": "Release de Resultados 2T26 Beneficiários e Receitas R$ 2,3 bi 904 mil Vidas R$ 143,9 mi 24,0% em receitas no 2T26 +153 mil vi"
+     },
+     {
+      "pagina": 14,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 0.0,
+      "trecho": "ciários e Receitas R$ 2,3 bi 904 mil Vidas R$ 143,9 mi 24,0% em receitas no 2T26 +153 mil vidas no de lucro líquido ROAE (+14,4% vs. 2T25) Seguro Saúde no 2T26 (+1,6 p"
+     }
+    ],
+    "valor_mil": 904.0,
+    "pagina": 14,
+    "origem": "col-esq",
+    "trecho": "Beneficiários e Receitas R$ 2,3 bi 904 mil Vidas em receitas no 2T26 +153 mil vidas no (",
+    "na_banda": 5,
+    "dispersao_pct": 1.37
+   },
+   "odonto": {
+    "recusa": "sem linha da ANS declarada para este segmento"
+   },
+   "sinistralidade": {
+    "pct": 76.9,
+    "pagina": 3,
+    "origem": "col-dir",
+    "trecho": "4 mil vidas, e de 16% de vidas no Odonto, ndo 1,3 milhão. A sinistralidade foi de 76,9%, uma melhora de 0,4 amar que",
+    "candidatos": 17
+   }
   },
   "SAUD": {
    "rotulo": "Bradsaúde (ex-Odontoprev)",
-   "ans": "Bradesco Saúde",
    "data_entrega": "2026-08-04",
    "assunto": "Relatório de Resultados 2T26 [Português e Inglês]",
-   "ans_nivel_mil": 4157.753,
-   "ans_competencia": "jul/26",
-   "candidatos_vidas": [
-    {
-     "pagina": 2,
-     "valor_mil": 229.0,
-     "trecho": "RESULTADOS 2T26 02 SUMÁRIO EXECUTIVO As adições líquidas foram de 229 mil vidas no 2T26, das quais 99 mil em planos BRA"
-    },
-    {
-     "pagina": 2,
-     "valor_mil": 78.0,
-     "trecho": "27,3 BI variação anual tanto nas carteiras de saúde quanto odontológica. Houve adição de 78 mil vidas no trimestre (31 mil na saúde e 47 mil"
-    },
-    {
-     "pagina": 2,
-     "valor_mil": 288.0,
-     "trecho": "gica. Houve adição de 78 mil vidas no trimestre (31 mil na saúde e 47 mil no dental) e de 288 mil vidas na ADIÇÕES LÍQUIDAS DE comparação anual"
-    },
-    {
-     "pagina": 2,
-     "valor_mil": 4100.0,
-     "trecho": "84 99 MIL NA SAÚDE, mil no dental). TOTALIZANDO As receitas totais cresceram 11% no 2T26, 4,1 MM DE VIDAS alcançando R$ 13,9 bilhões, e 10% no 6M"
-    },
-    {
-     "pagina": 2,
-     "valor_mil": 9500.0,
-     "trecho": "2T26 (+1,7 p.p.), e manteve-se estável DE 130 MIL NO DENTAL, em 81% no 6M26. TOTALIZANDO 9,5 MM DE VIDAS O lucro líquido aumentou 25% no 2T26, a"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 0.0,
-     "trecho": "ADOS 2T26 03 SUMÁRIO EXECUTIVO As adições líquidas foram de 229 mil DESTAQUES BRADSAÚDE 2T26 vidas no 2T26, das quais 99 mil em planos BRA"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 78.0,
-     "trecho": "anual tanto nas carteiras de saúde Atingindo 13,6 MM quanto odontológica. Houve adição de 78 mil vidas no trimestre (31 mil na saúde e 47 mil"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 288.0,
-     "trecho": "gica. Houve adição de 78 mil vidas no trimestre (31 mil na saúde e 47 mil no dental) e de 288 mil vidas na ADIÇÕES LÍQUIDAS DE comparação anual"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 4100.0,
-     "trecho": "A SAÚDE, mil no dental). TOTALIZANDO Melhora de As receitas totais cresceram 11% no 2T26, 4,1 MM DE VIDAS 1,0 p.p. +10,8% alcançando R$ 13,9 bilh"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 9500.0,
-     "trecho": "nteve-se estável DE 130 MIL NO DENTAL, em 81% no 6M26. TOTALIZANDO LUCRO LÍQUIDO ROAE 12M 9,5 MM DE VIDAS O lucro líquido aumentou 25% no 2T26, a"
-    },
-    {
-     "pagina": 5,
-     "valor_mil": 14000.0,
-     "trecho": "ologia (Croma). A BRADESCO SAÚDE 19 MÉTRICAS SELECIONADAS 21 SAÚDE DO BRASIL Com cerca de 14 milhões de beneficiários, mais de 4 mil leitos hospitalares e am"
-    },
-    {
-     "pagina": 9,
-     "valor_mil": 13600.0,
-     "trecho": "MÉTRICAS SELECIONADAS BRADSAÚDE MÉTRICAS SELECIONADAS BRADSAÚDE •• •• Bradsaúde registrou 13,6 milhões de beneficiários ao final de junho, sendo 4,1 milhões Ta"
-    }
+   "banda": [
+    0.6,
+    1.6
    ],
-   "vidas_mil": 9500.0,
-   "vidas_pagina": 2,
-   "vidas_trecho": "2T26 (+1,7 p.p.), e manteve-se estável DE 130 MIL NO DENTAL, em 81% no 6M26. TOTALIZANDO 9,5 MM DE VIDAS O lucro líquido aumentou 25% no 2T26, a",
-   "dispersao_pct": 128.49,
-   "candidatos_na_banda": 5,
-   "candidatos_sinistralidade": [
-    {
-     "pagina": 2,
-     "pct": 83.8,
-     "trecho": "0% no 6M26, totalizando R$ 27,3 bilhões. ADIÇÕES LÍQUIDAS A sinistralidade consolidada atingiu 83,8% no 2T26 (+1,7 p.p.), e mantev"
-    },
-    {
-     "pagina": 3,
-     "pct": 83.8,
-     "trecho": ",3% vs. 84,3%) (R$13,9 BI vs. R$12,5 BI) ADIÇÕES LÍQUIDAS A sinistralidade consolidada atingiu 83,8% no 2T26 (+1,7 p.p.), e mantev"
-    }
-   ],
-   "sinistralidade_pct": 83.8,
-   "sinistralidade_pagina": 2,
-   "sinistralidade_trecho": "0% no 6M26, totalizando R$ 27,3 bilhões. ADIÇÕES LÍQUIDAS A sinistralidade consolidada atingiu 83,8% no 2T26 (+1,7 p.p.), e mantev"
+   "leituras": 48,
+   "medico": {
+    "serie_ans": "Bradesco Saúde",
+    "ans_mil": 4157.753,
+    "ans_competencia": "jul/26",
+    "candidatos": 16,
+    "exemplos": [
+     {
+      "pagina": 5,
+      "origem": "col-dir",
+      "segmento": "medico",
+      "valor_mil": 14000.0,
+      "trecho": "imen- to estratégico em diagnósticos (24,85% em Fleury) e oncologia (Croma). Com cerca de 14 milhões de beneficiários, mais de 4 mil leitos hospitalares e am"
+     },
+     {
+      "pagina": 5,
+      "origem": "col-dir",
+      "segmento": "medico",
+      "valor_mil": 4.0,
+      "trecho": "tégico em diagnósticos (24,85% em Fleury) e oncologia (Croma). Com cerca de 14 milhões de beneficiários, mais de 4 mil leitos hospitalares e ampla rede assiste"
+     },
+     {
+      "pagina": 9,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 13600.0,
+      "trecho": "MÉTRICAS SELECIONADAS BRADSAÚDE MÉTRICAS SELECIONADAS BRADSAÚDE •• •• Bradsaúde registrou 13,6 milhões de beneficiários ao final de junho, sendo 4,1 milhões Ta"
+     },
+     {
+      "pagina": 9,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 13610.0,
+      "trecho": "7,0% (1.343) (1.168) 15,0% Lucro líquido 1.110 889 24,8% 2.418 1.895 27,6% mil vidas +229 13.610 mil vidas Ativos financeiros 29.553 27.180 8,7% 2"
+     },
+     {
+      "pagina": 9,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 3000.0,
+      "trecho": "6,8 5,9 0,9 p.p. 6,7 6,4 0,3 p.p. Segmento estratégico de PME supera, pela primeira vez, 3 milhões de beneficiários, com adições Margem das operações 18,7"
+     },
+     {
+      "pagina": 9,
+      "origem": "pagina",
+      "segmento": "medico",
+      "valor_mil": 29.6,
+      "trecho": ") (1.168) 15,0% Lucro líquido 1.110 889 24,8% 2.418 1.895 27,6% mil vidas +229 13.610 mil vidas Ativos financeiros 29.553 27.180 8,7% 29.553 27.180 8,7% ROAE 12M"
+     }
+    ],
+    "valor_mil": 2500.0,
+    "pagina": 15,
+    "origem": "col-dir",
+    "trecho": "di- por adesão, que representavam, respectiva- PLANOS DE SAÚDE E PENETRAÇÃO NA POPULAÇÃO +2,5MM de vidas 53,1 52,9 50,5 50,1 44,9 47,1 37,2 24,9",
+    "na_banda": 2,
+    "dispersao_pct": -39.87
+   },
+   "odonto": {
+    "serie_ans": "Odontoprev",
+    "ans_mil": 9575.89,
+    "ans_competencia": "mai/26",
+    "candidatos": 9,
+    "exemplos": [
+     {
+      "pagina": 3,
+      "origem": "pagina",
+      "segmento": "odonto",
+      "valor_mil": 9500.0,
+      "trecho": "nteve-se estável DE 130 MIL NO DENTAL, em 81% no 6M26. TOTALIZANDO LUCRO LÍQUIDO ROAE 12M 9,5 MM DE VIDAS O lucro líquido aumentou 25% no 2T26, a"
+     },
+     {
+      "pagina": 3,
+      "origem": "pagina",
+      "segmento": "odonto",
+      "valor_mil": 0.0,
+      "trecho": "stável DE 130 MIL NO DENTAL, em 81% no 6M26. TOTALIZANDO LUCRO LÍQUIDO ROAE 12M 9,5 MM DE VIDAS O lucro líquido aumentou 25% no 2T26, alcançando R$ 1,1 bilhão, e c"
+     },
+     {
+      "pagina": 9,
+      "origem": "col-dir",
+      "segmento": "odonto",
+      "valor_mil": 0.0,
+      "trecho": "l a de 855 mil vidas, com conquista de 301 mil 13.610 81 9.535 05 76 4.075 +13,6MM R26 JUN26 de beneficiários em todo Brasil a vez, 3 milhões de bene"
+     },
+     {
+      "pagina": 9,
+      "origem": "col-dir",
+      "segmento": "odonto",
+      "valor_mil": 3000.0,
+      "trecho": "mil 13.610 81 9.535 05 76 4.075 +13,6MM R26 JUN26 de beneficiários em todo Brasil a vez, 3 milhões de beneficiários, com adições 184 mil no dental. ADIÇÕES"
+     },
+     {
+      "pagina": 9,
+      "origem": "col-dir",
+      "segmento": "odonto",
+      "valor_mil": 553.0,
+      "trecho": "3 milhões de beneficiários, com adições 184 mil no dental. ADIÇÕES LÍQUIDAS DENTAL EM 12M 553 Mil vidas 504 339 334 306 300 DEZ22 DEZ23 DEZ24 D"
+     },
+     {
+      "pagina": 9,
+      "origem": "col-dir",
+      "segmento": "odonto",
+      "valor_mil": 301.0,
+      "trecho": "milhões em planos odontológicos. l novos clientes, com crescimento de 99 mil a de 855 mil vidas, com conquista de 301 mil 13.610 81 9.535 05 76 4.075 +13,6MM R26"
+     }
+    ],
+    "valor_mil": 9500.0,
+    "pagina": 3,
+    "origem": "pagina",
+    "trecho": "nteve-se estável DE 130 MIL NO DENTAL, em 81% no 6M26. TOTALIZANDO LUCRO LÍQUIDO ROAE 12M 9,5 MM DE VIDAS O lucro líquido aumentou 25% no 2T26, a",
+    "na_banda": 1,
+    "dispersao_pct": -0.79
+   },
+   "sinistralidade": {
+    "pct": 83.8,
+    "pagina": 2,
+    "origem": "col-esq",
+    "trecho": "LÍQUIDAS DE 130 MIL NO DENTAL, TOTALIZANDO 9,5 MM DE VIDAS SINISTRALIDADE CONSOLIDADA DE 83,8% E ESTÁVEL EM 81% NO SEMESTRE",
+    "candidatos": 4
+   }
   },
   "HAPV": {
    "rotulo": "Hapvida · Hapvida + NDI",
-   "ans": "Hapvida + GNDI",
    "data_entrega": "2026-08-12",
    "assunto": "Release 2T26",
-   "ans_nivel_mil": 8513.454,
-   "ans_competencia": "jul/26",
-   "candidatos_vidas": [
-    {
-     "pagina": 6,
-     "valor_mil": 0.0,
-     "trecho": "4 1.456 1.448 1.444 ■PME ■Corporativo 5.029 5.094 5.028 5.035 5.009 2T25 3T25 4T25 1T26 2T26 Vidas No processo de revisão de sua estratégi"
-    },
-    {
-     "pagina": 6,
-     "valor_mil": 8.7,
-     "trecho": "dimplentes . Esse processo se iniciou no fim do trimestre e,em junho' 26,cerca de 947 mil 8.668 vidas se enquadravam nos novos critérios, ou"
-    }
+   "banda": [
+    0.6,
+    1.6
    ],
-   "vidas_recusa": "nenhum candidato na banda de plausibilidade (0.4x–2.5x de 8.513.5 mil da ANS)",
-   "candidatos_sinistralidade": [
-    {
-     "pagina": 9,
-     "pct": 75.2,
-     "trecho": "7) (5.997) - 50,0% 1T25 2T25 3T25 4T25 1T26 2T26 No 2T26, a sinistralidade caixa atingiu 75,2%, um refletindo num aumento de"
-    },
-    {
-     "pagina": 9,
-     "pct": 73.7,
-     "trecho": "A evolução sequencial refletiu em larga escala a No 1S26, a sinistralidade caixa ficou em 73,7%, 0,8p.p. volumetria sazonal m"
-    }
-   ],
-   "sinistralidade_pct": 75.2,
-   "sinistralidade_pagina": 9,
-   "sinistralidade_trecho": "7) (5.997) - 50,0% 1T25 2T25 3T25 4T25 1T26 2T26 No 2T26, a sinistralidade caixa atingiu 75,2%, um refletindo num aumento de"
+   "leituras": 48,
+   "medico": {
+    "serie_ans": "Hapvida + GNDI",
+    "ans_mil": 8513.454,
+    "ans_competencia": "jul/26",
+    "candidatos": 0,
+    "exemplos": [],
+    "recusa": "nenhum número classificado como medico nas 16 páginas"
+   },
+   "odonto": {
+    "serie_ans": "Hapvida",
+    "ans_mil": 4381.369,
+    "ans_competencia": "jul/26",
+    "candidatos": 0,
+    "exemplos": [],
+    "recusa": "nenhum número classificado como odonto nas 16 páginas"
+   },
+   "sinistralidade": {
+    "pct": 75.2,
+    "pagina": 9,
+    "origem": "col-esq",
+    "trecho": "000,0 2.000,0 1.000,0 (5.388) (5.672 - 1T25 2T25 No 2T26, a sinistralidade caixa atingiu 75,2%, um aumento de 3,0p.p.com rel",
+    "candidatos": 5
+   }
   },
   "QUAL": {
    "rotulo": "Qualicorp",
-   "ans": null,
    "data_entrega": "2026-08-12",
    "assunto": "Release 2T26",
-   "ans_nivel_mil": null,
-   "ans_competencia": null,
-   "candidatos_vidas": [
-    {
-     "pagina": 2,
-     "valor_mil": 480.5,
-     "trecho": "m ser obtidosemformatoExcelnositeri.qualicorp.com.br. Destaques: • Carteira Administrada: 480,5 mil vidas no 2T26. Na visão ajustada, excluindo o"
-    },
-    {
-     "pagina": 2,
-     "valor_mil": 466.6,
-     "trecho": "to da operadora de menor porte, a carteira registrou +0,7 mil adições líquidasvs.1T26,para466,6mil vidas,baseestáveldesdejaneiro/26. • Churn Aju"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 480.5,
-     "trecho": "a Encerramos o trimestre com 851,9 líquida totalizou R$ 650,3 milhões e o mil vidas,sendo 480,5 mil vidas na Carteira EBITDA Ajustado, R$ 257,5 m"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 0.7,
-     "trecho": "inistrada apresentou adições líquidas frente ao 1S25. O fluxo de caixa livre positivas de 0,7 mil vidas vs. 1T26, recorrente somou R$ 28,6 milh"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 466.6,
-     "trecho": "s de 0,7 mil vidas vs. 1T26, recorrente somou R$ 28,6 milhões no encerrando o período com 466,6 mil vidas trimestreeR$154,9milhõesnosemestre. e m"
-    },
-    {
-     "pagina": 3,
-     "valor_mil": 103.0,
-     "trecho": "cio do ano. O PME cresceu 1,5%, chegando Concluído esse ciclo de ajuste e aofinaldo2T26com103,0milvidas. com os indicadores de originação e ret"
-    },
-    {
-     "pagina": 4,
-     "valor_mil": 851.9,
-     "trecho": "* Base comparável ajustada, excluindo os segmentos Gama e Empresarial. Encerramos o2T26com851,9 mil vidas,representandoqueda de3,2%em relaçãoao1T"
-    },
-    {
-     "pagina": 4,
-     "valor_mil": 38.0,
-     "trecho": "ra o negócio, apresentou adições brutas 5,4% superiores às do último trimestre, chegandoa 38,0 milvidas,mesmo coma desaceleração observada nomê"
-    },
-    {
-     "pagina": 4,
-     "valor_mil": 480.5,
-     "trecho": "ídas observadas no período. Desta forma, a Carteira Administrada encerrou o trimestre com 480,5 mil vidas, -7,4% vs. 1T26, com reduçãolíquidade38"
-    },
-    {
-     "pagina": 4,
-     "valor_mil": 38.7,
-     "trecho": "dministrada encerrou o trimestre com 480,5 mil vidas, -7,4% vs. 1T26, com reduçãolíquidade38,7 mil vidas. Uma vez que se refere à última operado"
-    },
-    {
-     "pagina": 4,
-     "valor_mil": 466.0,
-     "trecho": "a, uma dinâmica em linha com o almejado, com a Carteira Administrada estável, em torno de 466 mil vidas,desdeo iníciodoano. 561,8 549,6 533,2 5"
-    },
-    {
-     "pagina": 5,
-     "valor_mil": 0.7,
-     "trecho": "eracional Sob essa visão ajustada, a Carteira Administrada apresentou adições líquidas de 0,7 mil vidas no trimestre, para 466,6 mil vidas, rev"
-    }
+   "banda": [
+    0.6,
+    1.6
    ],
-   "vidas_recusa": "sem linha da ANS para comparar — não dá para conferir",
-   "candidatos_sinistralidade": [],
-   "sinistralidade_recusa": "nenhum percentual plausível junto de sinistralidade/MLR"
+   "leituras": 48,
+   "medico": {
+    "recusa": "sem linha da ANS declarada para este segmento"
+   },
+   "odonto": {
+    "recusa": "sem linha da ANS declarada para este segmento"
+   },
+   "sinistralidade": {
+    "recusa": "nenhum percentual plausível"
+   }
   }
  }
 }
