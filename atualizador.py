@@ -3823,11 +3823,23 @@ companhia — serve para descartar o candidato que claramente não é carteira.
 
 # número brasileiro: 1.234.567 | 904 | 78,1
 _NUM = r'(\d{1,3}(?:\.\d{3})+|\d+(?:,\d+)?)'
-RE_VIDAS = re.compile(
-    _NUM + r'\s*(mil|milh(?:ões|oes)|mm)?\s*(?:de\s+)?(?:vidas|benefici[áa]rios)', re.I)
-RE_SINIS = re.compile(
-    r'sinistralidade[^.;•]{0,90}?' + _NUM + r'\s*%', re.I)
+_ESC = r'\s*(mil|milh(?:ões|oes)|mm)?\s*'
+# as duas ordens em que as empresas escrevem: "904 mil vidas" e "vidas ... 6,2 milhões"
+RE_VIDAS_A = re.compile(_NUM + _ESC + r'(?:de\s+)?(?:vidas|benefici[áa]rios)', re.I)
+RE_VIDAS_B = re.compile(r'(?:vidas|benefici[áa]rios)[^.;•]{0,45}?' + _NUM + _ESC +
+                        r'(?=\b|$)', re.I)
+RE_SINIS = re.compile(r'sinistralidade[^.;•]{0,90}?' + _NUM + r'\s*%', re.I)
 RE_MLR = re.compile(r'\bmlr\b[^.;•]{0,90}?' + _NUM + r'\s*%', re.I)
+
+# Classificação do candidato por segmento. A ordem importa: "saúde e odonto"
+# tem que ser testado ANTES de "saúde", senão o consolidado entra como médico —
+# foi exatamente assim que a Bradsaúde passou com 9,5 MM contra os 4,16 MM da
+# linha médica da ANS, uma dispersão de 128% que não era dispersão, era soma.
+RE_COMBINADO = re.compile(r'sa[úu]de\s*(?:e|\+|&|,)\s*(?:odonto|dental)|'
+                          r'(?:odonto|dental)\s*(?:e|\+|&|,)\s*sa[úu]de|'
+                          r'total\s+de\s+vidas|vidas\s+totais|consolidad', re.I)
+RE_DENTAL = re.compile(r'odonto|dental', re.I)
+RE_MEDICO = re.compile(r'sa[úu]de|m[ée]dic|health', re.I)
 
 
 def _num_br(txt, escala=None):
@@ -3840,44 +3852,98 @@ def _num_br(txt, escala=None):
     return v / 1000.0              # veio em unidades
 
 
+def _segmento(ctx):
+    """médico, odonto, combinado ou None — a partir do texto em volta do número."""
+    if RE_COMBINADO.search(ctx):
+        return 'combinado'
+    tem_d, tem_m = bool(RE_DENTAL.search(ctx)), bool(RE_MEDICO.search(ctx))
+    if tem_d and not tem_m:
+        return 'odonto'
+    if tem_m and not tem_d:
+        return 'medico'
+    if tem_d and tem_m:
+        return 'combinado'
+    return None
+
+
 def _texto_pdf(caminho, ate=None):
+    """Texto por página E por coluna.
+
+    A página de destaques costuma ter duas colunas, e a extração corrida lê
+    atravessando: uma frase da esquerda cola numa da direita e nasce um número
+    que não existe no documento. Por isso cada página rende três leituras — a
+    inteira e as duas metades — e o candidato tirado de uma metade é o
+    confiável quando a página é de duas colunas.
+    """
     try:
         import pdfplumber
     except ImportError:
         return []
-    paginas = []
+    saida = []
     try:
         with pdfplumber.open(caminho) as pdf:
             for n, pag in enumerate(pdf.pages, 1):
                 if ate and n > ate:
                     break
-                paginas.append((n, re.sub(r'\s+', ' ', pag.extract_text() or '')))
+                lim = lambda t: re.sub(r'\s+', ' ', t or '')
+                saida.append((n, 'pagina', lim(pag.extract_text())))
+                try:
+                    w, h = pag.width, pag.height
+                    saida.append((n, 'col-esq', lim(pag.crop((0, 0, w/2, h)).extract_text())))
+                    saida.append((n, 'col-dir', lim(pag.crop((w/2, 0, w, h)).extract_text())))
+                except Exception:
+                    pass
     except Exception:
-        return paginas
-    return paginas
+        return saida
+    return saida
 
 
-def _ans_referencia(D, serie, periodo=None):
-    """Último nível da ANS para a linha comparável, em milhares de vidas."""
-    for bloco in ('ben.lives_m', 'ben.dental_lives_m'):
-        no = D
-        for parte in bloco.split('.'):
-            no = (no or {}).get(parte) if isinstance(no, dict) else None
-        if not no or serie not in (no.get('series') or {}):
-            continue
-        vals, pers = no['series'][serie], no['periods']
-        if periodo and periodo in pers:
-            v = vals[pers.index(periodo)]
-            if v is not None:
-                return v, periodo
-        for i in range(len(vals) - 1, -1, -1):
-            if vals[i] is not None:
-                return vals[i], pers[i]
+def _serie_ans(D, bloco, serie):
+    """Último nível gravado da linha da ANS, em milhares de vidas."""
+    no = D
+    for parte in bloco.split('.'):
+        no = (no or {}).get(parte) if isinstance(no, dict) else None
+    if not no or serie not in (no.get('series') or {}):
+        return None, None
+    vals, pers = no['series'][serie], no['periods']
+    for i in range(len(vals) - 1, -1, -1):
+        if vals[i] is not None:
+            return vals[i], pers[i]
     return None, None
 
 
-def acao_releases_extrair(banda=(0.4, 2.5), paginas=14):
-    """Tira do release os números comparáveis, com o motivo de cada recusa."""
+def _candidatos_vidas(paginas, segmento_alvo, janela=130):
+    cands = []
+    for n, origem, txt in paginas:
+        if not txt:
+            continue
+        for rx in (RE_VIDAS_A, RE_VIDAS_B):
+            for m in rx.finditer(txt):
+                try:
+                    v = _num_br(m.group(1), m.group(2))
+                except ValueError:
+                    continue
+                ctx = txt[max(0, m.start() - janela): m.end() + janela]
+                seg = _segmento(ctx)
+                if seg != segmento_alvo:
+                    continue
+                cands.append({'pagina': n, 'origem': origem, 'segmento': seg,
+                              'valor_mil': round(v, 1),
+                              'trecho': txt[max(0, m.start()-90): m.end()+40].strip()[:210]})
+    return cands
+
+
+def _escolher(cands, ref, banda):
+    dentro = [c for c in cands if banda[0] * ref <= c['valor_mil'] <= banda[1] * ref]
+    if not dentro:
+        return None, dentro
+    # coluna vence página inteira (não atravessa colunas); depois o mais cedo
+    ordem = {'col-esq': 0, 'col-dir': 0, 'pagina': 1}
+    return sorted(dentro, key=lambda c: (ordem.get(c['origem'], 2), c['pagina']))[0], dentro
+
+
+def acao_releases_extrair(banda=(0.6, 1.6), paginas=16):
+    """Médico contra médico, odonto contra odonto — e nada de consolidado."""
     if not os.path.exists(DIAG_REL):
         print('  rode antes --releases-descobrir'); return
     diag = json.load(open(DIAG_REL, encoding='utf-8'))
@@ -3886,8 +3952,8 @@ def acao_releases_extrair(banda=(0.4, 2.5), paginas=14):
 
     for k, doc in (diag.get('documentos') or {}).items():
         conf = LISTADAS.get(k, {})
-        reg = {'rotulo': conf.get('rotulo'), 'ans': conf.get('ans'),
-               'data_entrega': doc.get('data_entrega'), 'assunto': doc.get('assunto')}
+        reg = {'rotulo': conf.get('rotulo'), 'data_entrega': doc.get('data_entrega'),
+               'assunto': doc.get('assunto'), 'banda': list(banda)}
         caminho = os.path.join(CACHE, 'cvm', 'docs',
                                re.sub(r'[^A-Za-z0-9_.-]', '_',
                                       f'{k}_{(doc.get("data_entrega") or "")[:10]}')[:80])
@@ -3895,77 +3961,78 @@ def acao_releases_extrair(banda=(0.4, 2.5), paginas=14):
             reg['recusa'] = f'documento não é PDF legível ({doc.get("formato")})'
             saida[k] = reg; continue
 
-        ref, per = _ans_referencia(D, conf.get('ans')) if conf.get('ans') else (None, None)
-        reg['ans_nivel_mil'] = ref
-        reg['ans_competencia'] = per
+        pags = _texto_pdf(caminho, ate=paginas)
+        reg['leituras'] = len(pags)
 
-        # ---------- vidas ----------
-        cands = []
-        for n, txt in _texto_pdf(caminho, ate=paginas):
-            for m in RE_VIDAS.finditer(txt):
-                try:
-                    v = _num_br(m.group(1), m.group(2))
-                except ValueError:
-                    continue
-                cands.append({'pagina': n, 'valor_mil': round(v, 1),
-                              'trecho': txt[max(0, m.start()-90):m.end()+40].strip()})
-        reg['candidatos_vidas'] = cands[:12]
-        if not cands:
-            reg['vidas_recusa'] = 'nenhum número com unidade de vidas nas primeiras páginas'
-        elif ref is None:
-            reg['vidas_recusa'] = 'sem linha da ANS para comparar — não dá para conferir'
-        else:
-            dentro = [c for c in cands if banda[0] * ref <= c['valor_mil'] <= banda[1] * ref]
-            if not dentro:
-                reg['vidas_recusa'] = (f'nenhum candidato na banda de plausibilidade '
-                                       f'({banda[0]}x–{banda[1]}x de {ref:,.1f} mil da ANS)'
-                                       .replace(',', '.'))
-            else:
-                # o mais cedo no documento: destaques vêm antes de anexo
-                esc = sorted(dentro, key=lambda c: (c['pagina'], -c['valor_mil']))[0]
-                reg['vidas_mil'] = esc['valor_mil']
-                reg['vidas_pagina'] = esc['pagina']
-                reg['vidas_trecho'] = esc['trecho'][:200]
-                reg['dispersao_pct'] = round((esc['valor_mil'] / ref - 1) * 100, 2)
-                reg['candidatos_na_banda'] = len(dentro)
+        for rotulo, bloco, serie, alvo in (
+                ('medico', 'ben.lives_m', conf.get('ans'), 'medico'),
+                ('odonto', 'ben.dental_lives_m', conf.get('ans_odonto'), 'odonto')):
+            r = reg.setdefault(rotulo, {})
+            if not serie:
+                r['recusa'] = 'sem linha da ANS declarada para este segmento'
+                continue
+            ref, per = _serie_ans(D, bloco, serie)
+            r.update({'serie_ans': serie, 'ans_mil': ref, 'ans_competencia': per})
+            if ref is None:
+                r['recusa'] = f'a base não tem a série {serie} em {bloco}'
+                continue
+            cands = _candidatos_vidas(pags, alvo)
+            r['candidatos'] = len(cands)
+            r['exemplos'] = cands[:6]
+            if not cands:
+                r['recusa'] = f'nenhum número classificado como {alvo} nas {paginas} páginas'
+                continue
+            esc, dentro = _escolher(cands, ref, banda)
+            if not esc:
+                r['recusa'] = (f'{len(cands)} candidatos, nenhum entre {banda[0]}x e '
+                               f'{banda[1]}x dos {ref:.1f} mil da ANS')
+                continue
+            r.update({'valor_mil': esc['valor_mil'], 'pagina': esc['pagina'],
+                      'origem': esc['origem'], 'trecho': esc['trecho'],
+                      'na_banda': len(dentro),
+                      'dispersao_pct': round((esc['valor_mil'] / ref - 1) * 100, 2)})
 
-        # ---------- sinistralidade ----------
+        # sinistralidade (sem quebra por segmento: o release reporta consolidada)
         sin = []
-        for n, txt in _texto_pdf(caminho, ate=paginas):
+        for n, origem, txt in pags:
             for rx in (RE_SINIS, RE_MLR):
-                for m in rx.finditer(txt):
+                for m in rx.finditer(txt or ''):
                     try:
                         v = float(m.group(1).replace('.', '').replace(',', '.'))
                     except ValueError:
                         continue
-                    if 30.0 <= v <= 110.0:       # sinistralidade fora disso não é sinistralidade
-                        sin.append({'pagina': n, 'pct': v,
-                                    'trecho': txt[max(0, m.start()-60):m.end()+30].strip()})
-        reg['candidatos_sinistralidade'] = sin[:12]
+                    if 30.0 <= v <= 110.0:
+                        sin.append({'pagina': n, 'origem': origem, 'pct': v,
+                                    'trecho': txt[max(0, m.start()-60): m.end()+30].strip()[:170]})
         if sin:
-            esc = sorted(sin, key=lambda c: c['pagina'])[0]
-            reg['sinistralidade_pct'] = esc['pct']
-            reg['sinistralidade_pagina'] = esc['pagina']
-            reg['sinistralidade_trecho'] = esc['trecho'][:200]
+            ordem = {'col-esq': 0, 'col-dir': 0, 'pagina': 1}
+            e = sorted(sin, key=lambda c: (ordem.get(c['origem'], 2), c['pagina']))[0]
+            reg['sinistralidade'] = {'pct': e['pct'], 'pagina': e['pagina'],
+                                     'origem': e['origem'], 'trecho': e['trecho'],
+                                     'candidatos': len(sin)}
         else:
-            reg['sinistralidade_recusa'] = 'nenhum percentual plausível junto de sinistralidade/MLR'
+            reg['sinistralidade'] = {'recusa': 'nenhum percentual plausível'}
         saida[k] = reg
 
     diag['extracao'] = saida
     json.dump(diag, open(DIAG_REL, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    print('\n  Extração dos releases')
-    print('  ' + '-' * 78)
+    print('\n  Extração — médico contra médico, odonto contra odonto')
+    print('  ' + '-' * 84)
     for k, r in saida.items():
-        v = r.get('vidas_mil'); s = r.get('sinistralidade_pct'); a = r.get('ans_nivel_mil')
-        if v is not None:
-            print(f'   {k:<6} {r["rotulo"][:26]:<26} vidas {v:>9,.1f} mil · ANS {a:>9,.1f} mil'
-                  f' · dispersão {r["dispersao_pct"]:+6.2f}%'.replace(',', '.')
-                  + (f' · sinistralidade {s:.1f}%' if s else ''))
-        else:
-            print(f'   {k:<6} {r["rotulo"][:26]:<26} RECUSADO — '
-                  f'{r.get("vidas_recusa") or r.get("recusa")}')
+        if r.get('recusa'):
+            print(f'   {k:<6} {str(r.get("rotulo"))[:26]:<26} {r["recusa"]}'); continue
+        for seg in ('medico', 'odonto'):
+            d = r.get(seg) or {}
+            if d.get('valor_mil') is not None:
+                print(f'   {k:<6} {seg:<7} {d["valor_mil"]:>9,.1f} mil · ANS {d["ans_mil"]:>9,.1f} mil'
+                      f' ({d["ans_competencia"]}) · dispersão {d["dispersao_pct"]:+7.2f}%'
+                      f' · p{d["pagina"]} {d["origem"]}'.replace(',', '.'))
+            else:
+                print(f'   {k:<6} {seg:<7} RECUSADO — {d.get("recusa")}')
+        s = r.get('sinistralidade') or {}
+        if s.get('pct'):
+            print(f'   {k:<6} sinistr. {s["pct"]:.1f}%  (p{s["pagina"]} {s["origem"]})')
     return saida
-
 
 def _cli():
     import argparse
