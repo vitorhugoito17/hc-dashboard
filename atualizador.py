@@ -3572,6 +3572,7 @@ def acao_releases_descobrir(anos=None):
     try:
         acao_releases_documentos()
         acao_releases_extrair()
+        acao_ri_referencia()
     except Exception as e:
         print(f'  abrir/extrair os documentos falhou: {type(e).__name__}: {e}')
     return saida
@@ -4034,6 +4035,87 @@ def acao_releases_extrair(banda=(0.6, 1.6), paginas=16):
             print(f'   {k:<6} sinistr. {s["pct"]:.1f}%  (p{s["pagina"]} {s["origem"]})')
     return saida
 
+# ---- referência: o que os releases do 2T26 de fato disseram ----
+"""
+Números conferidos documento a documento contra os releases do 2T26. São a
+REFERÊNCIA da camada de RI, e existem por dois motivos.
+
+Primeiro, para a aba do dashboard mostrar dispersão de verdade hoje, em vez de
+esperar o extrator ficar bom em todas as cinco companhias.
+
+Segundo, e mais importante: é contra eles que o extrator automático vai ser
+medido. Um trimestre novo só é gravado por uma rodada que, rodando sobre o
+2T26, reproduza esta tabela. É a mesma regra que vale para a ANS — número que
+o robô não consegue reproduzir não entra na base.
+
+Cada linha diz também de qual série da ANS é o par, porque é aí que mora a
+decisão de cobertura: médico contra médico, odonto contra odonto.
+"""
+
+REL_REFERENCIA = {
+ 'competencia': '2T26',
+ 'competencia_ans': 'jun/26',
+ 'empresas': [
+  {'id': 'RDOR', 'rotulo': "Rede D'Or · SulAmérica", 'sinistralidade_pct': 78.8,
+   'medico': {'valor_mil': 3162.0, 'serie': 'SulAmérica',
+              'nota': '6.061 mil no total do grupo, menos os 2.899 de odonto'},
+   'odonto': {'valor_mil': 2899.0, 'serie': 'SulAmérica'}},
+  {'id': 'SAUD', 'rotulo': 'Bradsaúde (ex-Odontoprev)', 'sinistralidade_pct': 83.8,
+   'medico': {'valor_mil': 4075.0, 'serie': 'Bradesco Saúde', 'net_adds_mil': 99.0},
+   # a série odontológica da Odontoprev na base para em mai/26; o par é com ela
+   'odonto': {'valor_mil': 9535.0, 'serie': 'Odontoprev', 'net_adds_mil': 130.0,
+              'competencia_ans': 'mai/26'}},
+  {'id': 'HAPV', 'rotulo': 'Hapvida · Hapvida + NDI', 'sinistralidade_pct': 75.2,
+   'medico': {'valor_mil': 8668.0, 'serie': 'Hapvida + GNDI'},
+   'odonto': {'valor_mil': 7293.0, 'serie': 'Hapvida + GNDI'}},
+  {'id': 'PSAU', 'rotulo': 'Porto Saúde', 'sinistralidade_pct': 76.9,
+   'medico': {'valor_mil': 904.0, 'serie': 'Porto Seguro',
+              'nota': 'este o robô já extrai sozinho do release, página 14'}},
+ ]}
+
+
+def acao_ri_referencia(verboso=True):
+    """Grava em `ri` os valores reportados, já pareados com a linha da ANS."""
+    D = carregar_base()
+    saida = {'competencia': REL_REFERENCIA['competencia'],
+             'competencia_ans': REL_REFERENCIA['competencia_ans'],
+             'atualizado_em': datetime.date.today().isoformat(), 'empresas': []}
+    for e in REL_REFERENCIA['empresas']:
+        reg = {'id': e['id'], 'rotulo': e['rotulo'],
+               'sinistralidade_pct': e.get('sinistralidade_pct')}
+        for seg, bloco in (('medico', 'ben.lives_m'), ('odonto', 'ben.dental_lives_m')):
+            d = e.get(seg)
+            if not d:
+                continue
+            per = d.get('competencia_ans') or REL_REFERENCIA['competencia_ans']
+            no = D
+            for parte in bloco.split('.'):
+                no = (no or {}).get(parte) if isinstance(no, dict) else None
+            ans = None
+            if no and d['serie'] in (no.get('series') or {}) and per in no['periods']:
+                ans = no['series'][d['serie']][no['periods'].index(per)]
+            item = dict(d); item['competencia_ans'] = per; item['ans_mil'] = ans
+            item['dispersao_pct'] = (round((d['valor_mil'] / ans - 1) * 100, 2)
+                                     if ans else None)
+            reg[seg] = item
+        saida['empresas'].append(reg)
+    D['ri'] = saida
+    gravar_base(D)
+    if verboso:
+        print('\n  Listadas × ANS — referência ' + saida['competencia'])
+        print('  ' + '-' * 74)
+        for e in saida['empresas']:
+            for seg in ('medico', 'odonto'):
+                d = e.get(seg)
+                if not d:
+                    continue
+                a = d.get('ans_mil'); p = d.get('dispersao_pct')
+                print(f"   {e['rotulo'][:26]:<26} {seg:<7}"
+                      f" {d['valor_mil']:>8,.0f} mil · ANS {(f'{a:,.0f}' if a else '—'):>8} mil"
+                      f" · {(f'{p:+.2f}%' if p is not None else '—'):>8}".replace(',', '.'))
+    return saida
+
+
 def _cli():
     import argparse
     ap = argparse.ArgumentParser(description='Atualiza o Healthcare Database Dashboard.')
@@ -4059,6 +4141,8 @@ def _cli():
                     help='mapeia o schema das bases da ANS que ainda não têm coletor')
     ap.add_argument('--releases-descobrir', action='store_true',
                     help='mapeia o que a CVM publica das listadas (não grava número)')
+    ap.add_argument('--ri-referencia', action='store_true',
+                    help='grava em `ri` os números dos releases pareados com a ANS')
     ap.add_argument('--releases-extrair', action='store_true',
                     help='tira do release os números comparáveis, com portão contra a ANS')
     ap.add_argument('--releases-documentos', action='store_true',
@@ -4075,6 +4159,9 @@ def _cli():
 
     if getattr(a, 'releases_documentos', False):
         acao_releases_documentos(); return
+
+    if getattr(a, 'ri_referencia', False):
+        acao_ri_referencia(); return
 
     if getattr(a, 'releases_extrair', False):
         acao_releases_extrair(); return
