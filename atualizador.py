@@ -3570,6 +3570,10 @@ def acao_releases_descobrir(anos=None):
     # a segunda metade da descoberta roda junto: saber QUANDO saiu não serve de
     # nada sem saber COMO o número está escrito lá dentro
     try:
+        # a descoberta dos conjuntos da CVM anda junto: o passo `releases` do
+        # workflow é o único com acesso ao dados.cvm.gov.br, e mexer no YAML
+        # pela interface do GitHub tem falhado de forma intermitente
+        acao_cvm_descobrir()
         acao_releases_documentos()
         acao_releases_extrair()
         acao_ri_referencia()
@@ -4116,6 +4120,92 @@ def acao_ri_referencia(verboso=True):
     return saida
 
 
+# ---- descoberta: insiders e recompras nos dados abertos da CVM ----
+"""
+Insider (art. 11 da CVM 44, ex-358) e recompra de ações próprias são protocolados
+mensalmente. A pergunta é se existe dataset ESTRUTURADO para eles, ou se só dá para
+chegar via IPE documento a documento — e isso muda completamente o custo do coletor.
+
+Esta passada não escreve número nenhum: lista o diretório de documentos da CVM,
+identifica os candidatos e mostra as colunas reais de cada um. Sem isso, escrever o
+parser seria chute — e adivinhar caminho de portal de dados abertos já custou uma
+rodada nesta base.
+"""
+
+CVM_DOC = 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/'
+DIAG_CVM = os.path.join(HERE, 'diagnostico_cvm.json')
+
+# o que pode carregar insider ou recompra
+CVM_PISTAS = ('vlmo', 'valor', 'negoc', 'acao', 'acoes', 'ipe', 'fre', 'tesour', 'recompr')
+
+
+def acao_cvm_descobrir(limite_mb=45):
+    saida = {'gerado_em': datetime.date.today().isoformat(), 'raiz': CVM_DOC}
+    try:
+        pastas = [p for p in _listar_cvm(CVM_DOC) if p.endswith('/')]
+    except Exception as e:
+        saida['erro'] = f'{type(e).__name__}: {e}'
+        json.dump(saida, open(DIAG_CVM, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        print('  não consegui listar', CVM_DOC, e); return saida
+    saida['pastas'] = pastas
+    print(f'  {len(pastas)} conjuntos em CIA_ABERTA/DOC: ' + ', '.join(p.strip("/") for p in pastas))
+
+    cand = [p for p in pastas if any(t in p.lower() for t in CVM_PISTAS)]
+    saida['candidatos'] = cand
+    saida['detalhe'] = {}
+
+    for p in cand:
+        url = urljoin(CVM_DOC, p) + 'DADOS/'
+        d = {'dir': url}
+        try:
+            itens = _listar_cvm(url)
+        except Exception as e:
+            d['erro'] = f'sem DADOS/: {e}'[:140]
+            # alguns conjuntos não têm subpasta DADOS
+            try:
+                url = urljoin(CVM_DOC, p)
+                itens = _listar_cvm(url); d['dir'] = url; d.pop('erro')
+            except Exception as e2:
+                d['erro'] = f'{type(e2).__name__}: {e2}'[:140]
+                saida['detalhe'][p.strip('/')] = d; continue
+        arquivos = [i for i in itens if re.search(r'\.(csv|zip)$', i, re.I)]
+        d['arquivos'] = arquivos[-6:]
+        d['n_arquivos'] = len(arquivos)
+        if not arquivos:
+            saida['detalhe'][p.strip('/')] = d; continue
+        alvo = sorted(arquivos)[-1]
+        d['amostrado'] = alvo
+        try:
+            r = requests.get(urljoin(d['dir'], alvo), headers=CAB_CVM,
+                             timeout=(30, 300), stream=True)
+            r.raise_for_status()
+            pedacos, total = [], 0
+            for c in r.iter_content(1 << 20):
+                pedacos.append(c); total += len(c)
+                if total > limite_mb * (1 << 20): break
+            bruto = b''.join(pedacos)
+            d['bytes_lidos'] = total
+            if alvo.lower().endswith('.zip'):
+                with zipfile.ZipFile(io.BytesIO(bruto)) as z:
+                    membros = z.namelist()
+                    d['membros'] = membros[:12]
+                    csvs = [m for m in membros if m.lower().endswith('.csv')][:3]
+                    d['tabelas'] = [_amostra_csv(z.open(m).read(1 << 18), m) for m in csvs]
+            else:
+                d['tabelas'] = [_amostra_csv(bruto[:1 << 18], alvo)]
+        except Exception as e:
+            d['erro_amostra'] = f'{type(e).__name__}: {e}'[:160]
+        saida['detalhe'][p.strip('/')] = d
+        print(f"   {p.strip('/'):<14} {d.get('n_arquivos', 0)} arquivos · "
+              f"{len(d.get('tabelas') or [])} tabela(s) amostrada(s)"
+              + (f" · {d.get('erro') or d.get('erro_amostra')}"
+                 if d.get('erro') or d.get('erro_amostra') else ''))
+
+    json.dump(saida, open(DIAG_CVM, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print('\n  diagnostico_cvm.json gravado')
+    return saida
+
+
 def _cli():
     import argparse
     ap = argparse.ArgumentParser(description='Atualiza o Healthcare Database Dashboard.')
@@ -4141,6 +4231,8 @@ def _cli():
                     help='mapeia o schema das bases da ANS que ainda não têm coletor')
     ap.add_argument('--releases-descobrir', action='store_true',
                     help='mapeia o que a CVM publica das listadas (não grava número)')
+    ap.add_argument('--cvm-descobrir', action='store_true',
+                    help='mapeia os conjuntos da CVM que podem ter insider e recompra')
     ap.add_argument('--ri-referencia', action='store_true',
                     help='grava em `ri` os números dos releases pareados com a ANS')
     ap.add_argument('--releases-extrair', action='store_true',
@@ -4159,6 +4251,9 @@ def _cli():
 
     if getattr(a, 'releases_documentos', False):
         acao_releases_documentos(); return
+
+    if getattr(a, 'cvm_descobrir', False):
+        acao_cvm_descobrir(); return
 
     if getattr(a, 'ri_referencia', False):
         acao_ri_referencia(); return
