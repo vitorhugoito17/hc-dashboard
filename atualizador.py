@@ -3574,6 +3574,7 @@ def acao_releases_descobrir(anos=None):
         # workflow é o único com acesso ao dados.cvm.gov.br, e mexer no YAML
         # pela interface do GitHub tem falhado de forma intermitente
         acao_cvm_descobrir()
+        acao_vlmo_descobrir()
         acao_releases_documentos()
         acao_releases_extrair()
         acao_ri_referencia()
@@ -4206,6 +4207,110 @@ def acao_cvm_descobrir(limite_mb=45):
     return saida
 
 
+# ---- VLMO: insider e recompra na mesma tabela ----
+"""
+`vlmo_cia_aberta_con_AAAA.csv` traz uma linha por movimentação, com Tipo_Cargo,
+Tipo_Movimentacao, Tipo_Operacao, Data_Movimentacao, Quantidade, Preco_Unitario e
+Volume. Insider e recompra saem do MESMO arquivo: muda o Tipo_Cargo.
+
+Antes de classificar, esta passada despeja os valores que essas colunas de fato
+assumem para as empresas de saúde e educação. Classificar a partir do nome da
+coluna é a mesma armadilha de escrever parser a partir da documentação.
+"""
+
+VLMO_DIR = 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/VLMO/DADOS/'
+DIAG_VLMO = os.path.join(HERE, 'diagnostico_vlmo.json')
+
+# Universo saúde + educação. Padrões conferidos contra a lista de 168 empresas do
+# tracker; a descoberta devolve quais casaram e sob que razão social.
+SETOR_ALVO = {
+ 'saude': [r'hapvida', r'rede d.?or', r'qualicorp', r'oncocl', r'mater dei', r'dasa|diagn[oó]sticos da am',
+           r'blau', r'hypera', r'viveo|cm hospitalar', r'raia drogasil', r'pague menos|empreendimentos pague',
+           r'dimed|panvel', r'fleury', r'odontoprev|brads', r'alliar|centro de imagem', r'porto sa[uú]de',
+           r'kora', r'smart ?fit'],
+ 'educacao': [r'cogna', r'yduqs|estacio', r'[âa]nima', r'ser educacional', r'vitru', r'cruzeiro do sul',
+              r'vasta|somos educa', r'arco educa'],
+}
+
+
+def acao_vlmo_descobrir(ano=None, limite_linhas=400000):
+    ano = ano or datetime.date.today().year
+    saida = {'gerado_em': datetime.date.today().isoformat(), 'ano': ano, 'dir': VLMO_DIR}
+    pad = {s: [re.compile(p, re.I) for p in ps] for s, ps in SETOR_ALVO.items()}
+
+    try:
+        itens = _listar_cvm(VLMO_DIR)
+        alvo = [i for i in itens if re.search(rf'vlmo_cia_aberta_{ano}\.(zip|csv)$', i, re.I)][0]
+    except Exception as e:
+        saida['erro'] = f'{type(e).__name__}: {e}'
+        json.dump(saida, open(DIAG_VLMO, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        print('  ', saida['erro']); return saida
+
+    destino = os.path.join(CACHE, 'cvm', alvo)
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    if os.path.exists(destino):
+        os.remove(destino)          # o arquivo do ano corrente cresce
+    print(f'    baixando {alvo} …', flush=True)
+    r = requests.get(urljoin(VLMO_DIR, alvo), headers=CAB_CVM, timeout=(30, 600), stream=True)
+    r.raise_for_status()
+    with open(destino, 'wb') as f:
+        for c in r.iter_content(1 << 20):
+            f.write(c)
+
+    with zipfile.ZipFile(destino) as z:
+        nome = [n for n in z.namelist() if '_con_' in n and n.endswith('.csv')][0]
+        saida['arquivo'] = nome
+        bruto = z.read(nome)
+
+    meta = _amostra_csv(bruto[:1 << 18], nome)
+    enc, sep = meta.get('codificacao', 'latin-1'), meta.get('separador', ';')
+    saida['colunas'] = meta['colunas']
+
+    import csv as _csv
+    texto = bruto.decode(enc, 'replace').splitlines()
+    leitor = _csv.DictReader(texto, delimiter=sep)
+    dist = {c: {} for c in ('Tipo_Empresa', 'Tipo_Cargo', 'Tipo_Movimentacao',
+                            'Tipo_Operacao', 'Tipo_Ativo', 'Caracteristica_Valor_Mobiliario')}
+    empresas, linhas, n = {}, [], 0
+    for ln in leitor:
+        n += 1
+        if n > limite_linhas:
+            break
+        for c in dist:
+            v = (ln.get(c) or '').strip()
+            if v:
+                dist[c][v] = dist[c].get(v, 0) + 1
+        nome_cia = _nome_simples(ln.get('Nome_Companhia') or '')
+        setor = next((s for s, ps in pad.items() if any(p.search(nome_cia) for p in ps)), None)
+        if not setor:
+            continue
+        chave = (ln.get('Nome_Companhia') or '').strip()
+        e = empresas.setdefault(chave, {'setor': setor, 'cnpj': (ln.get('CNPJ_Companhia') or '').strip(),
+                                        'linhas': 0, 'cargos': {}, 'operacoes': {}})
+        e['linhas'] += 1
+        for col, balde in (('Tipo_Cargo', 'cargos'), ('Tipo_Operacao', 'operacoes')):
+            v = (ln.get(col) or '').strip()
+            if v:
+                e[balde][v] = e[balde].get(v, 0) + 1
+        if len(linhas) < 25:
+            linhas.append({k: (ln.get(k) or '').strip() for k in
+                           ('Nome_Companhia', 'Data_Referencia', 'Tipo_Empresa', 'Tipo_Cargo',
+                            'Tipo_Movimentacao', 'Tipo_Operacao', 'Data_Movimentacao',
+                            'Quantidade', 'Preco_Unitario', 'Volume')})
+    saida['linhas_lidas'] = n
+    saida['valores_distintos'] = {c: dict(sorted(v.items(), key=lambda x: -x[1])[:14])
+                                  for c, v in dist.items()}
+    saida['empresas'] = dict(sorted(empresas.items(), key=lambda x: -x[1]['linhas']))
+    saida['amostra'] = linhas
+    json.dump(saida, open(DIAG_VLMO, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(f'\n  VLMO {ano}: {n:,} linhas lidas, {len(empresas)} empresas de saúde/educação'
+          .replace(',', '.'))
+    for k, e in list(saida['empresas'].items())[:14]:
+        print(f"   {k[:42]:<42} {e['setor']:<9} {e['linhas']:>5} mov · "
+              f"{', '.join(list(e['cargos'])[:3])}")
+    return saida
+
+
 def _cli():
     import argparse
     ap = argparse.ArgumentParser(description='Atualiza o Healthcare Database Dashboard.')
@@ -4231,6 +4336,8 @@ def _cli():
                     help='mapeia o schema das bases da ANS que ainda não têm coletor')
     ap.add_argument('--releases-descobrir', action='store_true',
                     help='mapeia o que a CVM publica das listadas (não grava número)')
+    ap.add_argument('--vlmo-descobrir', action='store_true',
+                    help='despeja os valores reais das colunas do VLMO para saúde e educação')
     ap.add_argument('--cvm-descobrir', action='store_true',
                     help='mapeia os conjuntos da CVM que podem ter insider e recompra')
     ap.add_argument('--ri-referencia', action='store_true',
@@ -4251,6 +4358,9 @@ def _cli():
 
     if getattr(a, 'releases_documentos', False):
         acao_releases_documentos(); return
+
+    if getattr(a, 'vlmo_descobrir', False):
+        acao_vlmo_descobrir(); return
 
     if getattr(a, 'cvm_descobrir', False):
         acao_cvm_descobrir(); return

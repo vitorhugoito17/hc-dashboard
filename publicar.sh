@@ -6,7 +6,7 @@ git config user.email actions@github.com
 
 for f in dados.json agregado_ans.json cnes_map.json diagnostico_cnes.json \
          diagnostico_cnj.json diagnostico_fontes.json diagnostico_leitos_uf.json diagnostico_nip.json \
-         diagnostico_releases.json diagnostico_cvm.json \
+         diagnostico_releases.json diagnostico_cvm.json diagnostico_vlmo.json \
          Healthcare_Database_Dashboard.html; do
   if [ -f "$f" ]; then git add "$f"; fi
 done
