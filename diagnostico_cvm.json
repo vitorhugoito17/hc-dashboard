@@ -1,0 +1,478 @@
+{
+ "gerado_em": "2026-09-11",
+ "raiz": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/",
+ "pastas": [
+  "CGVN/",
+  "DFP/",
+  "FCA/",
+  "FRE/",
+  "IPE/",
+  "ITR/",
+  "VLMO/"
+ ],
+ "candidatos": [
+  "FRE/",
+  "IPE/",
+  "VLMO/"
+ ],
+ "detalhe": {
+  "FRE": {
+   "dir": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/FRE/DADOS/",
+   "arquivos": [
+    "fre_cia_aberta_2021.zip",
+    "fre_cia_aberta_2022.zip",
+    "fre_cia_aberta_2023.zip",
+    "fre_cia_aberta_2024.zip",
+    "fre_cia_aberta_2025.zip",
+    "fre_cia_aberta_2026.zip"
+   ],
+   "n_arquivos": 17,
+   "amostrado": "fre_cia_aberta_2026.zip",
+   "bytes_lidos": 8102234,
+   "membros": [
+    "fre_cia_aberta_2026.csv",
+    "fre_cia_aberta_acao_entregue_2026.csv",
+    "fre_cia_aberta_administrador_declaracao_genero_2026.csv",
+    "fre_cia_aberta_administrador_declaracao_raca_2026.csv",
+    "fre_cia_aberta_administrador_membro_conselho_fiscal_2026.csv",
+    "fre_cia_aberta_administrador_PCD_2026.csv",
+    "fre_cia_aberta_auditor_2026.csv",
+    "fre_cia_aberta_capital_social_2026.csv",
+    "fre_cia_aberta_capital_social_classe_acao_2026.csv",
+    "fre_cia_aberta_capital_social_titulo_conversivel_2026.csv",
+    "fre_cia_aberta_distribuicao_capital_2026.csv",
+    "fre_cia_aberta_distribuicao_capital_classe_acao_2026.csv"
+   ],
+   "tabelas": [
+    {
+     "arquivo": "fre_cia_aberta_2026.csv",
+     "codificacao": "latin-1",
+     "separador": ";",
+     "colunas": [
+      "CNPJ_CIA",
+      "DT_REFER",
+      "VERSAO",
+      "DENOM_CIA",
+      "CD_CVM",
+      "CATEG_DOC",
+      "ID_DOC",
+      "DT_RECEB",
+      "LINK_DOC"
+     ],
+     "amostra": [
+      [
+       "00.000.000/0001-91",
+       "2026-12-31",
+       "1",
+       "BCO BRASIL S.A.",
+       "001023",
+       "FRE WEB",
+       "158239",
+       "2026-05-29",
+       "http://www.rad.cvm.gov.br/ENETCONSULTA/frmDownloadDocumento.aspx?CodigoInstituicao=1&NumeroSequencialDocumento=158239"
+      ],
+      [
+       "00.000.000/0001-91",
+       "2026-12-31",
+       "2",
+       "BCO BRASIL S.A.",
+       "001023",
+       "FRE WEB",
+       "158931",
+       "2026-06-03",
+       "http://www.rad.cvm.gov.br/ENETCONSULTA/frmDownloadDocumento.aspx?CodigoInstituicao=1&NumeroSequencialDocumento=158931"
+      ],
+      [
+       "00.000.000/0001-91",
+       "2026-12-31",
+       "3",
+       "BCO BRASIL S.A.",
+       "001023",
+       "FRE WEB",
+       "159463",
+       "2026-07-10",
+       "http://www.rad.cvm.gov.br/ENETCONSULTA/frmDownloadDocumento.aspx?CodigoInstituicao=1&NumeroSequencialDocumento=159463"
+      ]
+     ]
+    },
+    {
+     "arquivo": "fre_cia_aberta_acao_entregue_2026.csv",
+     "codificacao": "latin-1",
+     "separador": ";",
+     "colunas": [
+      "CNPJ_Companhia",
+      "Data_Referencia",
+      "Versao",
+      "ID_Documento",
+      "Nome_Companhia",
+      "Data_Inicio_Exercicio_Social",
+      "Data_Fim_Exercicio_Social",
+      "Orgao_Administracao",
+      "Quantidade_Total_Membros",
+      "Quantidade_Membros_Remunerados",
+      "Quantidade_Acoes",
+      "Preco_Medio_Ponderado_Aquisicao",
+      "Preco_Medio_Ponderado_Mercado",
+      "Valor_Diferenca_Aquisicao_Mercado"
+     ],
+     "amostra": [
+      [
+       "00.001.180/0001-26",
+       "2026-12-31",
+       "10",
+       "161111",
+       "AXIA ENERGIA S.A.",
+       "2025-01-01",
+       "2025-12-31",
+       "Conselho de Administração",
+       "9.67",
+       "0.00",
+       "0",
+       "0.00",
+       "0.00",
+       "0.00"
+      ],
+      [
+       "00.001.180/0001-26",
+       "2026-12-31",
+       "10",
+       "161111",
+       "AXIA ENERGIA S.A.",
+       "2025-01-01",
+       "2025-12-31",
+       "Diretoria Estatutária",
+       "11.00",
+       "5.00",
+       "162086",
+       "0.00",
+       "36.68",
+       "-5945314.48"
+      ],
+      [
+       "00.001.180/0001-26",
+       "2026-12-31",
+       "10",
+       "161111",
+       "AXIA ENERGIA S.A.",
+       "2024-01-01",
+       "2024-12-31",
+       "Conselho de Administração",
+       "9.00",
+       "0.00",
+       "0",
+       "0.00",
+       "0.00",
+       "0.00"
+      ]
+     ]
+    },
+    {
+     "arquivo": "fre_cia_aberta_administrador_declaracao_genero_2026.csv",
+     "codificacao": "latin-1",
+     "separador": ";",
+     "colunas": [
+      "CNPJ_Companhia",
+      "Data_Referencia",
+      "Versao",
+      "ID_Documento",
+      "Nome_Companhia",
+      "Orgao_Administracao",
+      "Quantidade_Feminino",
+      "Quantidade_Masculino",
+      "Quantidade_Nao_Binario",
+      "Quantidade_Outros",
+      "Quantidade_Sem_Resposta",
+      "Nao_Aplicavel"
+     ],
+     "amostra": [
+      [
+       "00.000.000/0001-91",
+       "2026-12-31",
+       "6",
+       "160993",
+       "BCO BRASIL S.A.",
+       "Conselho de Administração - Efetivos",
+       "4",
+       "4",
+       "0",
+       "0",
+       "0",
+       "N"
+      ],
+      [
+       "00.000.000/0001-91",
+       "2026-12-31",
+       "6",
+       "160993",
+       "BCO BRASIL S.A.",
+       "Conselho de Administração - Suplentes",
+       "0",
+       "0",
+       "0",
+       "0",
+       "0",
+       "S"
+      ],
+      [
+       "00.000.000/0001-91",
+       "2026-12-31",
+       "6",
+       "160993",
+       "BCO BRASIL S.A.",
+       "Conselho Fiscal - Efetivos",
+       "0",
+       "5",
+       "0",
+       "0",
+       "0",
+       "N"
+      ]
+     ]
+    }
+   ]
+  },
+  "IPE": {
+   "dir": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/",
+   "arquivos": [
+    "ipe_cia_aberta_2021.zip",
+    "ipe_cia_aberta_2022.zip",
+    "ipe_cia_aberta_2023.zip",
+    "ipe_cia_aberta_2024.zip",
+    "ipe_cia_aberta_2025.zip",
+    "ipe_cia_aberta_2026.zip"
+   ],
+   "n_arquivos": 24,
+   "amostrado": "ipe_cia_aberta_2026.zip",
+   "bytes_lidos": 1580463,
+   "membros": [
+    "ipe_cia_aberta_2026.csv"
+   ],
+   "tabelas": [
+    {
+     "arquivo": "ipe_cia_aberta_2026.csv",
+     "codificacao": "latin-1",
+     "separador": ";",
+     "colunas": [
+      "CNPJ_Companhia",
+      "Nome_Companhia",
+      "Codigo_CVM",
+      "Data_Referencia",
+      "Categoria",
+      "Tipo",
+      "Especie",
+      "Assunto",
+      "Data_Entrega",
+      "Tipo_Apresentacao",
+      "Protocolo_Entrega",
+      "Versao",
+      "Link_Download"
+     ],
+     "amostra": [
+      [
+       "00.000.000/0000-00",
+       "JBS FOODS INTERNATIONAL DESIGNATED ACTIVITY COMPAN",
+       "27030",
+       "2026-01-29",
+       "Assembleia",
+       "AGE",
+       "Ata",
+       "Aumento do Capital Social (inciso I, art. 166 da Lei 6404)",
+       "2026-02-05",
+       "AP - Apresentação",
+       "027030IPE290120260106790786-74",
+       "1",
+       "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1473614&numSequencia=998320&numVersao=1"
+      ],
+      [
+       "00.000.000/0000-00",
+       "JBS FOODS INTERNATIONAL DESIGNATED ACTIVITY COMPAN",
+       "27030",
+       "2025-11-28",
+       "Assembleia",
+       "AGE",
+       "Ata",
+       "Aumento do Capital Social (inciso I, art. 166 da Lei 6404)",
+       "2026-02-05",
+       "AP - Apresentação",
+       "027030IPE281120250125152866-63",
+       "1",
+       "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1473615&numSequencia=998321&numVersao=1"
+      ],
+      [
+       "00.000.000/0000-00",
+       "JBS FOODS INTERNATIONAL DESIGNATED ACTIVITY COMPAN",
+       "27030",
+       "2026-06-26",
+       "Assembleia",
+       "AGE",
+       "Ata",
+       "Aprovação do Plano de Opção de Compra de Ações",
+       "2026-07-02",
+       "AP - Apresentação",
+       "027030IPE260620260125210458-41",
+       "1",
+       "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1541126&numSequencia=1065832&numVersao=1"
+      ]
+     ]
+    }
+   ]
+  },
+  "VLMO": {
+   "dir": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/VLMO/DADOS/",
+   "arquivos": [
+    "vlmo_cia_aberta_2021.zip",
+    "vlmo_cia_aberta_2022.zip",
+    "vlmo_cia_aberta_2023.zip",
+    "vlmo_cia_aberta_2024.zip",
+    "vlmo_cia_aberta_2025.zip",
+    "vlmo_cia_aberta_2026.zip"
+   ],
+   "n_arquivos": 9,
+   "amostrado": "vlmo_cia_aberta_2026.zip",
+   "bytes_lidos": 485680,
+   "membros": [
+    "vlmo_cia_aberta_2026.csv",
+    "vlmo_cia_aberta_con_2026.csv"
+   ],
+   "tabelas": [
+    {
+     "arquivo": "vlmo_cia_aberta_2026.csv",
+     "codificacao": "latin-1",
+     "separador": ";",
+     "colunas": [
+      "CNPJ_Companhia",
+      "Nome_Companhia",
+      "Data_Referencia",
+      "Versao",
+      "Codigo_CVM",
+      "Categoria",
+      "Tipo",
+      "Data_Entrega",
+      "Tipo_Apresentacao",
+      "Motivo_Reapresentacao",
+      "Protocolo_Entrega",
+      "Link_Download"
+     ],
+     "amostra": [
+      [
+       "00.000.000/0001-91",
+       "BANCO DO BRASIL S.A.",
+       "2026-01-01",
+       "1",
+       "1023",
+       "Valores Mobiliários negociados e detidos (art. 11 da Instr. CVM nº 358)",
+       "Posição Consolidada",
+       "2026-02-09",
+       "AP - Apresentação",
+       "",
+       "001023IPE010120260101902748-30",
+       "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1475060&numSequencia=999766&numVersao=1"
+      ],
+      [
+       "00.000.000/0001-91",
+       "BANCO DO BRASIL S.A.",
+       "2026-01-01",
+       "2",
+       "1023",
+       "Valores Mobiliários negociados e detidos (art. 11 da Instr. CVM nº 358)",
+       "Posição Consolidada",
+       "2026-03-10",
+       "RE - Reapresentação Espontânea",
+       "Posição da Sra Vanessa Notário, cônjuge do Sr Marcio Roberto Albero, membro do COTEI em razão da posse em 19/01/2026.",
+       "001023IPE010120260279009257-98",
+       "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1487814&numSequencia=1012520&numVersao=2"
+      ],
+      [
+       "00.000.000/0001-91",
+       "BANCO DO BRASIL S.A.",
+       "2026-02-01",
+       "1",
+       "1023",
+       "Valores Mobiliários negociados e detidos (art. 11 da Instr. CVM nº 358)",
+       "Posição Consolidada",
+       "2026-03-10",
+       "AP - Apresentação",
+       "",
+       "001023IPE010220260190787562-46",
+       "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&descTipo=IPE&CodigoInstituicao=1&numProtocolo=1487816&numSequencia=1012522&numVersao=1"
+      ]
+     ]
+    },
+    {
+     "arquivo": "vlmo_cia_aberta_con_2026.csv",
+     "codificacao": "latin-1",
+     "separador": ";",
+     "colunas": [
+      "CNPJ_Companhia",
+      "Nome_Companhia",
+      "Data_Referencia",
+      "Versao",
+      "Tipo_Empresa",
+      "Empresa",
+      "Tipo_Cargo",
+      "Tipo_Movimentacao",
+      "Descricao_Movimentacao",
+      "Tipo_Operacao",
+      "Tipo_Ativo",
+      "Caracteristica_Valor_Mobiliario",
+      "Intermediario",
+      "Data_Movimentacao",
+      "Quantidade",
+      "Preco_Unitario",
+      "Volume"
+     ],
+     "amostra": [
+      [
+       "00.000.000/0001-91",
+       "BANCO DO BRASIL S.A.",
+       "2026-01-01",
+       "1",
+       "Companhia",
+       "BCO BRASIL S.A.",
+       "Controlador ou Vinculado",
+       "Saldo Inicial",
+       "",
+       "Crédito",
+       "Ações",
+       "ON",
+       "",
+       ""
+      ],
+      [
+       "00.000.000/0001-91",
+       "BANCO DO BRASIL S.A.",
+       "2026-01-01",
+       "1",
+       "Companhia",
+       "BCO BRASIL S.A.",
+       "Conselho de Administração ou Vinculado",
+       "Saldo Inicial",
+       "",
+       "Crédito",
+       "Ações",
+       "ON",
+       "",
+       ""
+      ],
+      [
+       "00.000.000/0001-91",
+       "BANCO DO BRASIL S.A.",
+       "2026-01-01",
+       "1",
+       "Companhia",
+       "BCO BRASIL S.A.",
+       "Diretor ou Vinculado",
+       "Saldo Inicial",
+       "",
+       "Crédito",
+       "Ações",
+       "ON",
+       "",
+       ""
+      ]
+     ]
+    }
+   ]
+  }
+ }
+}
