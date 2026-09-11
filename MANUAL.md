@@ -88,6 +88,7 @@ que o próprio GitHub injeta na execução. Não coloque token, senha ou chave l
 | `agregado_ans.json` | Memória do mês anterior, usada para encadear as séries por variação. |
 | `cnes_map.json` | O casamento entre as 166 unidades do dashboard e os códigos do CNES. |
 | `diagnostico_*.json` | O que cada coletor viu, conferiu e recusou na última rodada. |
+| `diagnostico_releases.json` | O que a CVM publica das listadas, o que foi aberto e o que a extração aceitou ou recusou. |
 | `index.html` | Redirecionamento, para o endereço curto do Pages abrir o dashboard. |
 | `.nojekyll` | Diz ao Pages para servir os arquivos como estão, sem processar. |
 
@@ -106,7 +107,9 @@ rede corporativa bloquear o GitHub, ele simplesmente continua com a embutida.
 - vazio → rodada completa (IPCA, beneficiários da ANS, leitos do CNES, NIP, CNJ);
 - `nip` → só reclamações;
 - `cnj` → só judicialização;
-- `explorar` → só mapeia o schema das fontes que ainda não têm coletor.
+- `explorar` → só mapeia o schema das fontes que ainda não têm coletor;
+- `releases` → só a camada de RI: acha os releases das listadas na CVM, abre os
+  PDFs, tenta extrair os números e regrava a aba *Listadas × ANS*.
 
 Há ainda `refazer` (reprocessa uma competência da ANS, formato `AAAAMM`) e `descobrir`
 (refaz o mapa unidade → CNES).
@@ -123,6 +126,50 @@ das vezes é o robô se recusando a inventar. Vá no diagnóstico antes de mexer
 **Quando ficar preocupado.** Se passarem dois meses sem o `dados.json` mudar, abra a
 aba Actions e veja se as execuções estão acontecendo. GitHub desativa workflow agendado
 em repositório sem atividade por 60 dias — basta um commit qualquer para reativar.
+
+---
+
+## 4.5. A camada de RI — Listadas × ANS
+
+A aba **Listadas × ANS** compara o número que a companhia aberta publica no release
+com a linha correspondente do cadastro da ANS, na mesma competência. Médico contra
+médico, odonto contra odonto — nunca consolidado contra recorte, que é o erro fácil
+aqui e já custou uma rodada.
+
+**Como o release é achado.** Não por site de RI. Toda companhia aberta protocola na
+CVM, e a CVM publica o índice desses protocolos em dados abertos (IPE). O robô lê esse
+índice, filtra pelas registrantes que interessam e pega o documento de tipo
+`Press-release` mais recente. É um índice só, estável, para todas as empresas —
+melhor que raspar cinco sites feitos por fornecedores diferentes.
+
+**Quem é comparada com quem.** A decisão de cobertura está em `LISTADAS`, no
+`atualizador.py`:
+
+| Registrante na CVM | Linha da ANS |
+|---|---|
+| REDE D'OR SÃO LUIZ S.A. | SulAmérica (médico e odonto) |
+| BRADSAÚDE S.A. | Bradesco Saúde (médico) · Odontoprev (odonto) |
+| PORTO SAÚDE PARTICIPAÇÕES / PORTO SEGURO | Porto Seguro |
+| HAPVIDA PARTICIPAÇÕES | Hapvida + GNDI |
+| QUALICORP | nenhuma — é corretora, não operadora |
+
+Duas coisas que a descoberta ensinou e que não estavam em lugar nenhum: a **Porto tem
+uma registrante própria de saúde**, mas o release de resultado sai pela holding; e a
+**Odontoprev virou BRADSAÚDE S.A.**, o veículo em que o Bradesco consolidou saúde.
+Quem for mexer nisso confira antes se ainda é assim.
+
+**A referência e o portão.** `REL_REFERENCIA`, no `atualizador.py`, guarda os números
+do 2T26 conferidos documento a documento. Eles são o alvo: o extrator automático só
+pode gravar um trimestre novo depois de, rodando sobre o 2T26, reproduzir aquela
+tabela. Mesma regra do resto da base — o que não se reproduz não entra. Hoje o extrator
+acerta sozinho a Porto; Rede D'Or e Hapvida ele ainda recusa, porque reportam em
+tabela e não em prosa.
+
+**O que esperar do número.** No 2T26 os sete pares ficaram entre −1,8% e +3,2%. A
+dispersão é de perímetro: a companhia consolida o que controla, a ANS conta por
+registro de operadora. O sinal útil não é o nível da diferença, é ela mudar de
+tamanho de um trimestre para o outro — quando muda, alguma coisa mudou de perímetro
+e a série da ANS parou de servir de proxy antecipado.
 
 ---
 
@@ -194,11 +241,36 @@ Peça: *"salve como skill o texto que está no anexo do MANUAL.md do repositóri
 
 ---
 
-## 6. Onde as coisas pararam (agosto de 2026)
+## 6. Onde as coisas pararam (setembro de 2026)
 
 **Automatizado e rodando:** IPCA (IBGE/SIDRA), beneficiários por operadora, região, UF,
 contratação e faixa etária (ANS PDA-024), leitos por hospital (CNES), judicialização
-(painel do CNJ) e reclamações NIP e IGR (ANS).
+(painel do CNJ), reclamações NIP e IGR (ANS), e a captura dos releases das listadas
+na CVM.
+
+**A lição mais cara desta safra, e ela não é de código.** A ANS **revisa competência
+já publicada**. Junho/26 saiu em 05/ago com 53.145.666 — número que na época conferiu
+dígito a dígito com o release — e depois foi revisado para 53.080.809. O robô guardava
+o agregado do mês anterior e comparava o mês novo contra ele; com isso, a adição
+líquida de julho saiu +10,9 mil quando a real era +75,7 mil. **Os dois níveis estavam
+certos; o que não existia era a diferença entre eles.** Erro assim é pior que um
+buraco na série, porque tem cara de fluxo.
+
+Três defesas ficaram no robô por causa disso, e vale não desmontá-las:
+
+1. A competência de referência é **remedida do arquivo bruto** a cada rodada, em vez
+   de reaproveitar o `agregado_ans.json` da rodada anterior.
+2. Quando a remedição mostra que a ANS mexeu no mês anterior, ele **recarimba** aquele
+   mês e registra a revisão em `pda024.revisoes` — a revisão aparece como revisão, não
+   como carteira ganha.
+3. O fluxo (adições líquidas) é medido **ANS contra ANS**, os dois meses na mesma
+   safra, e não pela diferença entre níveis gravados. Só assim ele não muda quando a
+   fonte revisa o passado.
+
+Há ainda `meta.competencias_ans`, a lista das competências que a própria ANS escreveu.
+O recarimbo só vale para elas: os meses anteriores vêm da consolidação de origem, com
+escopo de grupo próprio, e reescrevê-los seria trocar histórico de uma metodologia por
+número de outra.
 
 **Mapeado, com schema conhecido, sem coletor ainda:**
 
@@ -441,6 +513,22 @@ extração é possível, mas quebra quando mudam o layout — assuma manual e di
 - Assumir latin-1. Detecte lendo os primeiros 256 KB.
 - Deixar o coletor seguir com menos arquivos do que devia.
 - Rodar `--auto` sem que a flag exista no parser real do CLI.
+- Comparar dois meses de **safras diferentes** e chamar a diferença de fluxo. Se a
+  fonte revisa o passado, meça o fluxo dentro de uma safra só.
+- Normalizar o texto para casar palavra-chave e recortar o trecho **desse mesmo
+  texto**: a função que troca pontuação por espaço transforma "2.498" em "2 498" e
+  "78,1%" em "78 1". Localizar e ler precisam de textos diferentes, alinhados no
+  mesmo índice.
+- Comparar o número consolidado da companhia (saúde + odonto) com o recorte médico da
+  ANS. Deu 128% de "dispersão" que era só soma. Classifique o segmento antes de
+  comparar, e recuse o que vier sem segmento explícito.
+- Adivinhar URL de portal de dados abertos. O IPE da CVM não está em
+  `.../DADOS/ipe_cia_aberta_AAAA.csv`; os arquivos são `.zip`. Liste o diretório.
+- Casar razão social com padrão contendo espaço depois de passar o nome por uma
+  normalização que troca espaço por `_`. Hapvida e Qualicorp casaram porque são uma
+  palavra só; Bradesco, Porto e Rede D'Or não casaram e o diagnóstico veio vazio.
+- Reprocessar um mês do meio da série sem travar o selo do topo: ele andava para trás
+  e o cabeçalho passava a anunciar competência velha.
 
 ## Entrega
 
